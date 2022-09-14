@@ -3,7 +3,7 @@
 ## LLVM
 ---
 
-<a href="https://llvm.org/docs/tutorial/index.html">llvm.org/docs/tutorial/index.html</a>
+tutorial: <a href="https://llvm.org/docs/tutorial/index.html">llvm.org/docs/tutorial/index.html</a>
 
 <br><br>
 
