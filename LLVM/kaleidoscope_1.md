@@ -57,3 +57,26 @@ static double NumVal;             // Filled in if tok_number
 
 <br>
 
+토큰이 만약 식별자라면 IdentifierStr 변수에 저장되고, 1.0 같은 숫자형이라면 NumVal 변수에 저장된다.
+
+토큰이 '+' 같은 값이라면 unknown이 된다.
+
+즉, 렉서에서 반환하는 각각의 토큰들은 토큰의 enum 값 중 하나가 되거나 unknown이 되어 ascii 값을 반환하게 된다.
+
+실제로는 gettok() 함수를 통해 구현된다고 한다.
+
+<br>
+
+```c
+/// gettok - Return the next token from standard input.
+static int gettok() {
+  static int LastChar = ' ';
+
+  // Skip any whitespace.
+  while (isspace(LastChar))
+    LastChar = getchar();
+```
+
+<br>
+
+공백을 읽지 않고, def, extern 같은 특정 키워드를 읽어낼 줄 알아야 하며, 파일의 끝인지 (EOF), newline인지 carrage return 등을 확인한다.
