@@ -21,7 +21,7 @@ atan2(sin(.4), cos(42))
 
 <br><br>
 
-## Lexter
+## Lexer
 ---
 
 Lexer : <a href="https://coding-groot.tistory.com/17">coding-groot.tistory.com/17</a>
