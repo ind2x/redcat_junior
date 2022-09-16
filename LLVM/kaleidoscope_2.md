@@ -124,8 +124,48 @@ std::unique_ptr<PrototypeAST> LogErrorP(const char *Str) {
 
 <br><br>
 
-## Basic Expression Parsing
+## Binary Expression Parsing
 ---
+
+연산자 같은 경우는 연산자-우선순위 구문 분석을 사용한다고 한다.
+
+우선 우선순위 표가 필요하다.
+
+<br>
+
+```cpp
+/// BinopPrecedence - This holds the precedence for each binary operator that is
+/// defined.
+static std::map<char, int> BinopPrecedence;
+
+/// GetTokPrecedence - Get the precedence of the pending binary operator token.
+static int GetTokPrecedence() {
+  if (!isascii(CurTok))
+    return -1;
+
+  // Make sure it's a declared binop.
+  int TokPrec = BinopPrecedence[CurTok];
+  if (TokPrec <= 0) return -1;
+  return TokPrec;
+}
+
+int main() {
+  // Install standard binary operators.
+  // 1 is lowest precedence.
+  BinopPrecedence['<'] = 10;
+  BinopPrecedence['+'] = 20;
+  BinopPrecedence['-'] = 20;
+  BinopPrecedence['*'] = 40;  // highest.
+  ...
+}
+```
+
+<br>
+
+기본적으로 4개의 연산을 지원하고, 내가 추가할 수 있다.
+
+GetTokPrecedence 함수는 현재 토큰에 대한 우선 순위를 반환하거나, 토큰이 이진 연산자가 아닌 경우 -1을 반환한다.
+
 
 
 
