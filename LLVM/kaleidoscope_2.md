@@ -269,4 +269,56 @@ static std::unique_ptr<ExprAST> ParseExpression() {
 
 ```ParseBinOpRHS```는 위의 쌍 순서를 구문 분석하는 함수이다.
 
+```a+b+(c+d)*e*f+g```으로 보면 ```a```를 ```ParseBinOpRHS```에 전달하고 현재 토큰은 ```+```가 된다.
 
+```ParseBinOpRHS```에 전달된 우선 순위 값은 함수가 먹을 수 있는 최소 연산자 우선 순위라고 한다.
+
+예를 들어, ```[+,x]``` 쌍이 있을 때, ```ParseBinOpRHS```가 40의 우선순위 값이 전달되면 ```+```는 우선순위 값이 20이므로 ```+```를 소비하지 않는다고 한다.
+
+<br>
+
+```cpp
+/// binoprhs
+///   ::= ('+' primary)*
+static std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec,
+                                              std::unique_ptr<ExprAST> LHS) {
+  // If this is a binop, find its precedence.
+  while (1) {
+    int TokPrec = GetTokPrecedence();
+
+    // If this is a binop that binds at least as tightly as the current binop,
+    // consume it, otherwise we are done.
+    if (TokPrec < ExprPrec)
+      return LHS;
+```
+
+<br>
+
+```ParseBinOpRHS```를 보면 현재 토큰의 우선순위 값을 가져온다.
+
+<br><br>
+
+## 결론
+---
+
+사실 제대로 이해한 것 같진 않지만 위의 내용으로 lexer, parser, AST를 구현하여 최소 언어를 정의할 수 있다고 한다.
+
+실행하면 아래와 같이 나온다.
+
+<br>
+
+```cpp
+$ ./a.out
+ready> def foo(x y) x+foo(y, 4.0);
+Parsed a function definition.
+ready> def foo(x y) x+y y;
+Parsed a function definition.
+Parsed a top-level expr
+ready> def foo(x y) x+y );
+Parsed a function definition.
+Error: unknown token when expecting an expression
+ready> extern sin(a);
+ready> Parsed an extern
+ready> ^D
+$
+```
