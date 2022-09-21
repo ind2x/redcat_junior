@@ -5,6 +5,13 @@ lexer를 통해 kaleidoscope parser를 만들어 보고 AST를 정의해본다.
 
 <br><br>
 
+## 참고자료
+---
+
+Lexer, Parser, AST : <a href="https://trumanfromkorea.tistory.com/79">trumanfromkorea.tistory.com/79</a>
+
+<br><br>
+
 ## Abstract Syntax Table (AST)
 ---
 
