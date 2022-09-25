@@ -47,6 +47,16 @@ public:
 
 <br>
 
+Value 클래스는 LLVM에서 정적 단일 할당(SSA) 레지스터 또는 SSA 값을 나타내는 데 사용되는 클래스라고 한다.
+
+SSA란 변수의 값 할당은 한 번만 가능하다는 의미이다.
+
+이 방법이 가장 간단하여 이렇게 한 것이라고 한다.
+
+또한 파서에 있는 LogError와 같은 함수를 사용한다.
+
+<br>
+
 ```cpp
 static LLVMContext TheContext;
 static IRBuilder<> Builder(TheContext);
@@ -73,14 +83,102 @@ NamedValues는 현재 범위에서 정의된 값과 해당 LLVM 표현이 무엇
 
 ## Expression Code generation
 
+```cpp
+Value *NumberExprAST::codegen() {
+  return ConstantFP::get(TheContext, APFloat(Val));
+}
+```
 
+<br>
 
+LLVM IR에서 숫자 상수는 ConstantFP 클래스로 표현되며, 이 클래스는 APFloat의 숫자 값을 내부적으로 유지한다.
 
+APFloat는 임의 정밀도의 부동소수점 상수를 유지하는 기능을 가지고 있다.
 
+이 코드는 기본적으로 ConstantFP를 생성하고 반환한다.
 
+<br>
 
+```cpp
+Value *VariableExprAST::codegen() {
+  // Look this variable up in the function.
+  Value *V = NamedValues[Name];
+  if (!V)
+    LogErrorV("Unknown variable name");
+  return V;
+}
+```
 
+<br>
 
+변수에 대해서는 간단하게 NamedValues에 있는 값을 리턴한다.
+
+<br>
+
+```cpp
+Value *BinaryExprAST::codegen() {
+  Value *L = LHS->codegen();
+  Value *R = RHS->codegen();
+  if (!L || !R)
+    return nullptr;
+
+  switch (Op) {
+  case '+':
+    return Builder.CreateFAdd(L, R, "addtmp");
+  case '-':
+    return Builder.CreateFSub(L, R, "subtmp");
+  case '*':
+    return Builder.CreateFMul(L, R, "multmp");
+  case '<':
+    L = Builder.CreateFCmpULT(L, R, "cmptmp");
+    // Convert bool 0/1 to double 0.0 or 1.0
+    return Builder.CreateUIToFP(L, Type::getDoubleTy(TheContext),
+                                "booltmp");
+  default:
+    return LogErrorV("invalid binary operator");
+  }
+}
+```
+
+<br>
+
+바이너리 연산자는 switch를 통해 구분하여 올바르게 명령을 수행하게 하는데, IRBuilder는 새로 생성된 명령어를 삽입할 위치를 알고 있다고 한다.
+
+필요한 것은 어떤 명령어를 만들 것인지(e.g with CreateFAdd), 어떤 피연산자를 사용할 것인지(L, R)를 지정하고, 생성된 명령어의 이름을 제공하는 것이다.
+
+<br>
+
+```cpp
+Value *CallExprAST::codegen() {
+  // Look up the name in the global module table.
+  Function *CalleeF = TheModule->getFunction(Callee);
+  if (!CalleeF)
+    return LogErrorV("Unknown function referenced");
+
+  // If argument mismatch error.
+  if (CalleeF->arg_size() != Args.size())
+    return LogErrorV("Incorrect # arguments passed");
+
+  std::vector<Value *> ArgsV;
+  for (unsigned i = 0, e = Args.size(); i != e; ++i) {
+    ArgsV.push_back(Args[i]->codegen());
+    if (!ArgsV.back())
+      return nullptr;
+  }
+
+  return Builder.CreateCall(CalleeF, ArgsV, "calltmp");
+}
+```
+
+<br>
+
+함수 호출에 대한 코드생성은 먼저 TheModule(함수와 전역 변수를 포함하는 LLVM 구성체) 에서 해당 함수가 있는지 확인한다.
+
+그 다음 전달할 각 인수를 반복적으로 코딩하고 LLVM 호출 명령을 생성한다.
+
+위 4가지는 Kaleidoscope에서 기본적으로 제공하고, 내가 추가할 수 있다.
+
+<br><br>
 
 
 
