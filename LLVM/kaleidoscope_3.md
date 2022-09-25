@@ -4,6 +4,20 @@
 
 또한 llvm이 어떤 작업을 수행하는지 일부 보여준다.
 
+<br>
+
+검색해본 결과 code generation이란 Intermediate Code를 만드는 단계로 사용자의 코드를 최종적으로는 컴퓨터가 알아들을 수 있는 assembly code로 변환해줘야 한다.
+
+하지만 assembly code는 사용자의 readability가 너무 떨어지고 target machine마다 assembly code도 다르기 때문에 이를 바로 적용하기 위해서는 복잡한 과정을 거쳐야 한다.
+
+그래서 중간 단계의 machine independent code가 필요하였고 이 과정에서 나온 것이 Intermediate Code이다.
+
+즉, 이 Intermediate Code를 만드는 과정이 Intermediate Code generation이고 줄여서 IR이라고 하는 것이라고 한다.
+
+<br>
+
+출처 : <a href="https://talkingaboutme.tistory.com/entry/Compiler-Intermediate-Code-Generation-실습">talkingaboutme.tistory.com/entry/Compiler-Intermediate-Code-Generation-실습</a>
+
 <br><br>
 
 ## Code Generation Setup
