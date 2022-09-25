@@ -180,5 +180,19 @@ Value *CallExprAST::codegen() {
 
 <br><br>
 
+## Function Code Generation
+
+마지막 부분에서 extern이 def보다 우선순위가 높다고 하는데, 이 과정에서 발생되는 문제점으로 중복 함수명을 처리할 때 에러가 발생한다.
+
+<br>
+
+```cpp
+extern foo(a);     # ok, defines foo.
+def foo(b) b;      # Error: Unknown variable name. (decl using 'a' takes precedence).
+```
+
+<br>
+
+해결 방법은 여러가지라..
 
 
