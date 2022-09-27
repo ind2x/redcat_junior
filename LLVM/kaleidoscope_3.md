@@ -195,4 +195,70 @@ def foo(b) b;      # Error: Unknown variable name. (decl using 'a' takes precede
 
 해결 방법은 여러가지라..
 
+그니까 기존에 extern으로 선언된 함수의 이름과 같은 이름으로 함수를 선언할 때 인자값이 다르면 unknown 에러가 발생한다.
 
+왜냐하면 ```Function *TheFunction = TheModule->getFunction(Proto->getName());``` 이 코드에서 기존의 ```extern foo(a)``` 함수가 있었기 때문에 이를 가져오게 된다.
+
+NamedValue에 있던 값을 clear 한 후 다시 저장을 하는데, 이때 TheFunction 은 ```extern foo(a)```의 foo 이므로 저장되는 값은 a가 된다.
+
+따라서 ```def foo(b) b;```의 b 인자는 저장되어 있지 않아서 에러가 발생하는 것이다.
+
+코드를 못짜겠어서 성우님꺼를 가져왔다.
+
+<br>
+
+```cpp
+Function *FunctionAST::codegen()
+{
+    Function *TheFunction = TheModule->getFunction(Proto->getName()); 
+    // parse func name
+
+    if(!TheFunction) { TheFunction = Proto->codegen(); }
+
+    if(!TheFunction) { return nullptr; }
+
+    BasicBlock *BB = BasicBlock::Create(*TheContext, "Entry", TheFunction);
+    Builder->SetInsertPoint(BB);
+
+    NamedValues.clear();
+    
+    /* 추가된 코드
+    
+    unsigned Idx = 0;
+    for (auto ProtoBegin = Proto->Args.begin(), ProtoEnd = Proto->Args.end();
+        ProtoBegin != ProtoEnd; ++ProtoBegin) {
+        TheFunction->getArg(Idx)->setName(*ProtoBegin);
+    }
+    
+    */
+    
+    for(auto &Arg : TheFunction->args())
+    {
+        NamedValues[std::string(Arg.getName())] = &Arg;
+    }
+
+    if(Value *RetVal = Body->codegen())
+    {
+        Builder->CreateRet(RetVal);
+
+        verifyFunction(*TheFunction);
+
+        return TheFunction;
+    }
+
+    TheFunction->eraseFromParent();
+    return nullptr;
+}
+```
+
+<br>
+
+코드를 생각해보자면 이제 ```Function *TheFunction = TheModule->getFunction(Proto->getName());``` 이 코드로 넘어온 Proto는 분명하게 ```def foo(b) b;```이다.
+
+즉,```Name=foo, Arg = b```가 저장되어 있다.
+
+하지만 TheFunction이 가리키는 값은 기존의 ```extern foo(a);```의 foo이다.
+
+그래서 성우님이 추가한 코드를 보면은 전달된 Proto의 인자 값들을 TheFunction의 arg에 저장해주는 듯하다.
+
+그래서 def에서 사용한 인자 b가 저장이 될테고, 그대로 for문을 통해 Arg를 통해 전달받아서 NamedValues에 저장이 되는 것 같다.
