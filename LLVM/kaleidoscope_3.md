@@ -208,6 +208,21 @@ NamedValue에 있던 값을 clear 한 후 다시 저장을 하는데, 이때 The
 <br>
 
 ```cpp
+    class PrototypeAST {
+        std::string Name;
+        // std::vector<std::string> Args;
+
+        public:
+            std::vector<std::string> Args; // set Args to public member for access
+            PrototypeAST(const std::string &Name, std::vector<std::string> Args) : Name(Name), Args(std::move(Args)) {}
+
+            Function *codegen();
+
+            const std::string &getName() const { return Name; }
+            
+    };
+
+
 Function *FunctionAST::codegen()
 {
     Function *TheFunction = TheModule->getFunction(Proto->getName()); 
