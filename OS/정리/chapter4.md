@@ -65,3 +65,14 @@ BIOS가 저장 매체의 MBR이 부트로더인지 판단하는 방법은 MBR 51
 <br>
 
 우리가 만들 OS의 디렉토리는 이렇게 생겼다.
+
+<br>
+
+간단한 부트로더를 만든 결과
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/192797676-5015e4b5-0722-434f-a1d5-5d544b7de7c2.png)
+
+<br>
+
