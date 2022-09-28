@@ -1,6 +1,9 @@
 # 64비트 프로세스의 이모저모
 
 ## 운영모드
+---
+
+<br>
 
 ![image](https://user-images.githubusercontent.com/52172169/192705549-43e0824d-c4b9-40b0-b5c6-f1f7592563a0.png)
 
