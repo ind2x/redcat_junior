@@ -102,9 +102,9 @@ PC 부팅 후 디폴트 화면 모드는 텍스트 모드로, 화면 크기는 �
 
 더 나아가 각각 최상위 비트는 화면깜빡임이나 강조 효과를 나타내는데 사용하며, 나머지 3비트는 색을 나타낸다.
 
-이 최상위 비트는 비디오 컨트롤러의 속성 모드 제어 레지스터의 값에 따라 결정되는데, 레지스터 값이 1이면 깜빡임을, 0이면 배경색 강조 효과가 된다.
+속성값의 최상위 비트(배경색 강조 또는 깜빡임)는 비디오 컨트롤러의 속성 모드 제어 레지스터의 값에 따라 결정된다.
 
-qemu는 기본적으로 0으로 설정되어 있다고 한다.
+레지스터 값이 1이면 깜빡임을, 0이면 배경색 강조 효과가 된다. qemu는 기본적으로 0으로 설정되어 있다고 한다.
 
 <br>
 
@@ -142,11 +142,145 @@ mov byte [0x01], 0x4A
 
 ![image](https://user-images.githubusercontent.com/52172169/192928281-1332dc10-e791-44b2-8b12-f6bb5cb1318c.png)
 
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
+
+## 세그먼트 레지스터 초기화 
+
 <br>
 
+문자를 출력하는 코드 이전에 세그먼트 레지스터를 초기화해줘야 한다.
+
+초기화 하지 않으면 이전에 BIOS가 쓰던 값이 들어있으므로 엉뚱한 주소에 접근하게 될 수 있다.
+
+<br>
+
+BIOS가 부트로더를 메모리로 복사하는데, 그 주소는 ```0x7C00```이며, 부트로더의 CS와 DS는 ```0x7C00```에서부터 512바이트 범위에 존재한다.
+
+그래서 세그먼트 레지스터 값을 ```0x7C0```으로 초기화 해줄 것이다. (같은 이유)
+
+단, CS 세그먼트 레지스터는 mov 명령어로는 불가능하므로 jmp 구문을 통해 해줘야 한다.
+
+저자는 CS,DS 레지스터는 ```0x7C00```으로 초기화해주고, ES 레지스터는 화면 출력 레지스터로 사용하고자 비디오 메모리 주소로 초기화하였다.
+
+<br>
+
+```asm
+[ORG 0x00]
+[BITS 16]
+
+SECTION .text
+
+jmp 0x07C0:START
+
+START:
+    mov ax, 0x07C0
+    mov ds, ax
+
+    mov ax, 0xB800
+    mov es, ax
+
+mov byte [ es: 0x00 ], 'M'
+mov byte [ es: 0x01 ], 0x4A
+
+jmp $
+
+times 510 - ($ - $$)    db  0x00
+
+db 0x55
+db 0xAA
+```
+
+<br>
+
+우리는 es 레지스터를 화면 출력 관련 레지스로 사용할 것이므로 es 레지스터를 사용한다고 명시를 해준 것이다.
+
+별다른 명시가 없다면 ds 레지스터를 사용하게 된다.
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
+
+## 화면정리 및 부팅메시지 출력
+
+<br>
+
+가장 간단한 방법은 ```0xB8000```부터 ```80 * 25 * 2 = 4000 byte```를 모두 0으로 채우는 것이지만, 다음에 화면에 출력해줄 땐 속성값을 지정해줘야 하므로 문자값만 0으로 바꿔줘야 한다.
+
+저자는 검은 배경에 강조된 녹색 글씨로 표현하고자 해서 ```0x0A (0000 1010)```로 설정해준다.
+
+<br>
+
+핵심은 화면정리를 해줄 때는 문자값만 0으로 초기화해주면 된다는 점과 속성값은 사용자 맘대로 원하는 값으로 해주면 된다.
+
+또한 부팅메시지를 출력하고자 하면 화면정리를 한 상태에서 문자값에 내가 출력해줄 문자를 넣어주면 되는 것이다.
+
+물론 일일이 해주기에는 힘드니까 먼저 C로 코드를 짠 다음, 어셈블리어로 된 object 파일로 변환하기 위해 컴파일을 해준 후 (```gcc -c a.c -o a.o -O2```) objdump로 체크하면 된다.
+
+<br>
+
+최종적인 화면정리 어셈블리 코드와 문자 출력 어셈블리 코드는 아래와 같이 나온다.
+
+<br>
+
+```asm
+[ORG 0x00]
+[BITS 16]
+
+SECTION .text
+
+jmp 0x07C0:START
+
+START:
+    mov ax, 0x07C0
+    mov ds, ax
+
+    mov ax, 0xB800
+    mov es, ax
+
+mov si, 0
+
+.SCREENCLEARLOOP:
+    mov byte [ es: si ], 0
+    mov byte [ es: si + 1], 0x0A
+
+    add si, 2
+    cmp si, 80*25*2
+
+    jl .SCREENCLEARLOOP
+
+    mov si, 0
+    mov di, 0
+
+.MESSAGEPRINTLOOP:
+    mov cl, byte [ si + MESSAGE1 ]
+    cmp cl, 0
+    je .MESSAGEEND
+
+    mov byte [ es: di ], cl
+    add si, 1
+    add di, 2
+
+    jmp .MESSAGEPRINTLOOP
+
+.MESSAGEEND:
+    jmp $
+
+MESSAGE1:
+    db 'MINT64 OS Boot Loader Start~!! Success!!', 0
+
+times 510 - ( $ - $$ ) db 0x00
+
+db 0x55
+db 0xAA
+```
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/192952578-d856caf3-ba90-4648-927a-4b11fe04c32b.png)
 
 
-
-
-
-
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
