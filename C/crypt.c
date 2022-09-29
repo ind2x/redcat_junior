@@ -10,25 +10,25 @@
 
 */
 
-#include <stdio.h>
-#include <string.h> // strcpy
-#include <stdlib.h> // exit
-#include <unistd.h> // getopt, stat
-#include <sys/types.h> // stat
-#include <sys/stat.h> // stat
-#include <errno.h> // perror
+#include <stdio.h>      // fopen, fseek, ftell, fread, fclose
+#include <string.h>     // strcpy, memset
+#include <stdlib.h>     // exit, malloc
+#include <unistd.h>     // getopt, stat
+#include <sys/types.h>  // stat
+#include <sys/stat.h>   // stat
+#include <errno.h>      // perror
 
 void help();
 void checkFileOrDir(char *input); // check input is file or dir by stat.st_mode
 
-void processFile(char *input_file, char *output_file); // if input is file, process file
-void readFile(char *input_file);
-void writeFile(char *output_file);
+int checkFileSize(FILE *input_file);
 
+char readFile(FILE *input_file);
+void writeFile(FILE *output_file);
+void processFile(char *input_file, char *output_file); // if input is file, process file
+
+void makeDir(); // make output_dir
 void processDir(char *input_dir, char *output_dir); // if input is dir, process dir
-void makeDir();
-void readDir(char *input_dir);
-void writeDir(char *output_dir);
 
 void encrypt();
 void decrypt();
@@ -92,6 +92,10 @@ int main(int argc, char *argv[])
         processDir(input, output);
     }
 
+    free(input);
+    if(output != NULL) { free(output); }
+    free(algorithm);
+
     return 0;
 }
 
@@ -104,7 +108,7 @@ void help()
     printf("    %-16s   %30s\n","-o <file/directory>","Output File or Directory for save the result");
     printf("    %-16s   %34s\n","-a <algorithm>","Encryption algorithms supported");
     printf("                          [aes128ecb, aes128cbc, aes192ecb, aes192cbc, aes256ecb, aes256cbc, md5, sha1, sha256, sha512]");
-    printf("\n    %-16s %12s\n","-d","Decrypt");
+    printf("\n    %-16s %12s\n","-d","Decrypt only AES");
     printf("    %-16s %12s\n","-v","Verbose");
 }
 
@@ -120,7 +124,7 @@ void checkFileOrDir(char *input)
     }
 
     if(verbose_on) {
-        printf("Input Type: ");
+        printf("> Input Type: ");
     }
 
     switch (sb.st_mode & S_IFMT) {
@@ -128,7 +132,7 @@ void checkFileOrDir(char *input)
             if(verbose_on) 
             { 
                 printf("Directory\n"); 
-                printf("Directory Name: %s\n",input);
+                printf("> Directory Name: %s\n",input);
             }
             dir = 1;
             break;
@@ -136,25 +140,44 @@ void checkFileOrDir(char *input)
             if(verbose_on) 
             { 
                 printf("Regular File\n");
-                printf("File Name: %s\n",input);
+                printf("> File Name: %s\n",input);
             }
             file = 1;
             break;
         default:       
-            printf("WTF is this?\n");
+            printf("> WTF is this?\n");
             break;
     }
+}
+
+int checkFileSize(FILE *input_file)
+{
+    fseek(input_file, 0, SEEK_END);
+    size = ftell(input_file);
+    return size;
+}
+
+void readFile(FILE *input_file)
+{
+    fread()
 }
 
 void processFile(char *input_file, char *output_file)
 {
     FILE *input_content = fopen(input_file, "r+");
     
-    if(input_content == NULL) {
-        fprintf(stderr, "No file!\n");
-        exit(1);
-    }
+    // if(input_content == NULL) {} --> 파일 없으면 stat에서 에러 일으킴
+    
+    int size = checkFileSize(input_file);
+    char *buffer = malloc(size + 1); // alloc buffer[file size]
+    memset(buffer, 0, size + 1);
 
+    readFile(input_content);
+
+    if(verbose_on)
+    {
+        printf("> Plaintext: %s\n", content);
+    }
     // if(!decrypt_on) encrypt(input_content);
     
 }
