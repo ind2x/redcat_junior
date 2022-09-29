@@ -10,7 +10,7 @@
 
 */
 
-#include <stdio.h>      // fopen, fseek, ftell, fread, fclose
+#include <stdio.h>      // fopen, fseek, ftell, fread, fclose, strcasecmp
 #include <string.h>     // strcpy, memset
 #include <stdlib.h>     // exit, malloc
 #include <unistd.h>     // getopt, stat
@@ -19,12 +19,11 @@
 #include <errno.h>      // perror
 
 void help();
+void checkAlgorithm(char *algorithm); // check if algorithm is supported
 void checkFileOrDir(char *input); // check input is file or dir by stat.st_mode
 
-int checkFileSize(FILE *input_file);
+int checkFileSize(FILE *input_file);  // check file size to allocate buffer[file size]
 
-char readFile(FILE *input_file);
-void writeFile(FILE *output_file);
 void processFile(char *input_file, char *output_file); // if input is file, process file
 
 void makeDir(); // make output_dir
@@ -36,6 +35,10 @@ void decrypt();
 int file, dir, decrypt_on, verbose_on;
 char *algorithm = NULL;
 
+typedef struct supportedAlgorithm {
+    char algo[10]; 
+} sAlgorithm;
+
 int main(int argc, char *argv[])
 {
     if(argc < 2) 
@@ -46,7 +49,7 @@ int main(int argc, char *argv[])
 
     int c;
     char *input = NULL, *output = NULL;
-
+    
     while((c = getopt(argc, argv, "hi:o:a:dv")) != -1)
     {
         switch(c)
@@ -82,6 +85,9 @@ int main(int argc, char *argv[])
         help();
         exit(1);
     }
+    
+    checkAlgorithm(algorithm);
+
     checkFileOrDir(input);
 
     if(file) {
@@ -107,9 +113,36 @@ void help()
     printf("    %-16s   %30s\n","-i <file/directory>","Input File or Directory to encrypt");
     printf("    %-16s   %30s\n","-o <file/directory>","Output File or Directory for save the result");
     printf("    %-16s   %34s\n","-a <algorithm>","Encryption algorithms supported");
-    printf("                          [aes128ecb, aes128cbc, aes192ecb, aes192cbc, aes256ecb, aes256cbc, md5, sha1, sha256, sha512]");
-    printf("\n    %-16s %12s\n","-d","Decrypt only AES");
+    printf("                          [AES128ECB, AES128CBC, AES192ECB, AES192CBC, AES256ECB, AES256CBC, MD5, SHA1, SHA256, SHA512]");
+    printf("\n    %-16s %21s\n","-d","Decrypt (only AES possible)");
     printf("    %-16s %12s\n","-v","Verbose");
+}
+
+void checkAlgorithm(char *algorithm)
+{
+    sAlgorithm a[] = {
+        {"AES128ECB"}, 
+        {"AES128CBC"}, 
+        {"AES192ECB"}, 
+        {"AES192CBC"}, 
+        {"AES256ECB"}, 
+        {"AES256CBC"}, 
+        {"MD5"}, 
+        {"SHA1"}, 
+        {"SHA256"}, 
+        {"SHA512"}
+    };
+    
+    int check = 0;
+    for(int i=0; i<10; i++)
+    {
+        if(strcasecmp(algorithm, a[i].algo) == 0) 
+            check = 1; 
+    }
+    if(check == 0) {
+        fprintf(stderr, "> Error: This algorithm isn't supported!\n");
+        exit(1);
+    }
 }
 
 void checkFileOrDir(char *input)
@@ -150,36 +183,35 @@ void checkFileOrDir(char *input)
     }
 }
 
-int checkFileSize(FILE *input_file)
+int checkFileSize(FILE *fp)
 {
-    fseek(input_file, 0, SEEK_END);
-    size = ftell(input_file);
+    fseek(fp, 0, SEEK_END); // 파일 끝으로 이동
+    int size = ftell(fp);       // 파일 포인터 현재 위치 얻음
     return size;
-}
-
-void readFile(FILE *input_file)
-{
-    fread()
 }
 
 void processFile(char *input_file, char *output_file)
 {
-    FILE *input_content = fopen(input_file, "r+");
+    FILE *fp = fopen(input_file, "r+");
     
     // if(input_content == NULL) {} --> 파일 없으면 stat에서 에러 일으킴
     
-    int size = checkFileSize(input_file);
+    int size = checkFileSize(fp);
     char *buffer = malloc(size + 1); // alloc buffer[file size]
-    memset(buffer, 0, size + 1);
-
-    readFile(input_content);
+    
+    memset(buffer, 0, size + 1);    // 0으로 초기화
+    fseek(fp, 0, SEEK_SET); // 파일 처음으로 이동
+    fread(buffer, size, 1, fp);
+    fclose(fp);
 
     if(verbose_on)
     {
-        printf("> Plaintext: %s\n", content);
+        printf("> File Size: %d\n",size);
+        printf("> Plaintext: %s\n", buffer);
     }
     // if(!decrypt_on) encrypt(input_content);
     
+    free(buffer);
 }
 
 void processDir(char *input_dir, char *output_dir)
