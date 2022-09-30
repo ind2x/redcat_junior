@@ -150,7 +150,7 @@ void checkFileOrDir(char *input)
             file = 1;
             break;
         default:       
-            printf("> WTF is this?\n");
+            printf("> Error: Input File or Directory!\n");
             break;
     }
 }
