@@ -234,7 +234,7 @@ void processFile(char *input_file, char *output_file)
     
     if(strncmp(algorithm, "aes", 3) == 0)
     {
-        if(!decrypt_on) {
+        if(decrypt_on) {
             //decryptAES(buffer, output_file, size);
             printf("> Decrypt\n");
         }
