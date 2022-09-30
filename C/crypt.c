@@ -12,8 +12,8 @@
 
 */
 
-#include <stdio.h>      // fopen, fseek, ftell, fread, fclose, strcasecmp
-#include <string.h>     // strcpy, memset
+#include <stdio.h>      // fopen, fseek, ftell, fread, fclose, sprintf
+#include <string.h>     // strcpy, strncat, memset
 #include <stdlib.h>     // exit, malloc
 #include <unistd.h>     // getopt, stat
 #include <sys/types.h>  // stat
@@ -22,7 +22,6 @@
 #include <openssl/evp.h> // EVP_MD_CTX, EVP_CIPHER_CTX
 
 void help();
-void checkAlgorithm(char *algorithm); // check if algorithm is supported
 void checkFileOrDir(char *input); // check input is file or dir by stat.st_mode
 
 int checkFileSize(FILE *input_file);  // check file size to allocate buffer[file size]
@@ -32,6 +31,7 @@ void processFile(char *input_file, char *output_file); // if input is file, proc
 void makeDir(); // make output_dir
 void processDir(char *input_dir, char *output_dir); // if input is dir, process dir
 
+void makeDigest(char *plaintext, char *outputFile, int FileSize);
 //void encryptAES(char *buffer, char *output, int size);
 //void decryptAES(char *buffer, char *output, int size);
 
@@ -85,8 +85,6 @@ int main(int argc, char *argv[])
         exit(1);
     }
     
-    checkAlgorithm(algorithm);
-
     checkFileOrDir(input);
 
     if(file) {
@@ -113,7 +111,7 @@ void help()
     printf("    %-16s   %30s\n","-o <file/directory>","Output File or Directory for save the result");
     printf("    %-16s   %34s\n","-a <algorithm>","Encryption algorithms supported");
     printf("                          [AES128ECB, AES128CBC, AES192ECB, AES192CBC, AES256ECB, AES256CBC, MD5, SHA1, SHA256, SHA512]");
-    printf("\n    %-16s %21s\n","-d","Decrypt (only AES possible)");
+    printf("\n    %-16s %32s\n","-d","Decrypt (only AES possible)");
     printf("    %-16s %12s\n","-v","Verbose");
 }
 
@@ -168,6 +166,7 @@ void makeDigest(char *plaintext, char *outputFile, int FileSize)
     const EVP_MD *md;
     unsigned char digestMessage[EVP_MAX_MD_SIZE];
     unsigned int dM_len;
+    char HexDigestMessage[EVP_MAX_MD_SIZE] = "";
 
 
     md = EVP_get_digestbyname(algorithm);
@@ -180,11 +179,18 @@ void makeDigest(char *plaintext, char *outputFile, int FileSize)
     EVP_DigestInit_ex(mdctx, md, NULL);
     EVP_DigestUpdate(mdctx, plaintext, FileSize);
     EVP_DigestFinal_ex(mdctx, digestMessage, &dM_len);
-    EVP_MD_CTX_free(mdctx);
 
+    for(int i=0; i<dM_len; i++)  // make binary value to hex
+    {
+        char dM[3];
+        sprintf(dM, "%02x",digestMessage[i]);
+        strncat(HexDigestMessage, dM, 2);
+    }
+
+    
     if(outputFile == NULL) 
     {
-        printf("> Result: %s\n",digestMessage);
+        printf("> Result: %s\n",HexDigestMessage);
         if(verbose_on) {
             printf("> Length: %d\n", dM_len);
         }
@@ -192,10 +198,14 @@ void makeDigest(char *plaintext, char *outputFile, int FileSize)
     else
     {
         FILE *fp = fopen(outputFile, "w+");
-        fwrite(digestMessage, 1, dM_len, fp);
+        fwrite(HexDigestMessage, 1, dM_len*2, fp);
         fclose(fp);
     }
+    
+    EVP_MD_CTX_free(mdctx);
 }
+
+
 
 void processFile(char *input_file, char *output_file)
 {
@@ -220,10 +230,12 @@ void processFile(char *input_file, char *output_file)
     if(strncmp(algorithm, "aes", 3) == 0)
     {
         if(!decrypt_on) {
-            decryptAES(buffer, output_file, size);
+            //decryptAES(buffer, output_file, size);
+            printf("> Decrypt\n");
         }
         else { 
-            encryptAES(buffer, output_file, size);
+            //encryptAES(buffer, output_file, size);
+            printf("> Encrypt\n");
         }
     }
     else {
