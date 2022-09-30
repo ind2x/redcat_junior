@@ -104,14 +104,15 @@ int main(int argc, char *argv[])
 
 void help()
 {
-    printf("Usage: ./crypt -i <Input> -o <Output> -<algorithm>\n");
+    printf("Usage: ./crypt -i <Input> -a <algorithm> [OPTIONS]\n");
     printf("\nOPTIONS: \n");
     printf("    %-16s   %14s\n","-h","Print Usage");
     printf("    %-16s   %30s\n","-i <file/directory>","Input File or Directory to encrypt");
     printf("    %-16s   %30s\n","-o <file/directory>","Output File or Directory for save the result");
     printf("    %-16s   %37s\n","-a <algorithm>","Encrypt file by selected algorithm");
-    printf("                          Support openssl-dgst(no md4), AES-[128|192|256]-[CBC|ECB]");
-    printf("\n    %-16s %32s\n","-d","Decrypt (only AES possible)");
+    printf("                          Support openssl-dgst, AES-[128|192|256]-[CBC|ECB]\n");
+    printf("                          Except md4, ripemd160\n");
+    printf("    %-16s %32s\n","-d","Decrypt (only AES possible)");
     printf("    %-16s %12s\n","-v","Verbose");
 }
 
