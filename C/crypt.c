@@ -8,6 +8,8 @@
 
 + 디렉토리 전체 암호화 / 복호화 지원
 
++ 추가 구현 사항 -> 디렉토리 암호화 시 쓰레드로  속도 향상
+
 */
 
 #include <stdio.h>      // fopen, fseek, ftell, fread, fclose, strcasecmp
@@ -17,6 +19,7 @@
 #include <sys/types.h>  // stat
 #include <sys/stat.h>   // stat
 #include <errno.h>      // perror
+#include <openssl/evp.h> // EVP_MD_CTX, EVP_CIPHER_CTX
 
 void help();
 void checkAlgorithm(char *algorithm); // check if algorithm is supported
@@ -29,15 +32,11 @@ void processFile(char *input_file, char *output_file); // if input is file, proc
 void makeDir(); // make output_dir
 void processDir(char *input_dir, char *output_dir); // if input is dir, process dir
 
-void encrypt();
-void decrypt();
+//void encryptAES(char *buffer, char *output, int size);
+//void decryptAES(char *buffer, char *output, int size);
 
 int file, dir, decrypt_on, verbose_on;
 char *algorithm = NULL;
-
-typedef struct supportedAlgorithm {
-    char algo[10]; 
-} sAlgorithm;
 
 int main(int argc, char *argv[])
 {
@@ -118,33 +117,6 @@ void help()
     printf("    %-16s %12s\n","-v","Verbose");
 }
 
-void checkAlgorithm(char *algorithm)
-{
-    sAlgorithm a[] = {
-        {"AES128ECB"}, 
-        {"AES128CBC"}, 
-        {"AES192ECB"}, 
-        {"AES192CBC"}, 
-        {"AES256ECB"}, 
-        {"AES256CBC"}, 
-        {"MD5"}, 
-        {"SHA1"}, 
-        {"SHA256"}, 
-        {"SHA512"}
-    };
-    
-    int check = 0;
-    for(int i=0; i<10; i++)
-    {
-        if(strcasecmp(algorithm, a[i].algo) == 0) 
-            check = 1; 
-    }
-    if(check == 0) {
-        fprintf(stderr, "> Error: This algorithm isn't supported!\n");
-        exit(1);
-    }
-}
-
 void checkFileOrDir(char *input)
 {
     struct stat sb;
@@ -190,6 +162,41 @@ int checkFileSize(FILE *fp)
     return size;
 }
 
+void makeDigest(char *plaintext, char *outputFile, int FileSize)
+{
+    EVP_MD_CTX *mdctx;
+    const EVP_MD *md;
+    unsigned char digestMessage[EVP_MAX_MD_SIZE];
+    unsigned int dM_len;
+
+
+    md = EVP_get_digestbyname(algorithm);
+    if (md == NULL) {
+        printf("Unknown message digest %s\n", algorithm);
+        exit(1);
+    }
+
+    mdctx = EVP_MD_CTX_new();             // Step 1: Create a Message Digest context
+    EVP_DigestInit_ex(mdctx, md, NULL);
+    EVP_DigestUpdate(mdctx, plaintext, FileSize);
+    EVP_DigestFinal_ex(mdctx, digestMessage, &dM_len);
+    EVP_MD_CTX_free(mdctx);
+
+    if(outputFile == NULL) 
+    {
+        printf("> Result: %s\n",digestMessage);
+        if(verbose_on) {
+            printf("> Length: %d\n", dM_len);
+        }
+    }
+    else
+    {
+        FILE *fp = fopen(outputFile, "w+");
+        fwrite(digestMessage, 1, dM_len, fp);
+        fclose(fp);
+    }
+}
+
 void processFile(char *input_file, char *output_file)
 {
     FILE *fp = fopen(input_file, "r+");
@@ -201,7 +208,7 @@ void processFile(char *input_file, char *output_file)
     
     memset(buffer, 0, size + 1);    // 0으로 초기화
     fseek(fp, 0, SEEK_SET); // 파일 처음으로 이동
-    fread(buffer, size, 1, fp);
+    fread(buffer, 1, size, fp);
     fclose(fp);
 
     if(verbose_on)
@@ -209,12 +216,24 @@ void processFile(char *input_file, char *output_file)
         printf("> File Size: %d\n",size);
         printf("> Plaintext: %s\n", buffer);
     }
-    // if(!decrypt_on) encrypt(input_content);
+    
+    if(strncmp(algorithm, "aes", 3) == 0)
+    {
+        if(!decrypt_on) {
+            decryptAES(buffer, output_file, size);
+        }
+        else { 
+            encryptAES(buffer, output_file, size);
+        }
+    }
+    else {
+        makeDigest(buffer, output_file, size);
+    }
     
     free(buffer);
 }
 
 void processDir(char *input_dir, char *output_dir)
 {
-
+    // not constructed
 }
