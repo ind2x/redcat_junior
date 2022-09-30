@@ -160,39 +160,45 @@ int checkFileSize(FILE *fp)
     return size;
 }
 
+/*
+https://github.com/yuanhui360/CPP-Programming-on-Linux/blob/main/YH-119/evp_digest_disp.cpp
+
+https://m.blog.naver.com/seongjeongki7/220890684562
+*/
 void makeDigest(char *plaintext, char *outputFile, int FileSize)
 {
     EVP_MD_CTX *mdctx;
     const EVP_MD *md;
     unsigned char digestMessage[EVP_MAX_MD_SIZE];
     unsigned int dM_len;
-    char HexDigestMessage[EVP_MAX_MD_SIZE] = "";
 
-
+    OpenSSL_add_all_digests();
     md = EVP_get_digestbyname(algorithm);
     if (md == NULL) {
-        printf("Unknown message digest %s\n", algorithm);
+        printf("> Error: Unknown message digest < %s >\n", algorithm);
         exit(1);
     }
 
-    mdctx = EVP_MD_CTX_new();             // Step 1: Create a Message Digest context
+    mdctx = EVP_MD_CTX_new();
     EVP_DigestInit_ex(mdctx, md, NULL);
-    EVP_DigestUpdate(mdctx, plaintext, FileSize);
+    EVP_DigestUpdate(mdctx, plaintext, FileSize); // no md4
     EVP_DigestFinal_ex(mdctx, digestMessage, &dM_len);
 
-    for(int i=0; i<dM_len; i++)  // make binary value to hex
+    char HexDigestMessage[EVP_MAX_MD_SIZE*2] = "";
+
+    for(int i=0; i < dM_len; i++)  // make binary value to hex
     {
         char dM[3];
         sprintf(dM, "%02x",digestMessage[i]);
         strncat(HexDigestMessage, dM, 2);
     }
-
     
     if(outputFile == NULL) 
     {
+        printf("> Algogrithm: %s\n",algorithm);
         printf("> Result: %s\n",HexDigestMessage);
         if(verbose_on) {
-            printf("> Length: %d\n", dM_len);
+            printf("> Length: %u byte\n", dM_len);
         }
     }
     else
@@ -201,10 +207,9 @@ void makeDigest(char *plaintext, char *outputFile, int FileSize)
         fwrite(HexDigestMessage, 1, dM_len*2, fp);
         fclose(fp);
     }
-    
+
     EVP_MD_CTX_free(mdctx);
 }
-
 
 
 void processFile(char *input_file, char *output_file)
