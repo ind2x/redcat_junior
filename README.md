@@ -20,12 +20,15 @@
 
 + tutorial: <a href="https://llvm.org/docs/tutorial/index.html">llvm.org/docs/tutorial/index.html</a>
 
++ 진행상황 : 3 / 14
+
 <br><br>
 
 ## OS
 
 + Book: 64비트 멀티코어 OS 원리와 구조 1
 
++ 진행상황: 4 / 58
 
 <br><br>
 
@@ -33,3 +36,4 @@
 
 + course: <a href="https://www.coursera.org/learn/build-a-computer">coursera.org/learn/build-a-computer</a>
 
++ 진행상황: 0 / 12
