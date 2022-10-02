@@ -120,7 +120,33 @@ mint64 OS의 이미지는 부트로더, 보호모드 커널, IA-32e 커널로 �
 
 <br>
 
+최종 부트로더 코드를 작성해주면 이제 거의 다 준비가 된 상태이다.
 
+부트로더는 OS이미지를 메모리에 적재하는 역할을 하기 때문에 우리는 가상의 OS 이미지가 필요하다.
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
+
+## 테스트를 위한 가상 OS이미지 생성
+
+<br>
+
+교재를 따라서 작성을 해주면 에러가 발생하는 기이한 현상을 볼 수 있다.
+
+아래의 사이트처럼 나올 것이다.
+
+http://jsandroidapp.cafe24.com/xe/index.php?mid=qna&search_target=title&search_keyword=5%EC%9E%A5&document_srl=11322
+
+<br>
+
+해당 사이트에 해결 방법이 있지만 더 자세히는 http://jsandroidapp.cafe24.com/xe/development/12035에 있다.
+
+따라서 해당 코드 부분을 수정을 해주면 해결된다..
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/193450008-fa922fb4-df12-4cd5-8186-3af143ef35e1.png)
 
 <br><br>
 <hr style="border: 2px solid;">
