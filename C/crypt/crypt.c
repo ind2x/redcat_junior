@@ -1,43 +1,32 @@
-/* 파일 암호화 / 복호화 프로그램 최소요구사항
-
-+ AES 암호화 / 복호화 지원 (CBC, ECB), 비트는 128, 192, 256
-
-+ 해시 지원 -> md5, sha1, sha256, sha512
-
-+ 단일 파일 암호화 / 복호화 지원
-
-+ 디렉토리 전체 암호화 / 복호화 지원
-
-+ 추가 구현 사항 -> 디렉토리 암호화 시 쓰레드로  속도 향상
-
-*/
-
 #include <stdio.h>          // fopen, fseek, ftell, fread, fclose, sprintf
 #include <string.h>         // strcpy, strstr, strcat, strncat, memset
 #include <stdlib.h>         // exit, malloc
 #include <unistd.h>         // getopt, stat
 #include <sys/types.h>      // stat
 #include <sys/stat.h>       // stat
-#include <errno.h>          // perror
+#include <errno.h>          // perror, strerror
 #include <openssl/evp.h>    // EVP_MD_CTX, EVP_CIPHER_CTX
 #include <openssl/conf.h>   // EVP_CIPHER_CTX
 #include <openssl/err.h>    // handleErrors
+#include <sys/stat.h>       // mkdir
+#include <sys/types.h>      // dir functions
+#include <dirent.h>         // DIR, struct dirent, dir functions
 
 void help();
 void checkFileOrDir(char *input); // check input is file or dir by stat.st_mode
 
-void makeDigest(unsigned char *plaintext, char *output, int FileSize);  // hash
+void makeDigest(unsigned char *plaintext, char *output, unsigned int FileSize);  // hash
 
 void handleErrors(void);
-void encryptAES(unsigned char *plaintext, int plaintext_len, unsigned char *key, 
+void encryptAES(unsigned char *plaintext, unsigned int plaintext_len, unsigned char *key, 
                 const char *cipher, char *output);
-void decryptAES(unsigned char *ciphertext, int ciphertext_len, unsigned char *key, 
+void decryptAES(unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *key, 
                 const char *cipher, char *output);
 
-int checkFileSize(FILE *input_file);  // check file size to allocate buffer[file size]
+unsigned int checkFileSize(FILE *input_file);  // check file size to allocate buffer[file size]
 void processFile(char *input_file, char *output_file); // if input is file, process file
 
-void makeDir(); // make output_dir
+void makeDir(char *output_dir); // make output_dir
 void processDir(char *input_dir, char *output_dir); // if input is dir, process dir
 
 int file, dir, decrypt_on, verbose_on;
@@ -173,12 +162,14 @@ void handleErrors(void)
     abort();
 }
 
-void encryptAES(unsigned char *plaintext, int plaintext_len, unsigned char *key, 
-                const char *cipher, char *output)
+/* 
+https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption
+*/
+void encryptAES(unsigned char *plaintext, unsigned int plaintext_len, unsigned char *key, const char *cipher, char *output)
 {
     EVP_CIPHER_CTX *ctx;
 
-    unsigned char ciphertext[128];
+    unsigned char *ciphertext = malloc(plaintext_len+255);
     int ciphertext_len = 0;
     int len = 0;
 
@@ -216,14 +207,14 @@ void encryptAES(unsigned char *plaintext, int plaintext_len, unsigned char *key,
         fwrite(ciphertext, 1, ciphertext_len, fp);
         fclose(fp);
     }
+    free(ciphertext);
     EVP_CIPHER_CTX_free(ctx);
 }
 
-void decryptAES(unsigned char *ciphertext, int ciphertext_len, unsigned char *key, 
-                const char *cipher, char *output)
+void decryptAES(unsigned char *ciphertext, unsigned int ciphertext_len, unsigned char *key, const char *cipher, char *output)
 {
     EVP_CIPHER_CTX *ctx;
-    unsigned char plaintext[256];
+    unsigned char *plaintext = malloc(ciphertext_len+255);
     int len = 0;
     int plaintext_len = 0;
 
@@ -262,6 +253,7 @@ void decryptAES(unsigned char *ciphertext, int ciphertext_len, unsigned char *ke
         fclose(fp);
     }
     EVP_CIPHER_CTX_free(ctx);
+    free(plaintext);
 }
 
 /*
@@ -271,7 +263,7 @@ https://m.blog.naver.com/seongjeongki7/220890684562
 
 https://wiki.openssl.org/index.php/EVP_Message_Digests
 */
-void makeDigest(unsigned char *plaintext, char *output, int FileSize)
+void makeDigest(unsigned char *plaintext, char *output, unsigned int FileSize)
 {
     EVP_MD_CTX *mdctx;
     const EVP_MD *md;
@@ -317,20 +309,22 @@ void makeDigest(unsigned char *plaintext, char *output, int FileSize)
     EVP_MD_CTX_free(mdctx);
 }
 
-int checkFileSize(FILE *fp)
+unsigned int checkFileSize(FILE *fp)
 {
     fseek(fp, 0, SEEK_END); // 파일 끝으로 이동
-    int size = ftell(fp);       // 파일 포인터 현재 위치 얻음
+    unsigned int size = ftell(fp);       // 파일 포인터 현재 위치 얻음
     return size;
 }
 
 void processFile(char *input_file, char *output_file)
 {
     FILE *fp = fopen(input_file, "r+");
+    if(fp == NULL) {
+        fprintf(stderr, "> Error: Cannot open %s File!\n", input_file);
+        exit(1);
+    }
     
-    // if(input_content == NULL) {} --> 파일 없으면 stat에서 에러 일으킴
-    
-    int size = checkFileSize(fp);
+    unsigned int size = checkFileSize(fp);
     unsigned char *buffer = malloc(size + 1); // alloc buffer[file size]
     
     memset(buffer, 0, size + 1);    // 0으로 초기화
@@ -382,7 +376,53 @@ void processFile(char *input_file, char *output_file)
     free(buffer);
 }
 
+/* https://www.it-note.kr/205 */
+void makeDir(char *output_dir)
+{
+    if(mkdir(output_dir, 0776) == -1 && errno != EEXIST) {
+        fprintf(stderr, "%s directory create error: %s\n", output_dir, strerror(errno));
+        exit(1);
+    }
+
+    if(verbose_on) {
+        printf("> Create '%s' directory.\n",output_dir);
+    }
+}
+
+/* https://tttsss77.tistory.com/191 */
 void processDir(char *input_dir, char *output_dir)
 {
-    // not constructed
+    DIR *dir = opendir(input_dir);
+    if(dir == NULL) {
+        perror("> Error: opendir failed!\n");
+        exit(1);
+    }
+
+    if(output_dir == NULL) { 
+        output_dir = "out";
+     }
+    
+    makeDir(output_dir); 
+
+
+    struct dirent *ent;
+
+    while( (ent = readdir(dir)) != NULL )
+    {
+        if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) { continue; }
+
+        char *inputFile = NULL, *outputFile = NULL;
+        inputFile = malloc(strlen(input_dir)+strlen(ent->d_name)+2); 
+        outputFile = malloc(strlen(output_dir)+strlen(ent->d_name)+2);
+        
+        sprintf(inputFile, "%s/%s", input_dir, ent->d_name);
+        sprintf(outputFile, "%s/%s", output_dir, ent->d_name);
+
+        processFile(inputFile, outputFile);
+
+        free(inputFile);
+        free(outputFile);
+    }
+    
+    closedir(dir);
 }
