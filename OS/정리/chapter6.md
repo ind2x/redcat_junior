@@ -223,6 +223,7 @@ GDT:
     DATADESCRIPTOR:
         dw 0xFFFF
         0w 0x0000
+        db 0x00
         db 0x92
         db 0xCF
         db 0x00
@@ -331,7 +332,21 @@ GTEND:
 
 <br>
 
+먼저 ```01.Kernel32``` 폴더에 ```Source/EntryPoint.s``` 파일을 생성하여 어셈블리 코드를 작성해준다.
 
+```EntryPoint.s``` 파일은 **보호 모드 커널의 가장 앞부분에 위치한 코드**로, **보호 모드 전환**과 **초기화를 수행**하여 **이후에 위치하는 코드를 위한 환경을 제공**한다.
+
+```EntryPoint```란 외부에서 해당 모듈을 실행할 때, 실행을 시작하는 지점을 뜻한다.
+
+따라서 ```EntryPoint.s```는 부트 로더(외부)에서 보호 모드 커널로 진입하는 부분이므로, 보호 모드 커널의 엔트리 포인트라고 할 수 있다.
+
+<br>
+
+책을 따라 진행해주면 다음과 같이 나온다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/194578093-6b5cb4eb-6dd6-4e48-b781-d691a97a7a79.png)
 
 
 <br><br>
