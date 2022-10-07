@@ -243,6 +243,51 @@ GTEND:
 
 <br>
 
+보호모드로 전환하기 위해서는 3가지만 해주면 된다.
+
++ GDTR 레지스터 설정
++ CR0 컨트롤 레지스터 설정
++ jmp 명령 수행
+
+<br><br>
+
+### 프로세서에 GDT 정보 설정
+---
+
+<br>
+
+```lgdt [GDTR]``` 명령어를 통해 설정할 수 있다.
+
+위의 명령어로 **GDTR 자료구조를 프로세서에 설정하여 GDT 테이블을 로드**한다.
+
+<br><br>
+
+### CR0 레지스터 설정
+---
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/194560516-e99e42b8-e574-4be6-a26b-9b1069e239eb.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/194560636-97297d28-106e-4595-a6d2-313bf6b9c07e.png)
+
+<br>
+
+딱 봐도 복잡해보이지만, 우리한테는 대부분 필요없으므로 다음과 같이 설정해주면 된다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/194561378-b9819dec-8d9a-4455-a2ff-7c0d4531315e.png)
+
+<br><br>
+
+### jmp 명령 수행
+---
+
+<br>
+
 
 
 
