@@ -53,8 +53,6 @@
 ![image](https://user-images.githubusercontent.com/52172169/194510450-bd2f8276-932c-403a-a4ab-0e5fcdb8ca62.png)
 
 <br><br>
-<hr style="border: 2px solid;">
-<br><br>
 
 ### 코드 세그먼트 디스크립터와 데이터 세그먼트 디스크립터 설정
 ---
@@ -76,8 +74,6 @@
 따라서 타입 필드를 코드 세그먼트는 ```0x0A```, 데이터 세그먼트는 ```0x02```로 설정해준다.
 
 <br><br>
-<hr style="border: 2px solid;">
-<br><br>
 
 ### 세그먼트 영역 설정
 ---
@@ -94,8 +90,6 @@ MINT64 OS 커널의 세그먼트 디스크립터는 4GB 영역 전체에 접근�
 
 따라서 세그먼트 기준주소는 0, G필드는 1, 크기는 2^20으로 설정해주면 된다.
 
-<br><br>
-<hr style="border: 2px solid;">
 <br><br>
 
 ### 기본 오퍼랜드 크기와 권한 설정
@@ -118,8 +112,6 @@ MINT64 OS 커널의 세그먼트 디스크립터는 4GB 영역 전체에 접근�
 mint64 OS는 권한을 따로 구분하지 않기 때문에 DPL 필드를 최상위 값인 0으로 설정해준다.
 
 <br><br>
-<hr style="border: 2px solid;">
-<br><br>
 
 ### 기타 필드 설정
 ---
@@ -130,8 +122,6 @@ mint64 OS는 권한을 따로 구분하지 않기 때문에 DPL 필드를 최상
 
 mint64 OS에서는 별도의 값을 쓰지 않을 예정으로, AVL 필드는 0으로 설정해준다. 
 
-<br><br>
-<hr style="border: 2px solid;">
 <br><br>
 
 ### 세그먼트 디스크립터 생성 코드
