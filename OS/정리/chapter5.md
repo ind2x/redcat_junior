@@ -146,6 +146,10 @@ http://jsandroidapp.cafe24.com/xe/index.php?mid=qna&search_target=title&search_k
 
 ![image](https://user-images.githubusercontent.com/52172169/193450008-fa922fb4-df12-4cd5-8186-3af143ef35e1.png)
 
+<br>
+
+저자 코드 : https://github.com/kkamagui/mint64os-examples/tree/master/source_code/chap05
+
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
