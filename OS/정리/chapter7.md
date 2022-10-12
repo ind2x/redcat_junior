@@ -141,10 +141,19 @@ j 옵션으로 섹션 추출, S 옵션으로 재배치 정보와 심볼 제거, 
 <hr style="border: 2px solid;">
 <br><br>
 
-## 
+## C 소스파일 추가 및 보호 모드 엔트리 포인트 통합
 
 <br>
 
+자세한 코드는 책에서 확인.
 
+C코드의 엔트리 포인트는 Main함수
+
+기존의 EntryPoint.s 코드부분에서 보호모드 부분에서 무한루프 부분을 C코드 커널로 넘어가도록 수정해준다.
+
+
+
+<br><br>
+<hr style="border: 2px solid;">
 <br><br>
 
