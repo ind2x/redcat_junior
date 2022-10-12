@@ -138,7 +138,7 @@ http://jsandroidapp.cafe24.com/xe/index.php?mid=qna&search_target=title&search_k
 
 <br>
 
-해당 사이트에 해결 방법이 있지만 더 자세히는 http://jsandroidapp.cafe24.com/xe/development/12035에 있다.
+해당 사이트에 해결 방법이 있지만 더 자세히는 http://jsandroidapp.cafe24.com/xe/development/12035 에 있다.
 
 따라서 해당 코드 부분을 수정을 해주면 해결된다..
 
