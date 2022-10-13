@@ -5,7 +5,7 @@ SECTION .text
 
 jmp 0x07C0:START
 
-TOTALSECTORCOUNT: dw 1  ; dw 1024 -> 1
+TOTALSECTORCOUNT: dw 2  ; 보호모드 커널 + C커널
 
 START:
     mov ax, 0x07C0
