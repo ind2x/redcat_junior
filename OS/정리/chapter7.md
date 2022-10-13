@@ -263,7 +263,7 @@ endif
 
 따라서 디스크 이미지를 512바이트로 정렬하고 모자란 부분을 0x00으로 채워주면 해결할 수 있다고 한다.
 
-이 작업을 이미지메이커 프로그램으로 자동화시켜준다. -> 성우님 블로그에서 확인 (파이썬)
+이 작업을 이미지메이커 프로그램으로 자동화시켜준다. -> 성우님 블로그에서 확인, https://winmine.tistory.com/8?category=337889
 
 <br>
 
@@ -274,6 +274,75 @@ endif
 
 그래서 코드에서 이 부분을 업데이트 해주는 것으로 보인다.
 
+<br>
+
++ 04.Utility/00.ImageMaker/ImageMaker.py 
+
+```python
+import sys
+import struct
+
+if len(sys.argv) < 3 :
+    print("[Usage]: ImageMaker BootLoader.bin Kernel32.bin")
+    sys.exit(1)
+
+with open("Disk.img", "wb") as DiskImg:
+    
+    print("[INFO] Read BootLoader.bin")
+    with open(sys.argv[1], "rb") as f:
+        BootLoader = f.read()
+    
+    print("[INFO] Read Kernel32.bin")
+    with open(sys.argv[2], "rb") as f:
+        Kernel32 = f.read()
+    
+    print("[INFO] Adjust BootLoader.bin and Kernel32.bin")
+    if len(BootLoader) % 512 != 0:
+        BootLoader += b'\x00' * ( 512 - (len(BootLoader) % 512) )
+    
+    if len(Kernel32) % 512 != 0:
+        Kernel32 += b'\x00' * ( 512 - (len(Kernel32) % 512) )
+    
+    print("[INFO] Start to write kernel information to BootLoader.bin")
+    DiskImgData = BootLoader + Kernel32
+    SectorCount = int(len(Kernel32) / 512)  # Read Kernel total sector count
+    SectorCountRaw = struct.pack("<H", SectorCount)
+
+    # Update TOTALSECTORCOUNT
+    DiskImgData = DiskImgData[:5] + SectorCountRaw + DiskImgData[7:]
+
+    print("[INFO] Copy BootLoader.bin and Kernel32.bin to Disk.img")
+    DiskImg.write(DiskImgData)
+```
+
+<br>
+
++ /mint64/makefile 수정본
+
+```
+생략
+
+Disk.img : 00.BootLoader/BootLoader.bin 01.Kernel32/Kernel32.bin
+	@echo
+	@echo ============ Disk Image Build Start ============
+	@echo
+
+	python3 ./04.Utility/00.ImageMaker/ImageMaker.py $^
+
+	@echo
+	@echo ============ All Build Complete ============
+	@echo
+
+생략
+```
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/195510446-3d3be367-ac6d-497e-bc96-1caa7dc0aaa4.png)
+
+<br>
+
+C 커널 makefile 부분 -> https://github.com/cd80/osdev/blob/main/01.Kernel32/Makefile
 
 <br><br>
 <hr style="border: 2px solid;">
