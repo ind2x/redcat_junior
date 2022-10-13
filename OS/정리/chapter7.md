@@ -151,9 +151,108 @@ C코드의 엔트리 포인트는 Main함수
 
 기존의 EntryPoint.s 코드부분에서 보호모드 부분에서 무한루프 부분을 C코드 커널로 넘어가도록 수정해준다.
 
+<br>
 
++ main.c
+
+```c
+#include "Types.h"
+
+void kPrintString(int iX, int iY, const char* pcString);
+
+void main(void)
+{
+    kPrintString(0,3,"C Language Kernel Started~!!!");
+    while(1);
+}
+
+void kPrintString(int iX, int iY, const char *pcString)
+{
+    CHARACTER* pstScreen = (CHARACTER*) 0xB8000;
+    int i;
+
+    pstScreen += (iY * 80) + iX;
+    for(int i=0; pcString[i] != 0; i++)
+    {
+        pstScreen[i].bCharactor = pcString[i];
+    }
+}
+```
+
+<br>
+
++ 01.Kernel32/makefile
+
+```
+NASM = nasm
+CC = clang -c -m32 -ffreestanding -nostdlib
+LD = ld -melf_i386 -T ../elf_i386.x -nostdlib -e main -Ttext 0x10200
+OBJCOPY = objcopy -j .text -j .data -j .rodata -j .bss -S -O binary
+
+OBJECTDIR = Temp
+SOURCEDIR = Source
+
+all: prepare Kernel32.bin
+
+prepare:
+	mkdir -p $(OBJECTDIR)
+
+$(OBJECTDIR)/EntryPoint.bin: $(SOURCEDIR)/EntryPoint.s
+	$(NASM) -o $@ $<
+
+dep:
+	@echo === Make Dependancy File ===
+	make -C $(OBJECTDIR) -f ../makefile InternalDependency
+	@echo === Dependancy Search Complete ===
+
+ExecuteInternalBuild: dep
+	make -C $(OBJECTDIR) -f ../makefile Kernel32.elf
+
+$(OBJECTDIR)/Kernel32.elf.bin: ExecuteInternalBuild
+	$(OBJCOPY) $(OBJECTDIR)/Kernel32.elf $@
+
+Kernel32.bin: $(OBJECTDIR)/EntryPoint.bin $(OBJECTDIR)/Kernel32.elf.bin
+	cat $^ > $@
+
+clean:
+	rm -f *.bin
+	rm -f $(OBJECTDIR)/*.*
+
+
+## for InternalDependency
+CENTRYPOINTOBJECTFILE = main.o
+CSOURCEFILES = $(wildcard ../$(SOURCEDIR)/*.c)
+ASSEMBLYSOURCEFILES = $(wildcard ../$(SOURCEDIR)/*.asm)
+COBJECTFILES = $(subst main.o, , $(notdir $(patsubst %.c,%.o,$(CSOURCEFILES))))
+ASSEMBLYOBJECTFILES = $(notdir $(patsubst %.asm,%.o,$(ASSEMBLYSOURCEFILES)))
+
+%.o: ../$(SOURCEDIR)/%.c
+	$(CC) -c $<
+
+%.o: ../$(SOURCEDIR)/%.asm
+	$(NASM) -f elf32 -o $@ $<
+
+InternalDependency:
+	$(CC) -MM $(CSOURCEFILES) > Dependency.dep
+
+Kernel32.elf: $(CENTRYPOINTOBJECTFILE) $(COBJECTFILES) $(ASSEMBLYOBJECTFILES)
+	$(LD) -o $@ $^
+
+ifeq (Dependency.dep, $(wildcard Dependency.dep))
+include Dependency.dep
+endif
+```
 
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
 
+## 커널 빌드와 실행
+
+<br>
+
+
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
