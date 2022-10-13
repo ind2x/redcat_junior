@@ -348,6 +348,9 @@ GTEND:
 
 ![image](https://user-images.githubusercontent.com/52172169/194578093-6b5cb4eb-6dd6-4e48-b781-d691a97a7a79.png)
 
+<br>
+
+저자 챕터6 코드 : https://github.com/kkamagui/mint64os-examples/blob/master/source_code/chap06
 
 <br><br>
 <hr style="border: 2px solid;">

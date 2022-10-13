@@ -280,6 +280,9 @@ db 0xAA
 
 ![image](https://user-images.githubusercontent.com/52172169/192952578-d856caf3-ba90-4648-927a-4b11fe04c32b.png)
 
+<br>
+
+저자 코드 : https://github.com/kkamagui/mint64os-examples/tree/master/source_code/chap04
 
 <br><br>
 <hr style="border: 2px solid;">
