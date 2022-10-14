@@ -63,13 +63,66 @@ A20은 어드레스 라인의 번호를 뜻하는데, 이보다 더 중요한 �
 
 <br>
 
+옛날 XT PC에서는 최대 1MB까지 접근가능했으나 AT PC가 나오면서 16MB까지 접근 가능해졌는데, XT PC에서 사용하던 프로그램이 AT PC에서 에러가 발생하게 된다.
 
+해결방법으로 A20 게이트가 나온 것이며, **A20 게이트는 20번째 비트를 비활성화시켜 0으로 고정시켜주는 것**이다.
 
+<br>
 
+![image](https://user-images.githubusercontent.com/52172169/195795139-066b61df-df18-431b-92e6-5c6f5f9e834b.png)
+
+<br>
+
+즉, **A20게이트가 비활성화되면 홀수 MB에는 접근할 수 없다는 것**이다.
+
+A20 게이트가 비활성화되면 MINT64 OS입장에서는 1MB ~ 6MB 까지 초기화해줘야하는데, 0 ~ 1MB와 2 ~ 3MB, 4MB ~ 5MB만 초기화가 된다.
+
+근데 0 ~ 1MB 영역에는 BIOS와 보호모드 커널이 사용 중인 영역으로 이 부분이 초기화되어 에러가 발생하는 것이다.
 
 <br><br>
+
+### A20 게이트 활성화
+---
+
+<br>
+
+세 가지 방법이 있는데, **시스템 컨트롤 포트를 통한 활성화**, **키보드 컨트롤러를 이용한 활성화**, **BIOS 서비스를 이용한 활성화** 방법이 있다.
+
+우리는 시스템 컨트롤 포트와 BIOS 서비스를 통해 활성화한다.
+
+<br>
+
+시스템 컨트롤 포트는 I/O 어드레스의 0x92에 위치하며, 포트맵 I/O 방식으로, 접근하려면 특수 명령어인 in과 out 명령어를 통해 접근한다.
+
+아래 표는 시스템 컨트롤 포트의 각 비트의 역할을 보여준다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/195805116-1c6774ca-3fce-4794-93d0-3ab4e7efc9ae.png)
+
+<br>
+
+그래서 우리는 1번 비트만 1로 설정해주면 된다.
+
+![image](https://user-images.githubusercontent.com/52172169/195805193-f67fd6ab-4f52-4e60-82b3-a1ad152a8a7c.png)
+
+<br>
+
+**BIOS로 활성화**하는 방법은 좀 더 쉬운데, BIOS 시스템 서비스 인터럽트 벡터는 0x15이며, 여기에 A20게이트 관련 기능이 있으므로 인터럽트를 호출해주면 된다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/195807346-d9a6e598-90be-40b0-a97e-1768491fe63a.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/195807406-c84cbb3c-cf50-4de6-9723-499fc3eac3ac.png)
 
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
+
+## A20게이트 적용 및 메모리 검사
+
+<br>
 
