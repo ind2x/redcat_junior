@@ -34,7 +34,24 @@
 
 ## IA-32e 모드 커널을 위한 메모리 초기화
 
+### 메모리 초기화 기능 추가
+---
+
 <br>
+
+main.c에 1MB부터 6MB까지의 영역을 초기화 해주는 코드 추가하는 챕터
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/195790211-17ed4c35-f7fc-45ca-910a-ec2595b42077.png)
+
+<br>
+
+
+
+
+<br><br>
+
 
 
 
