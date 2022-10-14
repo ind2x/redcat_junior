@@ -157,10 +157,10 @@ PRINTMESSAGE:
     pop bp
     ret
 
-MESSAGE1: db 'MINT64 OS Boot Loader Start~!!', 0
+MESSAGE1: db '[*] MINT64 OS Boot Loader Start~!!', 0
 
-DISKERRORMESSAGE: db 'DISK Error~!!', 0
-OSLOADINGMESSAGE: db 'OS Image Loading...', 0
+DISKERRORMESSAGE: db '[*] DISK Error~!!', 0
+OSLOADINGMESSAGE: db '[*] OS Image Loading...', 0
 LOADINGCOMPLETEMESSAGE: db 'Complete~!!', 0
 
 SECTORNUMBER: db 0x02

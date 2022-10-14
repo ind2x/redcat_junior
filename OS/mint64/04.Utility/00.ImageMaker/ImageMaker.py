@@ -5,6 +5,8 @@ if len(sys.argv) < 3 :
     print("[Usage]: ImageMaker BootLoader.bin Kernel32.bin")
     sys.exit(1)
 
+print("")
+
 with open("Disk.img", "wb") as DiskImg:
     
     print("[INFO] Read BootLoader.bin")
