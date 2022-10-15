@@ -62,7 +62,7 @@ hello_string: .asciz "Hello, World!\n"
 <br>
 
 ```asm
-.globl main
+.global main
 main:
     push %rbp
     mov %rsp, %rbp
@@ -75,9 +75,12 @@ main:
     # call memcpy
 
     # strcpy(rbp-0x40, hello_string)
-    mov $hello_string, %rsi
-    lea -0x40(%rbp), %rdi
-    call strcpy
+    # mov $hello_string, %rsi
+    # lea -0x40(%rbp), %rdi
+    # call strcpy
+
+    mov $hello_string, %rdi
+    call puts
 
     leave
     ret
@@ -94,6 +97,30 @@ puts:
     push %rbp
     mov %rsp, %rbp
 
+    sub $1040, %rsp
+    # rbp - 1040 = strlen(arg)
+    # rbp - 1032 == rdi(arg)
+    # rbp - 1024 = copied
+    mov %rdi, -1032(%rbp)
+    call strlen
+    mov %rax, -1040(%rbp)
+
+    lea -1024(%rbp), %rdi
+    mov -1032(%rbp), %rsi
+    call strcpy
+
+    lea -1024(%rbp), %rax
+    add -1040(%rbp), %rax
+    movb $0xa, (%rax)
+    inc %rax
+    movb $0x00, (%rax)
+
+    mov $1, %rdi
+    lea -1024(%rbp), %rsi
+    mov -1040(%rbp), %rdx
+    inc %rdx
+    mov $1, %rax
+    syscall
 
     leave
     ret
