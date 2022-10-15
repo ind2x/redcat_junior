@@ -3,6 +3,31 @@
 <br>
 
 ```asm
+# AT&T syntax
+
+.globl main
+main:
+    push %rbp
+    mov %rsp, %rbp
+
+    mov $1, %rax
+    mov $1, %rdi
+    mov $hello_string, %rsi
+    mov $14, %rdx
+    syscall
+
+    
+    leave
+    ret
+
+hello_string: .asciz "Hello, World!\n"
+```
+
+<br>
+
+```asm
+# intel syntax
+
 .globl main
 main:
     push rbp
@@ -10,7 +35,7 @@ main:
 
     mov rax, 1
     mov rdi, 1
-    lea rsi, hello_string
+    lea rsi, hello_string   # not mov rsi, hello_string
     mov rdx, 14
     syscall
 
