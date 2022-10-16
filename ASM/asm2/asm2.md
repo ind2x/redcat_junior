@@ -45,7 +45,7 @@ main:
     ret
 
 hello_string: .asciz "Hello, World!\n"
-``
+```
 
 <br>
 
@@ -67,3 +67,6 @@ write 함수를 사용하기 위해선 문자열의 길이를 알아야 되므�
 
 strcpy와 strlen을 통해 puts 함수를 작성하여 write 시스템 콜을 불러온다.
 
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
