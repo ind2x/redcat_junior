@@ -151,20 +151,20 @@ kmemcpy:
     push %rbp
     mov %rsp, %rbp
     
-.copy_memory:
-    cmp $0, %rdx        # stack에 쓰레기값이 들어있을 수 있는데 널바이트
-                        # 전까지만 복사를 해준다면 끝에 그 쓰레기값이 추가됨
-                        # 따라서 널바이트라면 널바이트 복사해주고 끝내면 됨
-    movb (%rsi), %al    # mov al, BYTE PTR [rsi]
-    movb %al, (%rdi)    # mov BYTE PTR [rdi], al
-    je .kmemcpy_END
+    .copy_memory:
+        cmp $0, %rdx        # stack에 쓰레기값이 들어있을 수 있는데 널바이트
+                            # 전까지만 복사를 해준다면 끝에 그 쓰레기값이 추가됨
+                            # 따라서 널바이트라면 널바이트 복사해주고 끝내면 됨
+        movb (%rsi), %al    # mov al, BYTE PTR [rsi]
+        movb %al, (%rdi)    # mov BYTE PTR [rdi], al
+        je .kmemcpy_END
         
-    # movb (%rsi), %al
-    # movb %al, (%rdi)
-    inc %rdi
-    inc %rsi
-    dec %rdx
-    jmp .copy_memory
+        # movb (%rsi), %al
+        # movb %al, (%rdi)
+        inc %rdi
+        inc %rsi
+        dec %rdx
+        jmp .copy_memory
 
 .kmemcpy_END:
     leave
@@ -195,4 +195,9 @@ kstrcpy:
 
 <br>
 
++ intel syntax
+
+```asm
+
+```
 
