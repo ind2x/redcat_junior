@@ -16,6 +16,8 @@
 
 ## ASM
 
++ syntax : https://www.cs.virginia.edu/~evans/cs216/guides/x86.html
+
 + 구구단 
 
 <br><br>
