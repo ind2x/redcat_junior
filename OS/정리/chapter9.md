@@ -225,6 +225,15 @@ PG비트를 1로 설정하면 그 즉시 프로세서의 페이징 기능이 활
 
 기능을 활성화하진 않고 다음 장에서 IA-32e 모드용 디스크립터를 생성하고 나서 활성화해줄 것이다.
 
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/196127150-cdf93d0d-8f7d-468f-b048-d5838091db2f.png)
+
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
+
+## 보호 모드 커널에 페이지 테이블 생성 기능 추가
+
+<br>
+
