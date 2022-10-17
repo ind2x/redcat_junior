@@ -1,4 +1,5 @@
 #include "Types.h"
+#include "Page.h"
 
 void kPrintString(int iX, int iY, const char* pcString);
 BOOL kInitializeKernel64Area(void);
@@ -14,7 +15,7 @@ void main(void)
     if(kISMemoryEnough() == FALSE)
     {
         kPrintString(51, 4, "Fail");
-        kPrintString(0, 5, "[ERROR] Not Enough Memory.. MINT64 OS requires over 64MB Memory...");
+        kPrintString(2, 5, "[!!] Not Enough Memory.. MINT64 OS requires over 64MB Memory...");
         while(1);
     }
     else
@@ -26,10 +27,15 @@ void main(void)
     if (kInitializeKernel64Area() == FALSE)
     {
         kPrintString(51, 5, "Fail");
-        kPrintString(0, 6, "[ERROR] Kernel Area Initialization Failed...");
+        kPrintString(2, 6, "[!!] Kernel Area Initialization Failed...");
         while (1);
     }
     kPrintString(51, 5, "Pass");
+
+    kPrintString(0, 6, "[*] IA-32e Page Tables Initialize.................[    ]");
+    kInitializePageTables();
+    kPrintString(51, 6, "Pass");
+    
     while(1);
         
 }

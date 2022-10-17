@@ -1,1 +1,2 @@
-main.o: ../Source/main.c ../Source/Types.h
+main.o: ../Source/main.c ../Source/Types.h ../Source/Page.h
+page.o: ../Source/page.c ../Source/Page.h ../Source/Types.h

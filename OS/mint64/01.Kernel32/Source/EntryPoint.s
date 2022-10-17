@@ -48,7 +48,7 @@ PROTECTEDMODE:
     add esp, 12
 
     ; jmp $ -> modify
-    jmp dword 0x08: 0x10200
+    jmp dword 0x08: 0x10200 ; jmp to C kernel(main.c)
 
 PRINTMESSAGE:
     push ebp
