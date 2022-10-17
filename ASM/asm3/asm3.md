@@ -19,7 +19,7 @@ void itoa(int value, char *str)
     int idx = 0;
     int saved_value = value;
 
-    while(value / max_pos >= 10) {
+    while(value / max_pos >= 10) {  // > 10 이면 10 자체는 빈칸으로 나옴
         max_pos *= 10;
     }
 
@@ -35,6 +35,7 @@ void itoa(int value, char *str)
 ```
 
 <br>
+
 
 
 
