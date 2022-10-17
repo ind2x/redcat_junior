@@ -160,10 +160,70 @@ MINT64 OS에서는 기본 기능만 사용하여 별로 중요하진 않다.
 <br><br>
 
 ## 페이지 테이블 생성과 기능 활성화
+### 페이지 엔트리 자료구조 정의 및 매크로 정의
 
 <br>
 
+![image](https://user-images.githubusercontent.com/52172169/196092925-7748aae4-4d0b-4236-979e-4e9c1c8f6902.png)
 
+<br>
+
+세 종류의 페이지 엔트리 속성은 모두 비슷하므로 하나의 자료구조로 정의하여 사용한다.
+
+보면 알겠지만 8바이트 크기의 자료구조를 4바이트씩 2개로 쪼개주었다.
+
+왜냐하면 이 코드가 실행될때는 아직까지는 보호모드이므로 보호모드에서는 최대 32비트 레지스터(2^32 = 4GB)까지만 사용 가능하다.
+
+<br>
+
+이제 각 속성의 필드 값을 정의해주는데 매크로를 이용해서 정의해준다.
+
+```c
+typedef struct kPageTableEntryStruct
+{
+    // PML4T와 PDPTE의 경우
+    // 1 비트 P, RW, US, PWT, PCD, A, 3 비트 Reserved, 3 비트 Avail, 
+    // 20 비트 Base Address
+    // PDE의 경우
+    // 1 비트 P, RW, US, PWT, PCD, A, D, 1, G, 3 비트 Avail, 1 비트 PAT, 8 비트 Avail, 
+    // 11 비트 Base Address
+    DWORD dwAttributeAndLowerBaseAddress;
+    // 8 비트 Upper BaseAddress, 12 비트 Reserved, 11 비트 Avail, 1 비트 EXB 
+    DWORD dwUpperBaseAddressAndEXB;
+} PML4TENTRY, PDPTENTRY, PDENTRY, PTENTRY;
+```
+
+<br><br>
+
+### 페이지 엔트리 및 페이지 테이블 생성
+---
+
+<br>
+
+먼저 간단한 PML4 테이블을 만들어준다.
+
+이 부분은 페이지 260을 참고.
+
+<br><br>
+
+### 프로세서의 페이징 기능 활성
+---
+
+<br>
+
+CR0 레지스터의 PG비트 CR3 레지스터, CR4 레지스터의 PAE 비트만 1로 설정해주면 된다.
+
+PG비트를 1로 설정하면 그 즉시 프로세서의 페이징 기능이 활성화되므로 그 전에 다른 값들을 먼저 설정해줘야 한다.
+
+자세한 내용은 페이지 262 참고.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/196099887-5a40ae2c-f57f-44b5-bfae-505d286832f2.png)
+
+<br>
+
+기능을 활성화하진 않고 다음 장에서 IA-32e 모드용 디스크립터를 생성하고 나서 활성화해줄 것이다.
 
 <br><br>
 <hr style="border: 2px solid;">
