@@ -237,3 +237,16 @@ PG비트를 1로 설정하면 그 즉시 프로세서의 페이징 기능이 활
 
 <br>
 
+C 보호모드 커널 엔트리 포인터에서 위의 기능들을 C코드로 만들어서 호출하게끔 해주어서 커널의 페이지 테이블 생성 기능을 추가할 것이다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/196137642-d07a2ac7-6ef2-41dd-8bba-94a6572b570e.png)
+
+<br>
+
+chapter9 코드 : https://github.com/kkamagui/mint64os-examples/tree/master/source_code/chap09
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
