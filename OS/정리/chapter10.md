@@ -70,6 +70,40 @@ CPUID를 통해 기본정보 또는 확장정보를 받을 수 있는데, EAX �
 
 <br>
 
+이제 9장에서 보았던 물리 메모리 확장 (CR4 레지스터의 PAE 비트 활성화) 및 페이지 테이블 설정 작업을 해주면 된다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/196450758-5ef73c1a-4327-41dd-b079-69a6ab7ffe76.png)
+
+<br>
+
+남은 작업은 IA32_EFER 레지스터를 설정해주면 된다.
+
+우리는 LME 비트를 활성화해주어야 하는데, 이 비트가 비활성화 되어 있다면 32비트 모드로 동작하게 된다.
+
+이 레지스터는 MSR이라는 특수 용도 레지스터로, 특수 명령어를 통해 값을 읽고 쓸 수 있다.
+
+읽기는 RDMSR 명령어로 ECX 레지스터에 IA32_EFER 레지스터 주소를 넘겨주면 EDX:EAX 형식으로 IA32_EFER 레지스터의 값을 받아온다.
+
+쓰기는 WRMSR 명령어로 ECX 레지스터에 IA32_EFER 레지스터 주소를 넘겨주면, EDX:EAX 형식으로 IA32_EFER 레지스터에 값을 쓴다.
+
+우리가 쓸 IA32_EFER 레지스터는 0xC0000080에 있다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/196453347-07de1784-e15f-44a4-b805-33d2186641b8.png)
+
+<br>
+
+LME 비트를 활성화 해주면 된다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/196453529-16b10082-c68f-4ca2-831e-81af2142daa9.png)
+
+<br>
+
 
 
 <br><br>
