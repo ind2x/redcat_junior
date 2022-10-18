@@ -16,6 +16,8 @@
 
 ## ASM
 
++ intel asm : https://rito15.github.io/posts/intel-assembly-memo/
+
 + syntax : https://www.cs.virginia.edu/~evans/cs216/guides/x86.html
 
 + http://korea.gnu.org/manual/release/as/as-ko_7.html
