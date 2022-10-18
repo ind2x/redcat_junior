@@ -219,7 +219,11 @@ PG비트를 1로 설정하면 그 즉시 프로세서의 페이징 기능이 활
 
 <br>
 
-![image](https://user-images.githubusercontent.com/52172169/196099887-5a40ae2c-f57f-44b5-bfae-505d286832f2.png)
+![image](https://user-images.githubusercontent.com/52172169/196450284-2d8503fd-81e4-4f5d-bf85-ec1b531a85da.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/196450180-671da613-b1f7-4c82-adff-4cf5cae75d1b.png)
 
 <br>
 
@@ -227,7 +231,7 @@ PG비트를 1로 설정하면 그 즉시 프로세서의 페이징 기능이 활
 
 <br>
 
-![image](https://user-images.githubusercontent.com/52172169/196127150-cdf93d0d-8f7d-468f-b048-d5838091db2f.png)
+![image](https://user-images.githubusercontent.com/52172169/196099887-5a40ae2c-f57f-44b5-bfae-505d286832f2.png)
 
 <br><br>
 <hr style="border: 2px solid;">
