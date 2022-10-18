@@ -20,8 +20,6 @@
 
 + http://korea.gnu.org/manual/release/as/as-ko_7.html
 
-+ 구구단 
-
 <br><br>
 
 ## LLVM
