@@ -156,6 +156,16 @@ LME 비트를 활성화 해주면 된다.
 
 코드 : https://github.com/kkamagui/mint64os-examples/tree/master/source_code/chap10/
 
+<br>
+
+우리는 디스크 이미지를 ImageMaker 프로그램으로 만드느데, 여기에는 IA-32e 커널 내용이 안들어가 있다.
+
+또한 IA-32e 모드 커널을 2MB 영역으로 복사하려면 IA-32e 모드 커널의 위치 정보가 필요하다.
+
+따라서 IA-32e 모드 커널을 읽어와서 커널의 총 섹터 수 뿐만 아니라 보호모드 커널의 섹터 수도 기록해줘야 한다.
+
+그리고 보호모드 커널은 부트 로더나 보호모드 이미지에 기록된 정보를 이용하여 IA-32e 모드 커널을 2MB 영역으로 이동시켜야 한다.
+
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
