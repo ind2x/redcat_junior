@@ -130,6 +130,20 @@ LME 비트를 활성화 해주면 된다.
 
 이제 남은 작업은 IA-32e 모드 커널을 작성하고 OS 이미지에 통합시켜주면 된다.
 
+그 전에 보호모드 커널을 정리하고 넘어간다.
+
+추가된 코드는 ```Kernel32/Source/ModeSwitch.asm, ModeSwitch.h```이다. (레지스터 설정, 테이블 필드 속성 설정, 함수 선언)
+
+수정된 코드는 ```Kernel32/Source/EntryPoint.s, main.c```이다. (IA-32e 모드 세그먼트 디스크립터 추가, 위의 추가된 함수 정의)
+
+<br>
+
+1차 정리를 하고 makefile을 해주면 main에서 memset에러가 나게 되는데, vcVendorString을 0으로 초기화해주는 부분에서 발생한 것으로 0으로 초기화해주는 부분을 없애주면 된다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/196606360-23f907c9-ce04-46dc-9bc7-61f7be69434a.png)
+
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
