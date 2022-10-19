@@ -148,11 +148,13 @@ LME 비트를 활성화 해주면 된다.
 <hr style="border: 2px solid;">
 <br><br>
 
-## 
+## IA-32e 모드 커널 작성
 
 <br>
 
+마찬가지로 엔트리 포인트 코드를 작성해주는데, 보호모드 엔트리 포인트 코드에서 이미 IA-32e로 전환하는 코드를 추가해줬으므로, 여기서는 단순히 **세그먼트 레지스터를 교체**하고 **IA-32e C 커널 엔트리 포인트 함수 호출**하는 역할을 한다.
 
+코드 : https://github.com/kkamagui/mint64os-examples/tree/master/source_code/chap10/
 
 <br><br>
 <hr style="border: 2px solid;">
