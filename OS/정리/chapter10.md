@@ -192,7 +192,13 @@ LME 비트를 활성화 해주면 된다.
 
 <br>
 
+![image](https://user-images.githubusercontent.com/52172169/196740154-c3fa8533-72d2-473c-b60e-256942526a80.png)
 
+<br>
+
+특이사항으로는 보호모드 c 커널 코드에서 마지막에 ```SwitchAndExecute64bitKernel();``` 코드 부분이 있는데 이 코드를 주석처리 해주지 않으면 이상하게 나온다.
+
+관련글은 http://jsandroidapp.cafe24.com/xe/qna/11333 이 있는데, 해결방법이 변수명을 잘못 적어놓으면 그럴 수 있다고 하는데, 다 비교해봤는데 틀린 부분이 없었다..
 
 <br><br>
 <hr style="border: 2px solid;">
