@@ -104,6 +104,40 @@ LME 비트를 활성화 해주면 된다.
 
 <br>
 
+마지막으로 CR0에 있는 캐시 비트를 활성화하여 캐시를 사용할 것이다.
+
+9장에서 각 페이지 필드들의 공통된 속성으로 캐시를 사용해야하므로 캐시 비트를 활성화 시켜주는 코드를 작성하였다.
+
+근데, 페이지 캐시보다 더 우선순위가 높은 캐시 비트가 있는데 바로 CR0의 NW와 CD비트이다.
+
+각각 Not Write-Through와 Cache Disable라는 뜻으로 캐시를 사용하려면 두 비트 모드 0으로 설정해줘야 한다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/196596734-7f890bdd-cc7c-4b8a-9c48-6ef510d37632.png)
+
+<br>
+
+우리는 IA-32e 모드용 세그먼트 디스크립터 자료구조인 GDT를 0x08, 0x10 위치에 설정해줬으므로 거기로 점프를 해준다.
+
+그 다음 사용할 세그먼트 레지스터들을 초기화해주는 과정이다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/196596874-d473f2f6-4f6e-4340-baf3-e147d6a27472.png)
+
+<br>
+
+이제 남은 작업은 IA-32e 모드 커널을 작성하고 OS 이미지에 통합시켜주면 된다.
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
+
+## 
+
+<br>
+
 
 
 <br><br>
