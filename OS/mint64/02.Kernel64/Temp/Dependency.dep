@@ -1,0 +1,1 @@
+main.o: ../Source/main.c ../Source/Types.h

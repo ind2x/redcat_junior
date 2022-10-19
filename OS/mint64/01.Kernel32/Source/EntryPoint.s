@@ -27,11 +27,11 @@ START:
     mov eax, 0x4000003B
     mov cr0, eax
 
-    jmp dword 0x08: ( PROTECTEDMODE - $$ + 0x10000 )
+    jmp dword 0x18: ( PROTECTEDMODE - $$ + 0x10000 )
 
 [BITS 32]
 PROTECTEDMODE:
-    mov ax, 0x10
+    mov ax, 0x20
     mov ds, ax
     mov es, ax
     mov fs, ax
@@ -48,7 +48,7 @@ PROTECTEDMODE:
     add esp, 12
 
     ; jmp $ -> modify
-    jmp dword 0x08: 0x10200 ; jmp to C kernel(main.c)
+    jmp dword 0x18: 0x10200 ; jmp to C kernel(main.c)
 
 PRINTMESSAGE:
     push ebp
@@ -108,6 +108,22 @@ GDT:
         db 0x00
         db 0x00
         db 0x00
+        db 0x00
+
+    IA_32eCODEDESCRIPTOR:
+        dw 0xFFFF
+        dw 0x0000
+        db 0x00
+        db 0x9A
+        db 0xAF
+        db 0x00
+    
+    IA_32eDATADESCRIPTOR:
+        dw 0xFFFF
+        dw 0x0000
+        db 0x00
+        db 0x92
+        db 0xAF
         db 0x00
 
     CODEDESCRIPTOR:

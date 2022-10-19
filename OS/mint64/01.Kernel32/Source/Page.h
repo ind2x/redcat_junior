@@ -25,13 +25,15 @@
 
 #pragma pack(push, 1)
 
-typedef struct kPageTableEntryStruct
+typedef struct PageTableEntryStruct
 {
     DWORD dwAttributeAndLowerBaseAddress;
     DWORD dwUpperBaseAddressAndEXB;
 } PML4TENTRY, PDPTENTRY, PDENTRY, PTENTRY;
 
-void kInitializePageTables(void);
-void kSetPageEntryData(PTENTRY *pstEntry, DWORD dwUpperBaseAddress, DWORD dwLowerBaseAddress, DWORD dwLowerFlags, DWORD dwUpperFlags);
+#pragma pack( pop )
+
+void InitializePageTables(void);
+void SetPageEntryData(PTENTRY *pstEntry, DWORD dwUpperBaseAddress, DWORD dwLowerBaseAddress, DWORD dwLowerFlags, DWORD dwUpperFlags);
 
 #endif /*__PAGE_H__*/

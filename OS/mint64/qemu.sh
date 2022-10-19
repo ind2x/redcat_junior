@@ -5,6 +5,8 @@ make;
 qemu-system-x86_64 -L . -m 64 -fda ./Disk.img -M pc -localtime;
 
 : << 'END'
+usage : -d in_asm
+
 Log items (comma separated):
 out_asm         show generated host assembly code for each compiled TB
 in_asm          show target assembly code for each compiled TB
