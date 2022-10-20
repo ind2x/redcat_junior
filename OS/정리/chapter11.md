@@ -96,9 +96,25 @@ A20 게이트 비트와 프로세스 리셋 비트는 출력 포트의 비트 1�
 
 <br>
 
+![image](https://user-images.githubusercontent.com/52172169/196967286-ddbeb2c8-63d5-4013-96df-d488bc2f635a.png)
 
+<br>
+
+키보드 활성화 방법으로 입력 버퍼로 직접 키보드로 전송하는 방식과 똑같이 위의 사진을 참고하여 LED를 활성화 시 0xED 커맨드를 전송한다.
+
+전송하면 ACK를 받고 나서 그 값을 확인하면 된다.
+
+각각의 Lock을 활성화 시 1로, 비활성화 시 0으로 설정해주면 된다.
 
 <br><br>
+<hr style="border: 2px solid;">
+<br><br>
+
+## 스캔 코드와 간단한 셸
+
+<br>
+
+
 
 <br><br>
 <hr style="border: 2px solid;">
