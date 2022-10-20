@@ -33,12 +33,14 @@ with open("Disk.img", "wb") as DiskImg:
     
     print("[INFO] Start to write kernel information to BootLoader.bin")
     DiskImgData = BootLoader + Kernel32 + Kernel64
-    # Read Kernel total sector count and Protect Mode kernel sector count
-    TotalSectorCount = int(len(Kernel32) / 512)
-    ProtectModeSectorCount = int(len(Kernel64) / 512) 
     
+    # Count sector of ProtectMode and 64bit Mode 
+    Kernel32SectorCount = int(len(Kernel32) / 512)
+    Kernel64SectorCount = int(len(Kernel64) / 512) 
+    TotalSectorCount = Kernel32SectorCount + Kernel64SectorCount
+
     TotalSectorCountRaw = struct.pack("<H", TotalSectorCount)
-    ProtectModeSectorCountRaw = struct.pack("<H", ProtectModeSectorCount)
+    ProtectModeSectorCountRaw = struct.pack("<H", Kernel32SectorCount)
 
     # Update TOTALSECTORCOUNT, ProtectModeSectorCount
     DiskImgData = DiskImgData[:5] + TotalSectorCountRaw + ProtectModeSectorCountRaw + DiskImgData[9:]
