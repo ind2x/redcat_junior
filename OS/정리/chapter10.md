@@ -202,6 +202,12 @@ LME 비트를 활성화 해주면 된다.
 
 확인 결과 ImageMaker 프로그램에서 내가 코드를 잘못짜서 그런거였다.. 
 
+제대로 하면 아래와 같이 나온다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/196856316-58cad602-ae02-4596-8d79-73596b907f70.png)
+
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
