@@ -208,6 +208,10 @@ LME 비트를 활성화 해주면 된다.
 
 ![image](https://user-images.githubusercontent.com/52172169/196856316-58cad602-ae02-4596-8d79-73596b907f70.png)
 
+<br>
+
+실제로 ```xxd Disk.img```을 하여 6, 7번째 바이트를 확인해보면 ```00000000: ea09 00c0 07<08 0007 00>b8 c007 8ed8 b800  ................```가 나오는데, 총 섹터가 8섹터이며 그 중 보호모드가 7섹터 크기임을 알 수 있다.
+
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
