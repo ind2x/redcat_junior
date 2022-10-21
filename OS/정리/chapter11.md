@@ -53,6 +53,48 @@
 
 우리는 키보드에도 명령을 보내줘야 하므로 **상태 레지스터**를 통해 입력 버퍼와 출력 버퍼의 상태를 확인하여 값이 없으면 보내고 값이 있다면 읽어오도록 처리해줌으써 효율적으로 처리할 수 있다.
 
+<br>
+
+입력값과 출력값을 보내고 가져올 때, InPortByte와 OutPortByte 함수를 정의하여 이 함수들을 통해 I/O 포트에서 값을 I/O 버퍼로 가져온다.
+
+<br>
+
+```asm
+[BITS 64]
+
+SECTION .text
+
+global InPortByte, OutPortByte
+
+InPortByte:
+    push rdx
+    mov rdx, rdi
+    mov rax, 0
+    in al, dx
+
+    pop rdx
+    ret
+
+OutPortByte:
+    push rdx
+    push rax
+
+    mov rdx, rdi
+    mov rax, rsi
+
+    out dx, al
+
+    pop rax
+    pop rdx
+    ret
+```
+
+<br>
+
+IN 명령어는 포트 I/O 주소를 지정하는데 dx 레지스터를 사용하며, 포트에서 값을 읽어와서 ax 레지스터에 저장한다.
+
+OUT 명령어는 포트 I/O 주소에서 데이터를 출력하며 마찬가지로 dx 레지스터에 포트 주소, al에 값을 넣어서 포트주소에 값을 쓴다.
+
 <br><br>
 
 ### IA-32e 모드 함수 호출 규약
