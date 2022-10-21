@@ -208,11 +208,8 @@ up 값은 down 값의 최상위 비트를 1로 설정한 값이며, 0x80을 더�
 
 <br>
 
-Keyboard.h에는 키 UP, Down, ExtendedKEY의 매크로 값과 스캔코드들의 ascii 값들을 매크로로 정의하였다.
-
-
+![image](https://user-images.githubusercontent.com/52172169/197117146-4f146c7d-bf26-483b-8cf5-00cdebdf0df7.png)
 
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
-
