@@ -14,7 +14,7 @@
 
 <br><br>
 
-## ASM
+## ASM (
 
 + intel syntax : https://www.cs.virginia.edu/~evans/cs216/guides/x86.html, https://rito15.github.io/posts/intel-assembly-memo/
 
