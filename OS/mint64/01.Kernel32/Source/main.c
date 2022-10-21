@@ -66,7 +66,7 @@ void main(void)
 
     PrintString(0, 10, "[*] Switch To IA-32e Mode......");
 
-    // SwitchAndExecute64bitKernel();
+    SwitchAndExecute64bitKernel();
 
     while (1);
 }
