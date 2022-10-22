@@ -58,3 +58,48 @@ LLVM에서는 passes 형태로 광범위한 형태의 최적화를 지원한다�
 <hr style="border: 2px solid;">
 <br><br>
 
+## LLVM Optimization Passes
+
+<br>
+
+최적화 하는 방식에 두 가지 기능이 있는데, 전체 코드를 읽어서 최적화 하는 방식(whole module passes)과 함수 하나씩 최적화 하는 방식(per-function passes)가 있다.
+
+```per-function``` 방식을 이용할 거고 이를 위해서는 ```FunctionPassManager```를 설해야 한다.
+
+```FunctionPassManager```는 ```LegacyPassManager.h```의 ```llvm::legacy::FunctionPassManager``` 의 형태로 있다.
+
+최적화하려는 모듈마다 ```FunctionPassManager```가 필요하므로 초기화하고 생성하는 함수를 작성해준다.
+
+<br>
+
+```shell
+void InitializeModuleAndPassManager(void) {
+  // Open a new module.
+  TheModule = std::make_unique<Module>("my cool jit", TheContext);
+
+  // Create a new pass manager attached to it.
+  TheFPM = std::make_unique<legacy::FunctionPassManager>(TheModule.get());
+
+  // Do simple "peephole" optimizations and bit-twiddling optzns.
+  TheFPM->add(createInstructionCombiningPass());
+  
+  // Reassociate expressions.
+  TheFPM->add(createReassociatePass());
+  
+  // Eliminate Common SubExpressions.
+  TheFPM->add(createGVNPass());
+  
+  // Simplify the control flow graph (deleting unreachable blocks, etc).
+  TheFPM->add(createCFGSimplificationPass());
+
+  TheFPM->doInitialization();
+}
+```
+
+<br>
+
+
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
