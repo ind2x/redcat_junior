@@ -50,7 +50,7 @@ entry:
 
 이 경우 LHS = RHS이기 때문에 굳이 addtmp, addtmp1을 만들어서 multmp를 하는 것이 아닌, addtmp 만으로만 multmp을 표시해주고 싶을 것이다.
 
-그러나 이것은 가능하려면 두 가지 변환이 필요한데, add 명령어에 관한 중복 표현 삭제와 식의 재연결이 필요하다.
+그러나 이것은 가능하려면 두 가지 변환이 필요한데, add 명령어에 관한 중복 표현 삭제(Common Subexpression Elimination (CSE))와 식의 재연결(reassociation of expressions)이 필요하다.
 
 LLVM에서는 passes 형태로 광범위한 형태의 최적화를 지원한다고 한다.
 
@@ -84,10 +84,10 @@ void InitializeModuleAndPassManager(void) {
   TheFPM->add(createInstructionCombiningPass());
   
   // Reassociate expressions.
-  TheFPM->add(createReassociatePass());
+  TheFPM->add(createReassociatePass());         // 위에서 설명한 변환 1
   
   // Eliminate Common SubExpressions.
-  TheFPM->add(createGVNPass());
+  TheFPM->add(createGVNPass());                 // 위에서 설명한 변환 2
   
   // Simplify the control flow graph (deleting unreachable blocks, etc).
   TheFPM->add(createCFGSimplificationPass());
@@ -95,6 +95,50 @@ void InitializeModuleAndPassManager(void) {
   TheFPM->doInitialization();
 }
 ```
+
+<br>
+
+그래서 ```FunctionAST::codegen()```에서 함수 IR을 생성한 후 반환되기 전에 위의 최적화 함수를 호출하여 최적화를 해준 뒤 반환해준다.
+
+<br>
+
+```cpp
+if (Value *RetVal = Body->codegen()) {
+  // Finish off the function.
+  Builder.CreateRet(RetVal);
+
+  // Validate the generated code, checking for consistency.
+  verifyFunction(*TheFunction);
+
+  // Optimize the function.
+  TheFPM->run(*TheFunction);    // FunctionAST::codegen()에서 이 부분이 추가된 것
+
+  return TheFunction;
+}
+```
+
+<br>
+
+그래서 LHS = RHS인 상황에서 하고자 했던 최적화를 할 수 있게 된다.
+
+<br>
+
+```shell
+ready> def test(x) (1+2+x)*(x+(1+2));
+ready> Read function definition:
+define double @test(double %x) {
+entry:
+        %addtmp = fadd double %x, 3.000000e+00
+        %multmp = fmul double %addtmp, %addtmp
+        ret double %multmp
+}
+```
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
+
+## Adding a JIT Compiler
 
 <br>
 
