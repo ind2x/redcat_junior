@@ -283,6 +283,162 @@ Evaluated to 9.000000
 
 바로 4+5 식을 평가하여 9를 계산하여 리턴해주는 것을 볼 수 있다.
 
+그러나 문제가 발생한다.
+
+<br>
+
+```shell
+ready> def testfunc(x y) x + y*2;
+Read function definition:
+define double @testfunc(double %x, double %y) {
+entry:
+  %multmp = fmul double %y, 2.000000e+00
+  %addtmp = fadd double %multmp, %x
+  ret double %addtmp
+}
+
+ready> testfunc(4, 10);
+Read top-level expression:
+define double @1() {
+entry:
+  %calltmp = call double @testfunc(double 4.000000e+00, double 1.000000e+01)
+  ret double %calltmp
+}
+
+Evaluated to 24.000000
+
+ready> testfunc(5, 10);
+ready> LLVM ERROR: Program used external function 'testfunc' which could not be resolved!
+```
+
+<br>
+
+위의 코드를 보면 함수를 정의하고 호출하였다. 즉, ```HandleTopLevelExpression()```이 호출이 된다.
+
+근데 ```HandleTopLevelExpression()``` 코드에서 마지막에 이제 JIT에 할당한 모듈을 삭제를 하는데, 문제는 testfunc는 그 모듈의 일부분으로, 모듈이 삭제될 때 같이 삭제가 되어 한번 사용하고 나서 다시 사용하려 하면 이미 삭제되어 없으므로 에러가 발생하는 것이다.
+
+**이 문제를 해결하는 가장 쉬운 방법은 익명 식을 나머지 함수 정의와 별도의 모듈에 넣는 것**이다.
+
+여기서는 아예 자체 모듈에 모든 기능을 넣어줄 것이다.
+
+설사 중복된 함수명을 가지는 함수를 넣더라고, kaleidoscopeJIT는 항상 최신 정의를 반환한다.
+
+<br>
+
+```shell
+ready> def foo(x) x + 1;
+Read function definition:
+define double @foo(double %x) {
+entry:
+  %addtmp = fadd double %x, 1.000000e+00
+  ret double %addtmp
+}
+
+ready> foo(2);
+Evaluated to 3.000000
+
+ready> def foo(x) x + 2;
+define double @foo(double %x) {
+entry:
+  %addtmp = fadd double %x, 2.000000e+00
+  ret double %addtmp
+}
+
+ready> foo(2);
+Evaluated to 4.000000
+```
+
+<br>
+
+각 기능이 우리의 자체 모듈에서 작동하도록 하려면 이전 함수 선언을 우리가 여는 각 새 모듈로 다시 생성하는 방법이 필요하다.
+
+<br>
+
+```cpp
+static std::unique_ptr<KaleidoscopeJIT> TheJIT;
+
+...
+
+Function *getFunction(std::string Name) {
+  // First, see if the function has already been added to the current module.
+  if (auto *F = TheModule->getFunction(Name))
+    return F;
+
+  // If not, check whether we can codegen the declaration from some existing
+  // prototype.
+  auto FI = FunctionProtos.find(Name);
+  if (FI != FunctionProtos.end())
+    return FI->second->codegen();
+
+  // If no existing prototype exists, return null.
+  return nullptr;
+}
+
+...
+
+Value *CallExprAST::codegen() {
+  // Look up the name in the global module table.
+  Function *CalleeF = getFunction(Callee);
+
+...
+
+Function *FunctionAST::codegen() {
+  // Transfer ownership of the prototype to the FunctionProtos map, but keep a
+  // reference to it for use below.
+  auto &P = *Proto;
+  FunctionProtos[Proto->getName()] = std::move(Proto);
+  Function *TheFunction = getFunction(P.getName());
+  if (!TheFunction)
+    return nullptr;
+```
+
+<br>
+
+기존의 ```CallExprAST::codegen()```과 ```FunctionAST::codegen()```에서 사용하던 ```TheModule->getFunction``` 메소드 대신에 다시 정의한 ```getFunction``` 함수를 이용하여 자체 모듈에 넣은 다음 거기서 불러오는 것이다.
+
+```FunctionAST::codegen()```에서 각 기능에 대한 최신 프로토타입을 보유하고 있는 새로운 글로벌 FunctionProtos를 추가하였다.
+
+```getFunction``` 함수는 TheModule 에서 기존 함수 선언을 검색하지만, 찾지 못하면 다시 FunctionProtos 에서 새 선언을 생성한다.
+
+이에 따라 HandleDefinition 및 HandleExtern도 업데이트를 해야한다.
+
+<br>
+
+```cpp
+static void HandleDefinition() {
+  if (auto FnAST = ParseDefinition()) {
+    if (auto *FnIR = FnAST->codegen()) {
+      fprintf(stderr, "Read function definition:");
+      FnIR->print(errs());
+      fprintf(stderr, "\n");
+      TheJIT->addModule(std::move(TheModule));
+      InitializeModuleAndPassManager();
+    }
+  } else {
+    // Skip token for error recovery.
+     getNextToken();
+  }
+}
+
+static void HandleExtern() {
+  if (auto ProtoAST = ParseExtern()) {
+    if (auto *FnIR = ProtoAST->codegen()) {
+      fprintf(stderr, "Read extern: ");
+      FnIR->print(errs());
+      fprintf(stderr, "\n");
+      FunctionProtos[ProtoAST->getName()] = std::move(ProtoAST);
+    }
+  } else {
+    // Skip token for error recovery.
+    getNextToken();
+  }
+}
+```
+
+<br>
+
+이제 코드를 짜고 직접 따라서 쳐보고 면 된다.
+
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
