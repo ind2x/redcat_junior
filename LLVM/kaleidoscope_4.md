@@ -321,7 +321,8 @@ ready> LLVM ERROR: Program used external function 'testfunc' which could not be 
 
 여기서는 아예 자체 모듈에 모든 기능을 넣어줄 것이다.
 
-<s>설사 중복된 함수명을 가지는 함수를 넣더라고, kaleidoscopeJIT는 항상 최신 정의를 반환한다.</s> -> 이 부분은 LLVM-9부터는 허용되지 않은 부분으로 skip하면 됨.
+<s>설사 중복된 함수명을 가지는 함수를 넣더라고, kaleidoscopeJIT는 항상 최신 정의를 반환한다.</s>   
+-> 이 부분은 LLVM-9부터는 허용되지 않은 부분으로 skip하면 됨.
 
 <br>
 
@@ -346,6 +347,10 @@ entry:
 
 ready> foo(2);
 Evaluated to 4.000000
+
+
+---> llvm-9 이후로는 없어진 기능으로 재정의하지 않고 에러를 출력함
+---> Duplicate definition of symbol 'foo'
 ```
 
 <br>
