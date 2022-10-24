@@ -439,6 +439,8 @@ static void HandleExtern() {
 
 이제 코드를 짜고 직접 따라서 쳐보고 면 된다.
 
+KaleidoscopeJIT.h는 https://github.com/llvm/llvm-project/tree/llvmorg-14.0.0/llvm/examples/Kaleidoscope 에서 다운로드 (llvm 버전 14.0.0)
+
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
