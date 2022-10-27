@@ -37,7 +37,7 @@ static double NumVal;
 static int gettok()
 {
     static int LastChar = ' ';
-    while (isspace(LastChar))
+    while (isspace(LastChar) || LastChar == ',')
     {
         LastChar = getchar();
     }
