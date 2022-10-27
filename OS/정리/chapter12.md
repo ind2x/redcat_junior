@@ -235,10 +235,7 @@ IDTR 레지스터가 있으며, LIDT 명령어를 이용한다.
 
 <br>
 
-먼저 GDT를 교체해줄 것이다. C코드로 작성하여 ```02.Kernel64/Source/descriptor.c```를 생성해준다.
-
-
-
+![image](https://user-images.githubusercontent.com/52172169/198208268-4b7608a9-3549-4c45-b0fd-e74e810a1356.png)
 
 <br><br>
 <hr style="border: 2px solid;">
