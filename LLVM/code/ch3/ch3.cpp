@@ -37,11 +37,12 @@ static double NumVal;
 static int gettok()
 {
     static int LastChar = ' ';
-    while (isspace(LastChar) || LastChar == ',')
+    while (isspace(LastChar))
     {
         LastChar = getchar();
     }
 
+    
     if (isalpha(LastChar))
     {
         IdentifierStr = LastChar;
@@ -50,6 +51,7 @@ static int gettok()
             IdentifierStr += LastChar;
         }
 
+        fprintf(stderr, "Ident: %s\n",IdentifierStr.c_str());
         if (IdentifierStr == "def")
         {
             return tok_def;
@@ -94,6 +96,7 @@ static int gettok()
 
     int ThisChar = LastChar;
     LastChar = getchar();
+
     return ThisChar;
 };
 
@@ -348,7 +351,7 @@ static std::unique_ptr<PrototypeAST> ParsePrototype()
     }
 
     std::string FnName = IdentifierStr;
-    getNextToken();
+    getNextToken(); // eat '('
 
     if (CurTok != '(')
     {
@@ -356,8 +359,11 @@ static std::unique_ptr<PrototypeAST> ParsePrototype()
     }
 
     std::vector<std::string> ArgNames;
-    while (getNextToken() == tok_identifier )
+    while (getNextToken() == tok_identifier || CurTok == ',')
     {
+        if(CurTok == ',') {
+            continue;
+        }
         ArgNames.push_back(IdentifierStr);
     }
     if (CurTok != ')')
