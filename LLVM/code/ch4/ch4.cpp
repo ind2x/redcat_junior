@@ -46,7 +46,7 @@ static double NumVal;
 static int gettok()
 {
     static int LastChar = ' ';
-    while(isspace(LastChar)) { 
+    while(isspace(LastChar) || LastChar == ',') { 
         LastChar = getchar(); 
     }
 
@@ -315,11 +315,15 @@ static std::unique_ptr<PrototypeAST> ParsePrototype()
     }
 
     std::vector<std::string> ArgNames;
-    while(getNextToken() == tok_identifier)
+    while (getNextToken() == tok_identifier || CurTok == ',')
     {
+        if (CurTok == ',')
+        {
+            continue;
+        }
         ArgNames.push_back(IdentifierStr);
     }
-    
+
     if(CurTok != ')') { 
         LogErrorP("Expected ')' in prototype"); 
     }
@@ -486,15 +490,6 @@ Function *FunctionAST::codegen()
     Builder->SetInsertPoint(BB);
 
     NamedValues.clear();
-
-    /*  코드 수정해야 함
-    unsigned Idx = 0;
-    for (auto ProtoBegin = Proto->Args.begin(), ProtoEnd = Proto->Args.end();
-        ProtoBegin != ProtoEnd; ++ProtoBegin) {
-        TheFunction->getArg(Idx)->setName(*ProtoBegin);
-    }
-    */
-
     for(auto &Arg : TheFunction->args())
     {
         NamedValues[std::string(Arg.getName())] = &Arg;
@@ -505,6 +500,8 @@ Function *FunctionAST::codegen()
         Builder->CreateRet(RetVal);
 
         verifyFunction(*TheFunction);
+
+        TheFPM->run(*TheFunction);
 
         return TheFunction;
     }
@@ -518,21 +515,11 @@ Function *FunctionAST::codegen()
 
 // Top-Level Parsing and JIT Driver
 
-/*
-static void InitiallizeModule()
-{
-    TheContext = std::make_unique<LLVMContext>();
-    TheModule = std::make_unique<Module>("My Fking JIT", *TheContext);
-
-    Builder = std::make_unique<IRBuilder<>>(*TheContext);
-}
-*/
-
 static void InitializeModuleAndPassManager()
 {
     // Open a new context and module.
     TheContext = std::make_unique<LLVMContext>();
-    TheModule = std::make_unique<Module>("my cool jit", *TheContext);
+    TheModule = std::make_unique<Module>("My Fking JIT..", *TheContext);
     TheModule->setDataLayout(TheJIT->getDataLayout());
 
     // Create a new builder for the module.
@@ -559,7 +546,7 @@ static void HandleDefinition()
     {
         if (auto *FnIR = FnAST->codegen())
         {
-            fprintf(stderr, "Read function definition:");
+            fprintf(stderr, "Read Function definition:\n");
             FnIR->print(errs());
             fprintf(stderr, "\n");
             ExitOnErr(TheJIT->addModule(
@@ -580,7 +567,7 @@ static void HandleExtern()
     {
         if (auto *FnIR = ProtoAST->codegen())
         {
-            fprintf(stderr, "Read extern: ");
+            fprintf(stderr, "Read extern:\n");
             FnIR->print(errs());
             fprintf(stderr, "\n");
             FunctionProtos[ProtoAST->getName()] = std::move(ProtoAST);
