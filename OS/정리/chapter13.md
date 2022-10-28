@@ -125,11 +125,15 @@ PIC 컨트롤러가 아무리 프로세서에게 인터럽트를 전달해도 �
 
 <br>
 
-PIC 컨트롤러를 초기화하는 ```PIC.c, PIC.h``` 파일을 작성해주고, IDT 테이블에 등록할 핸들러 코드가 담긴 ```ISR.asm, ISR.h, InterruptHandler.c, InterruptHandler.h``` 코드를 작성해준다.
+PIC 컨트롤러를 초기화하는 ```PIC.c, PIC.h``` 파일을 작성해주고, IDT 테이블에 등록할 어셈블리어 핸들러 코드가 담긴 ```ISR.asm, ISR.h```, 어셈블리 핸들러 함수가 호출하는 C로 작성된 핸들러로 컨텍스트 부분을 제외한 나머지 부분을 처리해주는 ```InterruptHandler.c, InterruptHandler.h``` 코드를 작성해준다.
 
 <br>
 
+그래서 마지막에 main.c에 추가된 함수들을 넣어주어서 PIC를 초기화하는 InitializePIC(), PIC 컨트롤러에 연결된 모든 디바이스에서 인터럽트가 발생할 수 있게 MaskPICInterrupt(), 마지막으로 EnableInterrupt()를 호출하여 인터럽트를 처리할 수 있도록 해주면 끝이다.
 
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/198630183-9c0d067b-4def-4a44-bf5e-822b354af491.png)
 
 <br><br>
 <hr style="border: 2px solid;">
