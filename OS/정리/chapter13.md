@@ -43,4 +43,38 @@ PIC 컨트롤러에는 IRR, ISR, IMR 레지스터가 있는데, 레지스터의 
 <hr style="border: 2px solid;">
 <br><br>
 
-## 
+## PIC 컨트롤러 제어
+
+<br>
+
+PIC 컨트롤러를 초기화 해 줄 것이다.
+
+우선 PIC 컨트롤러에는 2개의 I/O 포트가 있는데, 마스터 PIC 컨트롤러는 ```0x20, 0x21```이며 슬레이브 PIC 컨트롤러는 ```0xA0, 0xA1```이다.
+
+두 포트 모두 ```읽기/쓰기```가 가능하다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/198546108-e4e35b41-1752-4569-8f45-155e7856859d.png)
+
+<br>
+
+커맨드 또한 2개의 타입이 제공되며, 초기화를 하는 ICW 커맨드와 제어와 관련된 OCW가 있다.
+
+여기서는 ICW를 보겠다.
+
+<br>
+
+ICW 커맨드는 1부터 4까지 있으며 자세한건 p.416에서 확인한다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/198549006-e8d74653-c68b-4229-ac1f-6abdfb29ad9f.png)
+
+<br>
+
+
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
