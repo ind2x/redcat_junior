@@ -3,6 +3,7 @@
 SECTION .text
 
 global InPortByte, OutPortByte, LoadGDTR, LoadTR, LoadIDTR
+global EnableInterrupt, DisableInterrupt, ReadRFLAGS
 
 InPortByte:
     push rdx
@@ -36,4 +37,17 @@ LoadTR:
 
 LoadIDTR:
     lidt [rdi]
+    ret
+
+EnableInterrupt:
+    sti
+    ret
+
+DisableInterrupt:
+    cli
+    ret
+
+ReadRFLAGS:
+    pushfq
+    pop rax
     ret

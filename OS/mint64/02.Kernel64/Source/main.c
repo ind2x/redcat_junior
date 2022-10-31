@@ -1,15 +1,16 @@
 #include "Types.h"
 #include "Keyboard.h"
 #include "Descriptor.h"
+#include "PIC.h"
 
 void PrintString(int iX, int iY, const char *pcString);
 
 void main(void)
 {
     char vcTemp[2];
-    BYTE bFlags;
     BYTE bTemp;
     int i = 0;
+    KEYDATA stData;
 
     PrintString(0, 10, "[*] Switch To IA-32e Mode Success..!!");
     PrintString(0, 11, "[*] IA-32e C Language Kernel Start................[Pass]");
@@ -27,9 +28,9 @@ void main(void)
     LoadIDTR(IDTR_STARTADDRESS);
     PrintString(51, 14, "Pass");
 
-    PrintString(0, 15, "[*] Keyboard Activate.............................[    ]");
+    PrintString(0, 15, "[*] Keyboard Activate And Queue Initialize........[    ]");
 
-    if(ActivateKeyboard() == TRUE)
+    if (InitializeKeyboard() == TRUE)
     {
         PrintString(51, 15, "Pass");
         ChangeKeyboardLED(FALSE, FALSE, FALSE);
@@ -37,23 +38,28 @@ void main(void)
     else
     {
         PrintString(51, 15, "Fail");
-        while(1);
+        while (1);
     }
+
+    PrintString(0, 16, "[*] PIC Controller And Interrupt Initialize.......[    ]");
+    
+    InitializePIC();
+    MaskPICInterrupt(0);
+    EnableInterrupt();
+    PrintString(51, 16, "Pass");
 
     while(1)
     {
-        if (IsOutputBufferFull() == TRUE)
+        if (GetKeyFromKeyQueue(&stData) == TRUE)
         {
-            bTemp = GetKeyboardScanCode();
-            if(ConvertScanCodeToASCIICode(bTemp, &(vcTemp[0]), &bFlags) == TRUE)
+            if (stData.bFlags & KEY_FLAGS_DOWN)
             {
-                if(bFlags & KEY_FLAGS_DOWN)
+                vcTemp[0] = stData.bASCIICode;
+                PrintString(i++, 17, vcTemp);
+
+                if (vcTemp[0] == '0')
                 {
-                    PrintString(i++, 16, vcTemp);
-                    if(vcTemp[0] == '0')
-                    {
-                        bTemp = bTemp / 0;
-                    }
+                    bTemp = bTemp / 0;
                 }
             }
         }

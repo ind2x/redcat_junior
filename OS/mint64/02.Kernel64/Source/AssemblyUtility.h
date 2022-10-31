@@ -8,5 +8,8 @@ void OutPortByte(WORD wPort, BYTE bData);
 void LoadGDTR(QWORD qwGDTRAddress);
 void LoadTR(WORD wTSSSegmentOffset);
 void LoadIDTR(QWORD qwIDTRAddress);
+void EnableInterrupt(void);
+void DisableInterrupt(void);
+QWORD ReadRFLAGS(void);
 
 #endif /* __ASSEMBLMYUTILITY_H__ */

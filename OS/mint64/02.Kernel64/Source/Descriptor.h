@@ -1,25 +1,8 @@
-/**
- *  file    Descriptor.h
- *  date    2009/01/16
- *  author  kkamagui
- *          Copyright(c)2008 All rights reserved by kkamagui
- *  brief   GDT 및 IDT에 관련된 각종 디스크립터에 대한 헤더 파일
- */
-
 #ifndef __DESCRIPTOR_H__
 #define __DESCRIPTOR_H__
 
 #include "Types.h"
 
-////////////////////////////////////////////////////////////////////////////////
-//
-// 매크로
-//
-////////////////////////////////////////////////////////////////////////////////
-//==============================================================================
-// GDT
-//==============================================================================
-// 조합에 사용할 기본 매크로
 #define GDT_TYPE_CODE 0x0A
 #define GDT_TYPE_DATA 0x02
 #define GDT_TYPE_TSS 0x09
@@ -187,6 +170,5 @@ void InitializeTSSSegment(TSSSEGMENT *pstTSS);
 
 void InitializeIDTTables(void);
 void SetIDTEntry(IDTENTRY *pstEntry, void *pvHandler, WORD wSelector, BYTE bIST, BYTE bFlags, BYTE bType);
-void DummyHandler(void);
 
 #endif
