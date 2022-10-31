@@ -277,3 +277,7 @@ Function *FunctionAST::codegen()
 그래서 성우님이 추가한 코드를 보면은 전달된 Proto의 인자 값들을 TheFunction의 arg에 저장해주는 듯하다.
 
 그래서 def에서 사용한 인자 b가 저장이 될테고, 그대로 for문을 통해 Arg를 통해 전달받아서 NamedValues에 저장이 되는 것 같다.
+
+<br>
+
+문제점이 발생했는데, 이 코드를 추가하게 되면 위의 문제는 해결이 되지만, ```def foo(x y) x+y;``` 같이 인자가 두 개 이상의 함수를 작성하면 에러가 발생한다..

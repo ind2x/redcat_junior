@@ -30,7 +30,7 @@
 
 + llvm version : 14.0.0 -> https://github.com/llvm/llvm-project/tree/llvmorg-14.0.0/llvm/examples/Kaleidoscope 
 
-+ 진행상황 : 3 / 14
++ 진행상황 : 4 / 14
 
 <br><br>
 
@@ -38,7 +38,7 @@
 
 + Book: 64비트 멀티코어 OS 원리와 구조 1, 2
 
-+ 진행상황: 11 / 31 -> 31 / 58
++ 진행상황: 13 / 31 -> 31 / 58
 
 <br><br>
 
