@@ -34,7 +34,27 @@
 
 <br>
 
-+ IR
+IR 부분은 좀 흥미로운 부분으로 아래와 같이 나뉘어진다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/199033288-abcda7d5-a7ef-4b6d-9e12-464cd27e3376.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/199033350-dab7bf1d-3030-490e-944a-824365c263a6.png)
+
+<br>
+
+Code Generation은 다음과 같다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/199034012-d80bc76d-27bd-4534-9d57-b5e946ff4a63.png)
+
+<br>
+
+
 
 
 <br>
@@ -44,3 +64,14 @@
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
+
+## for
+
+<br>
+
+
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
+
