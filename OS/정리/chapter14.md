@@ -92,7 +92,11 @@ ACK 부분은 **ACK를 기다리는 동안 다른 키가 수신될 수 있으므
 
 <br>
 
+범용 큐를 정의한 ```Queue.c, Queue.h```, 인터럽트를 제어하는 함수인 SetInterrupt를 ```Utility.c```에 정의를 해주고, 다른 코드들을 조금씩 수정해주었다.
 
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/199017678-f95a36e1-f711-4ab1-9a75-e6f917aeca6c.png)
 
 <br><br>
 <hr style="border: 2px solid;">
