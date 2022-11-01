@@ -22,6 +22,28 @@
 
 <br>
 
+C언어는 가변인자 처리를 위해 va_list 데이터 타입과 va_start, va_arg, va_end 라는 매크로를 사용한다.
+
+이는 stdarg.h에 선언되어 있다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/199242529-08404098-dcc4-42c4-9486-6f484772780a.png)
+
+<br>
+
+확인해보면 가변 인재 매크로는 라이브러리를 사용하지 않아서 mint64 os에서 사용 가능하다고 한다.
+
+<br>
+
+이제 sprintf 함수를 보고 vsprintf 함수를 이용해 printf 함수를 구현해 줄 것이다.
+
+sprintf 함수는 결과를 문자열 버퍼에 출력하고, printf 함수는 결과를 화면에 출력한다.
+
+vsprintf 함수는 sprintf 함수의 실질적인 역할을 해주는 함수로 가변 인자 대신에 va_list 타입의 가변 인자 리스트를 받아서 처리한다.
+
+<br>
+
 
 
 <br><br>
