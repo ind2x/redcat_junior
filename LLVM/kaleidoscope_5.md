@@ -78,10 +78,6 @@ then과 else의 코드는 대체로 비슷하지만 else의 첫 번째 줄만 �
 
 ![image](https://user-images.githubusercontent.com/52172169/199176228-69a9c04f-e0a1-4be0-83ac-6803dd7c568b.png)
 
-<br>
-
-
-
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
@@ -89,6 +85,37 @@ then과 else의 코드는 대체로 비슷하지만 else의 첫 번째 줄만 �
 ## for
 
 <br>
+
++ Lexer
+
+![image](https://user-images.githubusercontent.com/52172169/199178509-6372506b-2ee8-4ea5-baca-cafadb1bdd4a.png)
+
+<br>
+
++ AST
+
+![image](https://user-images.githubusercontent.com/52172169/199178570-e1173a15-82cc-4e03-bb05-eedea980144a.png)
+
+<br>
+
++ Parser
+
+![image](https://user-images.githubusercontent.com/52172169/199179138-efdb7a03-23b4-497d-af44-18330265d547.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/199179387-9a5d8969-15df-4d5f-8f73-f22bbea63dfb.png)
+
+<br>
+
++ IR
+
+![image](https://user-images.githubusercontent.com/52172169/199179635-5044d463-a1ac-455a-a7aa-93da9f20ad35.png)
+
+<br>
+
+Code Generation
+
 
 
 
