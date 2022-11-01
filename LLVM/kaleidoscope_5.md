@@ -60,13 +60,23 @@ Code Generation은 다음과 같다.
 
 ![image](https://user-images.githubusercontent.com/52172169/199175530-173f4304-0647-43b7-abb5-85fcd93b94a1.png)
 
-
 <br>
 
 ![image](https://user-images.githubusercontent.com/52172169/199175375-733270c6-a196-4f1a-ac5d-be21ba2c59fe.png)
 
 <br>
 
+then과 else의 코드는 대체로 비슷하지만 else의 첫 번째 줄만 다르다는 점을 주목해야 한다.
+
+이 코드는 함수에 else 블록을 추가하는 코드이다.
+
+왜 다르냐하면, 2번째 사진에서 then과 else 블록을 만들었지만 then 블록은 TheFunction에 추가(insert)되었지만, else 블록은 추가되지 않았음을 알 수 있다.
+
+마지막으로 두 코드들을 병합하는 과정이 남았다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/199176228-69a9c04f-e0a1-4be0-83ac-6803dd7c568b.png)
 
 <br>
 
