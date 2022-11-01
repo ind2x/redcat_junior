@@ -112,13 +112,6 @@ then과 else의 코드는 대체로 비슷하지만 else의 첫 번째 줄만 �
 
 ![image](https://user-images.githubusercontent.com/52172169/199179635-5044d463-a1ac-455a-a7aa-93da9f20ad35.png)
 
-<br>
-
-Code Generation
-
-
-
-
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
