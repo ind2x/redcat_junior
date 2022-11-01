@@ -44,6 +44,16 @@ vsprintf 함수는 sprintf 함수의 실질적인 역할을 해주는 함수로 
 
 <br>
 
+나머지 코드 부분은 책으로 보면 될 것 같다.
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
+
+## 콘솔 입출력 처리
+
+<br>
+
 
 
 <br><br>
