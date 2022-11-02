@@ -144,6 +144,8 @@ printf 함수는 위에서 정의한 vsprintf 함수를 통해 정의를 하는�
 
 <br>
 
+콘솔과 셸을 구현하는 ```Console.h, Console.c```와 ```ConsoleShell.c, ConsoleShell.h```를 정의하고 ```Utility.c```에 vsprinf, printf 함수 등을 추가해준다.
+
 
 
 <br><br>
