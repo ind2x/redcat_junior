@@ -116,13 +116,3 @@ unary operator는 AST와 Parser가 없으므로 생성해준다.
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
-
-## Kicking The Tires
-
-<br>
-
-
-
-<br><br>
-<hr style="border: 2px solid;">
-<br><br>
