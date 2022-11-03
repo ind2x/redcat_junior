@@ -73,6 +73,53 @@
 
 <br>
 
+unary operator는 AST와 Parser가 없으므로 생성해준다.
+
+<br>
+
++ AST
+
+![image](https://user-images.githubusercontent.com/52172169/199680475-d3cf817d-c0be-49c7-9d43-136baf99e48a.png)
+
+<br>
+
++ Parser
+
+![image](https://user-images.githubusercontent.com/52172169/199680527-7abd2ab7-15df-490d-81a6-683200f9212d.png)
+
+<br>
+
+정의한 ParseUnary를 호출해주는 부분으로 ParseBinOpRHS에서 불러준다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/199682651-21c2eac1-0e78-4db7-aea5-9ec215fdc66f.png)
+
+<br>
+
+그 다음 추가할 부분은 def를 이용해서 불러오므로 결국 ParsePrototype에서 함수인지, 단항 연산자인지, 이항 연산자인지 등을 구분해줘야 한다. 
+
+따라서 여기에 tok_unary를 추가해준다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/199684646-cda7f295-26b5-49f7-9ded-f7c45f068eb9.png)
+
+<br>
+
+마지막으로 unary 코드를 생성하는 IR 코드를 작성해준다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/199712477-68701123-fba1-4b96-8ddf-ec8d7330d41e.png)
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
+
+## Kicking The Tires
+
+<br>
 
 
 
