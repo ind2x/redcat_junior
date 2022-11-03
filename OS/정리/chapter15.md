@@ -146,7 +146,21 @@ printf 함수는 위에서 정의한 vsprintf 함수를 통해 정의를 하는�
 
 콘솔과 셸을 구현하는 ```Console.h, Console.c```와 ```ConsoleShell.c, ConsoleShell.h```를 정의하고 ```Utility.c```에 vsprinf, printf 함수 등을 추가해준다.
 
+<br>
 
+![image](https://user-images.githubusercontent.com/52172169/199654016-58325028-b193-4d74-9a2f-3e592f1ba2e1.png)
+
+<br>
+
+위의 사진에 도달하기 전 에러가 발생했는데 아마 10장에 있던 64비트 모드로 넘어가기 전 무한루프되는 에러랑 동일한 에러였다.
+
+그 때는 이미지메이커 프로그램의 코드 문제였다면 이번에는 레지스터 문제였다.
+
+gdb로 분석해보면 Printf 함수가 실행되면 xmm 레지스터를 사용하는 부분이 있는데 이 부분에서 Printf+32까지 실행되고 그 다음 실행될 때 다른 주소로 이동이 된다.
+
+이 주소는 qemu가 잘못된 주소에 접근했을 때 가는 곳 중 하나라고 한다.
+
+따라서 64비트 makefile에 있는 clang에 옵션으로 ```-msoft-float```를 주면 된다.
 
 <br><br>
 <hr style="border: 2px solid;">
