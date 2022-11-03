@@ -3,7 +3,7 @@
 SECTION .text       ; text 섹션(세그먼트)을 정의
 
 ; 외부에서 정의된 함수를 쓸 수 있도록 선언함(Import)
-extern kCommonExceptionHandler, kCommonInterruptHandler, kKeyboardHandler
+extern CommonExceptionHandler, CommonInterruptHandler, KeyboardHandler
 
 ; C 언어에서 호출할 수 있도록 이름을 노출함(Export)
 ; 예외(Exception) 처리를 위한 ISR
@@ -92,7 +92,7 @@ kISRDivideError:
 
     ; 핸들러에 예외 번호를 삽입하고 핸들러 호출
     mov rdi, 0
-    call kCommonExceptionHandler
+    call CommonExceptionHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -103,7 +103,7 @@ kISRDebug:
 
     ; 핸들러에 예외 번호를 삽입하고 핸들러 호출
     mov rdi, 1
-    call kCommonExceptionHandler
+    call CommonExceptionHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -114,7 +114,7 @@ kISRNMI:
 
     ; 핸들러에 예외 번호를 삽입하고 핸들러 호출
     mov rdi, 2
-    call kCommonExceptionHandler
+    call CommonExceptionHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -125,7 +125,7 @@ kISRBreakPoint:
 
     ; 핸들러에 예외 번호를 삽입하고 핸들러 호출
     mov rdi, 3
-    call kCommonExceptionHandler
+    call CommonExceptionHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -136,7 +136,7 @@ kISROverflow:
 
     ; 핸들러에 예외 번호를 삽입하고 핸들러 호출
     mov rdi, 4
-    call kCommonExceptionHandler
+    call CommonExceptionHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -147,7 +147,7 @@ kISRBoundRangeExceeded:
 
     ; 핸들러에 예외 번호를 삽입하고 핸들러 호출
     mov rdi, 5
-    call kCommonExceptionHandler
+    call CommonExceptionHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -158,7 +158,7 @@ kISRInvalidOpcode:
 
     ; 핸들러에 예외 번호를 삽입하고 핸들러 호출
     mov rdi, 6
-    call kCommonExceptionHandler
+    call CommonExceptionHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -169,7 +169,7 @@ kISRDeviceNotAvailable:
 
     ; 핸들러에 예외 번호를 삽입하고 핸들러 호출
     mov rdi, 7
-    call kCommonExceptionHandler
+    call CommonExceptionHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -181,7 +181,7 @@ kISRDoubleFault:
     ; 핸들러에 예외 번호와 에러 코드를 삽입하고 핸들러 호출
     mov rdi, 8
     mov rsi, qword [ rbp + 8 ]
-    call kCommonExceptionHandler
+    call CommonExceptionHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     add rsp, 8      ; 에러 코드를 스택에서 제거
@@ -193,7 +193,7 @@ kISRCoprocessorSegmentOverrun:
 
     ; 핸들러에 예외 번호를 삽입하고 핸들러 호출
     mov rdi, 9
-    call kCommonExceptionHandler
+    call CommonExceptionHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -205,7 +205,7 @@ kISRInvalidTSS:
     ; 핸들러에 예외 번호와 에러 코드를 삽입하고 핸들러 호출
     mov rdi, 10
     mov rsi, qword [ rbp + 8 ]
-    call kCommonExceptionHandler
+    call CommonExceptionHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     add rsp, 8      ; 에러 코드를 스택에서 제거
@@ -218,7 +218,7 @@ kISRSegmentNotPresent:
     ; 핸들러에 예외 번호와 에러 코드를 삽입하고 핸들러 호출
     mov rdi, 11
     mov rsi, qword [ rbp + 8 ]
-    call kCommonExceptionHandler
+    call CommonExceptionHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     add rsp, 8      ; 에러 코드를 스택에서 제거
@@ -231,7 +231,7 @@ kISRStackSegmentFault:
     ; 핸들러에 예외 번호와 에러 코드를 삽입하고 핸들러 호출
     mov rdi, 12
     mov rsi, qword [ rbp + 8 ]
-    call kCommonExceptionHandler
+    call CommonExceptionHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     add rsp, 8      ; 에러 코드를 스택에서 제거
@@ -244,7 +244,7 @@ kISRGeneralProtection:
     ; 핸들러에 예외 번호와 에러 코드를 삽입하고 핸들러 호출
     mov rdi, 13
     mov rsi, qword [ rbp + 8 ]
-    call kCommonExceptionHandler
+    call CommonExceptionHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     add rsp, 8      ; 에러 코드를 스택에서 제거
@@ -257,7 +257,7 @@ kISRPageFault:
     ; 핸들러에 예외 번호와 에러 코드를 삽입하고 핸들러 호출
     mov rdi, 14
     mov rsi, qword [ rbp + 8 ]
-    call kCommonExceptionHandler
+    call CommonExceptionHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     add rsp, 8      ; 에러 코드를 스택에서 제거
@@ -269,7 +269,7 @@ kISR15:
 
     ; 핸들러에 예외 번호를 삽입하고 핸들러 호출
     mov rdi, 15
-    call kCommonExceptionHandler
+    call CommonExceptionHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -280,7 +280,7 @@ kISRFPUError:
 
     ; 핸들러에 예외 번호를 삽입하고 핸들러 호출
     mov rdi, 16
-    call kCommonExceptionHandler
+    call CommonExceptionHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -292,7 +292,7 @@ kISRAlignmentCheck:
     ; 핸들러에 예외 번호를 삽입하고 핸들러 호출
     mov rdi, 17
     mov rsi, qword [ rbp + 8 ]
-    call kCommonExceptionHandler
+    call CommonExceptionHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     add rsp, 8      ; 에러 코드를 스택에서 제거
@@ -304,7 +304,7 @@ kISRMachineCheck:
 
     ; 핸들러에 예외 번호를 삽입하고 핸들러 호출
     mov rdi, 18
-    call kCommonExceptionHandler
+    call CommonExceptionHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -315,7 +315,7 @@ kISRSIMDError:
 
     ; 핸들러에 예외 번호를 삽입하고 핸들러 호출
     mov rdi, 19
-    call kCommonExceptionHandler
+    call CommonExceptionHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -326,7 +326,7 @@ kISRETCException:
 
     ; 핸들러에 예외 번호를 삽입하고 핸들러 호출
     mov rdi, 20
-    call kCommonExceptionHandler
+    call CommonExceptionHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -343,7 +343,7 @@ kISRTimer:
 
     ; 핸들러에 인터럽트 번호를 삽입하고 핸들러 호출
     mov rdi, 32
-    call kCommonInterruptHandler
+    call CommonInterruptHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -354,7 +354,7 @@ kISRKeyboard:
 
     ; 핸들러에 인터럽트 번호를 삽입하고 핸들러 호출
     mov rdi, 33
-    call kKeyboardHandler
+    call KeyboardHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -365,7 +365,7 @@ kISRSlavePIC:
 
     ; 핸들러에 인터럽트 번호를 삽입하고 핸들러 호출
     mov rdi, 34
-    call kCommonInterruptHandler
+    call CommonInterruptHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -376,7 +376,7 @@ kISRSerial2:
 
     ; 핸들러에 인터럽트 번호를 삽입하고 핸들러 호출
     mov rdi, 35
-    call kCommonInterruptHandler
+    call CommonInterruptHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -387,7 +387,7 @@ kISRSerial1:
 
     ; 핸들러에 인터럽트 번호를 삽입하고 핸들러 호출
     mov rdi, 36
-    call kCommonInterruptHandler
+    call CommonInterruptHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -398,7 +398,7 @@ kISRParallel2:
 
     ; 핸들러에 인터럽트 번호를 삽입하고 핸들러 호출
     mov rdi, 37
-    call kCommonInterruptHandler
+    call CommonInterruptHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -409,7 +409,7 @@ kISRFloppy:
 
     ; 핸들러에 인터럽트 번호를 삽입하고 핸들러 호출
     mov rdi, 38
-    call kCommonInterruptHandler
+    call CommonInterruptHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -420,7 +420,7 @@ kISRParallel1:
 
     ; 핸들러에 인터럽트 번호를 삽입하고 핸들러 호출
     mov rdi, 39
-    call kCommonInterruptHandler
+    call CommonInterruptHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -431,7 +431,7 @@ kISRRTC:
 
     ; 핸들러에 인터럽트 번호를 삽입하고 핸들러 호출
     mov rdi, 40
-    call kCommonInterruptHandler
+    call CommonInterruptHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -442,7 +442,7 @@ kISRReserved:
 
     ; 핸들러에 인터럽트 번호를 삽입하고 핸들러 호출
     mov rdi, 41
-    call kCommonInterruptHandler
+    call CommonInterruptHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -453,7 +453,7 @@ kISRNotUsed1:
 
     ; 핸들러에 인터럽트 번호를 삽입하고 핸들러 호출
     mov rdi, 42
-    call kCommonInterruptHandler
+    call CommonInterruptHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -464,7 +464,7 @@ kISRNotUsed2:
 
     ; 핸들러에 인터럽트 번호를 삽입하고 핸들러 호출
     mov rdi, 43
-    call kCommonInterruptHandler
+    call CommonInterruptHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -475,7 +475,7 @@ kISRMouse:
 
     ; 핸들러에 인터럽트 번호를 삽입하고 핸들러 호출
     mov rdi, 44
-    call kCommonInterruptHandler
+    call CommonInterruptHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -486,7 +486,7 @@ kISRCoprocessor:
 
     ; 핸들러에 인터럽트 번호를 삽입하고 핸들러 호출
     mov rdi, 45
-    call kCommonInterruptHandler
+    call CommonInterruptHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -497,7 +497,7 @@ kISRHDD1:
 
     ; 핸들러에 인터럽트 번호를 삽입하고 핸들러 호출
     mov rdi, 46
-    call kCommonInterruptHandler
+    call CommonInterruptHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -508,7 +508,7 @@ kISRHDD2:
 
     ; 핸들러에 인터럽트 번호를 삽입하고 핸들러 호출
     mov rdi, 47
-    call kCommonInterruptHandler
+    call CommonInterruptHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원
@@ -519,7 +519,7 @@ kISRETCInterrupt:
 
     ; 핸들러에 인터럽트 번호를 삽입하고 핸들러 호출
     mov rdi, 48
-    call kCommonInterruptHandler
+    call CommonInterruptHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원

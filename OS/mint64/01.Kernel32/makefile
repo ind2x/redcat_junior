@@ -1,5 +1,5 @@
 NASM = nasm
-CC = clang -c -m32 -ffreestanding -nostdlib
+CC = clang -c -m32 -ffreestanding
 LD = ld -melf_i386 -T ../elf_i386.x -nostdlib -e main -Ttext 0x10200
 OBJCOPY = objcopy -j .text -j .data -j .rodata -j .bss -S -O binary
 
