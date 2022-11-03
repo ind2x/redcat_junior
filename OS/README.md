@@ -2,7 +2,7 @@
 
 MINT64 OS 홈페이지 : http://jsandroidapp.cafe24.com/xe/index
 
-환경 : ```ubuntu 18.04 / qemu 2.x``` and ```ubuntu 20.04 / qemu 4.x```
+환경 : Ubuntu 20.04 / qemu 4.x
 
 <br>
 <hr style="border: 2px solid;">
