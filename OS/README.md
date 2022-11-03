@@ -12,7 +12,7 @@ MINT64 OS 홈페이지 : http://jsandroidapp.cafe24.com/xe/index
 
 <br>
 
-+ 5장qemu 최신버전으로 인한 변경사항 http://jsandroidapp.cafe24.com/xe/development/12035
++ 5장 qemu 최신버전으로 인한 변경사항 http://jsandroidapp.cafe24.com/xe/development/12035
 
 + 10장 ImageMaker.py 프로그램 잘못짜면 무한루프 반복
 
