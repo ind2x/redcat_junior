@@ -21,6 +21,33 @@
 
 <br>
 
++ Lexer
+
+![image](https://user-images.githubusercontent.com/52172169/199666574-286549fa-83c4-47d2-93fc-3369a27ae5f9.png)
+
+<br>
+
+이번 절에서는 우리는 이미 연산자에 관한 AST와 Parser를 구현해놓았기 때문에 새롭게 구현할 필요가 없고 수정을 해주기만 하면 된다.
+
+맨 처음 사진을 보면은 def를 통해 정의를 해주기 때문에 PrototypeAST로 들어가게 된다.
+
+따라서 우리는 PrototypeAST를 수정해줘야 한다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/199668108-53f97e31-0978-4b8a-8118-5457e68c7500.png)
+
+<br>
+
+마찬가지로 ParsePrototype 파서 코드 또한 수정해줘야 한다.
+
+<br>
+
+
+
+
+
+
 
 
 
