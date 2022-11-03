@@ -49,13 +49,21 @@
 
 <br>
 
+이제 AST의 codegen 수정한다.
 
+<br>
 
+![image](https://user-images.githubusercontent.com/52172169/199673706-beb48d43-0cba-4b0b-bb05-329d957a7ab5.png)
 
+<br>
 
+![image](https://user-images.githubusercontent.com/52172169/199677119-d03e135b-5611-46aa-b614-bca8072637ec.png)
 
+<br>
 
+마지막의 top-level 코드인 FunctionAST codegen에서는 우리가 정의한 연산자의 우선순위를 설정해주는 것을 볼 수 있다.
 
+그 다음 TheContext에 넣어준다.
 
 <br><br>
 <hr style="border: 2px solid;">
