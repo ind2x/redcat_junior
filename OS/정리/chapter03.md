@@ -133,6 +133,8 @@
 ![image](https://user-images.githubusercontent.com/52172169/192731635-7062f94c-8fd8-4a24-9a9a-32aedb2cc0d8.png)
 
 <br><br>
+<hr style="border: 2px solid;">
+<br><br>
 
 ### 보호모드 메모리 관리 기법
 ---
@@ -218,6 +220,16 @@ GDT는 **연속된 디스크립터의 집합**으로, 최대 8192개의 디스�
 <br>
 
 이 내용들은 OS 구현 시 필수로 알아야되므로, 메모리 관리 기법을 이해하지 못하면 리얼모드에서 보호모드로 전환조차 못한다고 하니 꼭 이해해야 한다고 한다.
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
+
+### IA-32e모드 메모리 관리
+---
+
+<br>
+
 
 <br><br>
 <hr style="border: 2px solid;">
