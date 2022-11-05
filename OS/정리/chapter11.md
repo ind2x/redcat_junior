@@ -55,7 +55,9 @@
 
 <br>
 
-입력값과 출력값을 보내고 가져올 때, InPortByte와 OutPortByte 함수를 정의하여 이 함수들을 통해 I/O 포트에서 값을 I/O 버퍼로 가져온다.
+출력값과 입력값을 읽고 보낼 때, InPortByte와 OutPortByte 함수를 정의하여 이 함수들을 통해 I/O 포트에서 값을 I/O 버퍼로 가져온다.
+
+즉, **InPortByte는 프로세서가 출력 버퍼에서 값을 읽어오는 함수**이고, **OutPortByte는 프로세서가 컨트롤러에게 값을 보내는 함수**이다.
 
 <br>
 
