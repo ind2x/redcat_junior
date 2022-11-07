@@ -98,7 +98,7 @@ PIT를 초기화하는 코드 ```PIT.h, PIT.c```와 RTC를 읽는 ```RTC.h, RTC.
 
 <br>
 
-
+![image](https://user-images.githubusercontent.com/52172169/200327853-e735b9a7-e36d-48cc-bfd3-41bad8f8054e.png)
 
 <br><br>
 <hr style="border: 2px solid;">
