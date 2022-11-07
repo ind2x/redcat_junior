@@ -4,6 +4,7 @@ SECTION .text
 
 global InPortByte, OutPortByte, LoadGDTR, LoadTR, LoadIDTR
 global EnableInterrupt, DisableInterrupt, ReadRFLAGS
+global ReadTSC
 
 InPortByte:
     push rdx
@@ -50,4 +51,15 @@ DisableInterrupt:
 ReadRFLAGS:
     pushfq
     pop rax
+    ret
+
+ReadTSC:
+    push rdx
+
+    rdtsc
+
+    shl rdx, 32
+    or rax, rdx
+
+    pop rdx
     ret

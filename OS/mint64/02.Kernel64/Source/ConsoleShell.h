@@ -4,7 +4,7 @@
 #include "Types.h"
 
 #define CONSOLESHELL_MAXCOMMANDBUFFERCOUNT 300
-#define CONSOLESHELL_PROMPTMESSAGE "redcat>"
+#define CONSOLESHELL_PROMPTMESSAGE "redcat> "
 
 typedef void (*CommandFunction)(const char *pcParameter);
 
@@ -36,5 +36,11 @@ void Cls(const char *pcParameterBuffer);
 void ShowTotalRAMSize(const char *pcParameterBuffer);
 void StringToDecimalHexTest(const char *pcParameterBuffer);
 void ShutDownAndReboot(const char *pcParamegerBuffer);
+
+void SetTimer(const char *pcParameterBuffer);
+void WaitUsingPIT(const char *pcParameterBuffer);
+void ReadTimeStampCounter(const char *pcParameterBuffer);
+void MeasureProcessorSpeed(const char *pcParameterBuffer);
+void ShowDateAndTime(const char *pcParameterBuffer);
 
 #endif /*__CONSOLESHELL_H__*/

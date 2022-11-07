@@ -2,6 +2,9 @@
 #include "Console.h"
 #include "Keyboard.h"
 #include "Utility.h"
+#include "PIT.h"
+#include "RTC.h"
+#include "AssemblyUtility.h"
 
 SHELLCOMMANDENTRY gs_vstCommandTable[] =
 {
@@ -10,6 +13,11 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
     {"totalram", "Show Total RAM Size", ShowTotalRAMSize},
     {"strtod", "String To Decimal/Hex Convert", StringToDecimalHexTest},
     {"reboot", "Shutdown And Reboot OS", ShutDownAndReboot},
+    {"settimer", "Set PIT Controller Counter0, ex) settimer 10(ms) 1(periodic)", SetTimer},
+    {"wait", "Wait ms Using PIT, ex) wait 100(ms)", WaitUsingPIT},
+    {"rdtsc", "Read Time Stamp Counter", ReadTimeStampCounter},
+    {"cpuspeed", "Measure Processor Speed", MeasureProcessorSpeed},
+    {"date", "Show Date And Time", ShowDateAndTime},
 };
 
 void StartConsoleShell(void)
@@ -142,6 +150,7 @@ void Help(const char *pcParameterBuffer)
     int iCursorX, iCursorY;
     int iLength, iMaxCommandLength = 0;
 
+    Printf("\n");
     Printf("=========================================================\n");
     Printf("                           Help                          \n");
     Printf("=========================================================\n");
@@ -164,6 +173,8 @@ void Help(const char *pcParameterBuffer)
         SetCursor(iMaxCommandLength, iCursorY);
         Printf("  - %s\n", gs_vstCommandTable[i].pcHelp);
     }
+
+    Printf("\n");
 }
 
 void Cls(const char *pcParameterBuffer)
@@ -174,7 +185,7 @@ void Cls(const char *pcParameterBuffer)
 
 void ShowTotalRAMSize(const char *pcParameterBuffer)
 {
-    Printf("Total RAM Size = %d MB\n", GetTotalRAMSize());
+    Printf("[*] Total RAM Size = %d MB\n", GetTotalRAMSize());
 
 }
 
@@ -226,4 +237,105 @@ void ShutDownAndReboot(const char *pcParamegerBuffer)
     Printf("[*] Press any key to restart.....");
     GetCh();
     Reboot();
+}
+
+void SetTimer(const char *pcParameterBuffer)
+{
+    char vcParameter[100];
+    PARAMETERLIST stList;
+    long lValue;
+    BOOL bPeriodic;
+
+    InitializeParameter(&stList, pcParameterBuffer);
+
+    if(GetNextParameter(&stList, vcParameter) == 0)
+    {
+        Printf("[!] ex) settimer 10(ms) 1(periodic)\n");
+        return;
+    }
+    lValue = AToI(vcParameter, 10);
+
+    if(GetNextParameter(&stList, vcParameter) == 0)
+    {
+        Printf("[!] ex) settimer 10(ms) 1(periodic)\n");
+        return;
+    }
+    bPeriodic = AToI(vcParameter, 10);
+
+    InitializePIT(MSTOCOUNT(lValue), bPeriodic);
+    Printf("[*] Time = %d ms, Periodic = %d Change Complete..\n", lValue, bPeriodic);
+}
+
+void WaitUsingPIT(const char *pcParameterBuffer)
+{
+    char vcParameter[100];
+    int iLength;
+    PARAMETERLIST stList;
+    long lMillisecond;
+    int i;
+
+    InitializeParameter(&stList, pcParameterBuffer);
+    if( GetNextParameter( &stList, vcParameter ) == 0 )
+    {
+        Printf( "[!] ex)wait 100(ms)\n" );
+        return ;
+    }
+
+    lMillisecond = AToI(pcParameterBuffer, 10);
+    Printf("[*] %d ms Sleep Start....\n", lMillisecond);
+
+    DisableInterrupt();
+    for(i=0; i<lMillisecond/30; i++)
+    {
+        WaitUsingDirectPIT(MSTOCOUNT(30));
+    }
+    WaitUsingDirectPIT( MSTOCOUNT( lMillisecond % 30 ) );   
+    EnableInterrupt();
+    Printf( "[*] %d ms Sleep Complete...\n", lMillisecond );
+    
+    InitializePIT( MSTOCOUNT( 1 ), TRUE );
+}
+
+void ReadTimeStampCounter(const char *pcParameterBuffer)
+{
+    QWORD qwTSC;
+    
+    qwTSC = ReadTSC();
+    Printf( "[*] Time Stamp Counter = %q\n", qwTSC );
+}
+
+void MeasureProcessorSpeed(const char *pcParameterBuffer)
+{
+    int i;
+    QWORD qwLastTSC, qwTotalTSC = 0;
+        
+    Printf("[*] Measuring speed of CPU");
+    DisableInterrupt();
+
+    for(i=1; i<=200; i++)
+    {
+        qwLastTSC = ReadTSC();
+        WaitUsingDirectPIT(MSTOCOUNT(50));
+        qwTotalTSC += ReadTSC() - qwLastTSC;
+
+        Printf(".");
+    }
+
+    InitializePIT(MSTOCOUNT(1), TRUE);
+    EnableInterrupt();
+
+    Printf("\n[*] CPU Speed = %d MHz\n", qwTotalTSC / 10 / 1000 / 1000);
+}
+
+void ShowDateAndTime(const char *pcParameterBuffer)
+{
+    BYTE bSecond, bMinute, bHour;
+    BYTE bDayOfWeek, bDayOfMonth, bMonth;
+    WORD wYear;
+
+    ReadRTCTime( &bHour, &bMinute, &bSecond );
+    ReadRTCDate( &wYear, &bMonth, &bDayOfMonth, &bDayOfWeek );
+    
+    Printf( "[*] Date: %d/%d/%d %s\n", wYear, bMonth, bDayOfMonth, ConvertDayOfWeekToString( bDayOfWeek ) );
+    Printf( "[*] Time: %d:%d:%d\n", bHour, bMinute, bSecond );
 }

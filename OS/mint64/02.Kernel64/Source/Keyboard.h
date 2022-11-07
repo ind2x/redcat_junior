@@ -97,6 +97,7 @@ BOOL IsNumberPadScanCode(BYTE bScanCode);
 BOOL IsUseCombinedCode(BOOL bScanCode);
 void UpdateCombinationKeyStatusAndLED(BYTE bScanCode);
 BOOL ConvertScanCodeToASCIICode(BYTE bScanCode, BYTE *pbASCIICode, BOOL *pbFlags);
+
 BOOL InitializeKeyboard(void);
 BOOL ConvertScanCodeAndPutQueue(BYTE bScanCode);
 BOOL GetKeyFromKeyQueue(KEYDATA *pstData);
