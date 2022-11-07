@@ -28,7 +28,13 @@
 
 <br>
 
+![image](https://user-images.githubusercontent.com/52172169/200257583-2a0882b7-30b5-4a7f-92a7-e833fa10f09a.png)
 
+<br>
+
+카운터 레지스터의 크기는 2바이트, 컨트롤 레지스터의 크기는 1바이트이다.
+
+우리는 카운터 0만 사용할 것이다.
 
 
 <br><br>
