@@ -94,6 +94,8 @@ I/O 포트로 접근할 수 있으며 CMOS 어드레스 포트는 0x70, 데이�
 
 PIT를 초기화하는 코드 ```PIT.h, PIT.c```와 RTC를 읽는 ```RTC.h, RTC.c``` 코드가 추가되었다.
 
+또한 ```AssemblyUtility.asm``` 코드도 일부 수정되었고 ```ConsoleShell.c``` 코드에 위의 PIT를 초기화하는 코드와 함수 2개가 추가되었다.
+
 <br>
 
 
