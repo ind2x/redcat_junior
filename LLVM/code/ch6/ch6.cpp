@@ -744,7 +744,7 @@ Value *BinaryExprAST::codegen()
         break;
     }
 
-    Function *F = getFunction(std::string("Binary") + Op);
+    Function *F = getFunction(std::string("binary") + Op);
     assert(F && "binary operator not found...");
 
     Value *Ops[] = {L, R};
