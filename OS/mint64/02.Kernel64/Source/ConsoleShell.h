@@ -43,4 +43,6 @@ void ReadTimeStampCounter(const char *pcParameterBuffer);
 void MeasureProcessorSpeed(const char *pcParameterBuffer);
 void ShowDateAndTime(const char *pcParameterBuffer);
 
+void CreateTestTask(const char *pcParameterBuffer);
+
 #endif /*__CONSOLESHELL_H__*/
