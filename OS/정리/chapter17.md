@@ -84,7 +84,9 @@ TCB에 각 태스크의 상태를 그대로 반영하는 만큼, TCB는 생성�
 
 <br>
 
+태스크 파일 (Task.c, Task.h)가 추가되었고 AssemblyUtility 코드에 SwitchContext 함수가 추가되었다.
 
+그 다음 ConsoleShell 코드에 일부 기능(함수)이 추가되었다.
 
 
 
