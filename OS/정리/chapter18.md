@@ -105,6 +105,21 @@ Code : https://github.com/kkamagui/mint64os-examples/blob/master/source_code/cha
 
 <br>
 
+시분할 멀티태스킹을 구현해줄 것인데, 일정 시간이 지나면 이를 알려줄 신호가 필요한데 이 부분을 IRQ 0번으로 대체해 줄 것이다.
+
+따라서 PIT 인터럽트 핸들러 함수를 새로 추가하고 IRQ 0을 ISR 함수에서 불러오도록 할 것이다.
+
+이 부분 또한 p.637부터 복습해주는 것이 좋겠다.
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
+
+## 빌드
+
+<br>
+
+```List.h, List.c``` 코드가 추가되었다.
 
 
 
