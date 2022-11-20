@@ -67,6 +67,40 @@ Code : https://github.com/kkamagui/mint64os-examples/blob/master/source_code/cha
 
 <br>
 
+태스크 풀은 초기화 함수, 할당 및 해제 함수로 구성된다.
+
+먼저 초기화 하는 함수는 다음과 같다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/202892740-5be7e8c1-d7ef-4363-9446-c7ee7610dfeb.png)
+
+<br>
+
+TCB 최대 개수는 MINT 64 OS는 1024개까지 생성할 수 있으므로 1024개로 설정해준다.
+
+태스크를 할당하려면 태스크 풀을 검색하여 해당 TCB가 할당된 상태인지, 해제된 상태인지 확인해야 한다.
+
+이는 TCBPOOLMANAGER 자료구조에 있는 iAllocatedCount 필드와 TCB의 ID 필드를 이용해서 확인할 수 있다.
+
+<br>
+
+iAllocated 값은 항상 1 이상의 값을 가지며, 이 값을 TCB가 할당될 때마다 할당된 TCB의 ID의 상위 32비트 값과 OR 연산하여 저장하고, 빈 TCB를 검색할 때 ID의 상위 32비트의 값이 0인지 확인함으로써 태스크의 할당 여부를 확인한다.
+
+Code : https://github.com/kkamagui/mint64os-examples/blob/master/source_code/chap18/02.Kernel64/Source/Task.c
+
+<br>
+
+이제 라운드 로빈 스케줄러를 구현해준다. 구현 시 필요한 정보를 자료구조로 정의해준다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/202893275-7280d5e0-a2a1-4c21-972c-684ad372681c.png)
+
+<br>
+
+스케줄러는 크게 초기화 함수, 현재 수행 중인 태스크와 태스크 리스트를 관리하는 함수, 태스크 전환 함수로 구성된다.
+
 
 
 
