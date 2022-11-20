@@ -121,9 +121,11 @@ Code : https://github.com/kkamagui/mint64os-examples/blob/master/source_code/cha
 
 ```List.h, List.c``` 코드가 추가되고, ```Task.c, Task.h```에 라운드 로빈 스케줄러, 태스크 풀과 스택 풀 관련 함수, 자료구조와 매크로가 추가되었다.
 
+그 외 여러 코드들을 수정하였다.
 
+<br>
 
-
+![image](https://user-images.githubusercontent.com/52172169/202908215-846b90dd-3047-4892-8f2b-674f77e670f8.png)
 
 <br><br>
 <hr style="border: 2px solid;">
