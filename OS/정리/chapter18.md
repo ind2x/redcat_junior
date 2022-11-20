@@ -39,6 +39,15 @@ MINT64 OS에서는 우선순위를 3개의 레벨로 구분하여 부여할 것�
 
 <br>
 
+Code : https://github.com/kkamagui/mint64os-examples/blob/master/source_code/chap18/02.Kernel64/Source/List.c
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
+
+## 태스크 풀과 스케줄러
+
+<br>
 
 
 
