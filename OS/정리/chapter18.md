@@ -101,6 +101,9 @@ Code : https://github.com/kkamagui/mint64os-examples/blob/master/source_code/cha
 
 스케줄러는 크게 초기화 함수, 현재 수행 중인 태스크와 태스크 리스트를 관리하는 함수, 태스크 전환 함수로 구성된다.
 
+이 부분은 p.631부터 책으로 복습하는 것이 좋을 듯 하다. 
+
+<br>
 
 
 
