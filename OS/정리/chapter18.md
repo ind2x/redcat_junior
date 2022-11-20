@@ -15,9 +15,30 @@
 
 MINT64 OS에서는 우선순위를 3개의 레벨로 구분하여 부여할 것이며, 각 레벨별로 라운드 로빈을 수행하는 **멀티레벨 큐 스케줄러**를 이용할 것이다.
 
-따라서 먼저 라운드 로빈을 구현해야 한다.
+따라서 먼저 라운드 로빈을 구현해야 한다. 
 
 <br>
+
+라운드 로빈은 리스트라는 자료구조를 이용해서 구현해줄 것이다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/202891721-b3cf365e-9884-4eb5-a001-a3c501723558.png)
+
+<br>
+
+리스트에 데이터를 삽입/삭제 하는 과정은 다음과 같다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/202892001-f405dd85-b8a0-4be1-ae42-770b2c0b0f52.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/202892008-932dfb61-d565-4c5f-982c-d2399a4a62d8.png)
+
+<br>
+
 
 
 
