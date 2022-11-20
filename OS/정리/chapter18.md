@@ -49,6 +49,26 @@ Code : https://github.com/kkamagui/mint64os-examples/blob/master/source_code/cha
 
 <br>
 
+태스크 풀은 TCB를 모아놓은 영역을 뜻한다.
+
+즉, 태스크 풀에는 최대 개수의 TCB가 있어야 하며, 이 공간은 최대 8MB만큼의 메모리가 필요하다.
+
+우리 MINT64 OS에서는 이 공간을 IST 영역 이후의 공간인 8MB 이후의 영역에 할당할 것이다.
+
+<br>
+
+이제 태스크 풀 영역을 관리할 자료구조를 설정해줘야 한다.
+
+자료구조에는 태스크 풀의 시작 주소, TCB의 최대 개수, 사용한 TCB 개수를 저장해줘야 한다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/202892376-2440d419-752a-4ab4-b5d8-f7412ed35929.png)
+
+<br>
+
+
+
 
 
 <br><br>
