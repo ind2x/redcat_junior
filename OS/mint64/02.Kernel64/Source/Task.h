@@ -2,6 +2,7 @@
 #define __TASK_H__
 
 #include "Types.h"
+#include "List.h"
 
 #define TASK_REGISTERCOUNT (5+19)
 #define TASK_REGISTERSIZE   8
@@ -31,6 +32,16 @@
 #define TASK_RSPOFFSET 22
 #define TASK_SSOFFSET 23
 
+#define TASK_TCBPOOLADDRESS 0x800000
+#define TASK_MAXCOUNT 1024
+
+#define TASK_STACKPOOLADDRESS (TASK_TCBPOOLADDRESS + sizeof(TCB) * TASK_MAXCOUNT)
+#define TASK_STACKSIZE 8192
+
+#define TASK_INVALIDID 0xFFFFFFFFFFFFFFFF
+
+#define TASK_PROCESSORTIME 5
+
 #pragma pack(push, 1)
 
 typedef struct ContextStruct
@@ -40,16 +51,50 @@ typedef struct ContextStruct
 
 typedef struct TaskControlBlockStruct
 {
+    LISTLINK stLink;
+
     CONTEXT stContext;
-    QWORD qwID;
+
     QWORD qwFlags;
 
     void *pvStackAddress;
     QWORD qwStackSize;
 } TCB;
 
+typedef struct TCBPoolManagerStruct
+{
+    TCB *pstStartAddress;
+    int iMaxCount;
+    int iUseCount;
+
+    int iAllocatedCount;
+} TCBPOOLMANAGER;
+
+typedef struct SchedulerStruct
+{
+    TCB *pstRunningTask;
+
+    int iProcessorTime;
+
+    LIST stReadyList;
+} SCHEDULER;
+
 #pragma pack(pop)
 
-void SetUpTask(TCB *pstTCB, QWORD qwID, QWORD qwFlags, QWORD qwEntryPointAddress, void *pvStackAddress, QWORD qwStackSize);
+void InitializeTCBPool(void);
+TCB *AllocateTCB(void);
+void FreeTCB(QWORD qwID);
+TCB* CreateTask(QWORD qwFlags, QWORD qwEntryPointAddress);
+void SetUpTask(TCB *pstTCB, QWORD qwFlags, QWORD qwEntryPointAddress, void *pvStackAddress, QWORD qwStackSize);
+
+void InitializeScheduler(void);
+void SetRunningTask(TCB *pstTask);
+TCB *GetRunningTask(void);
+TCB *GetNextTaskToRun(void);
+void AddTaskToReadyList(TCB *pstTask);
+void Schedule(void);
+BOOL ScheduleInInterrupt(void);
+void DecreaseProcessorTime(void);
+BOOL IsProcessorTimeExpired(void);
 
 #endif /*__TASK_H__*/

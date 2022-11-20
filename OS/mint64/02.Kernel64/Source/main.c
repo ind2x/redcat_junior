@@ -6,6 +6,8 @@
 #include "ConsoleShell.h"
 #include "AssemblyUtility.h"
 #include "Utility.h"
+#include "PIT.h"
+#include "Task.h"
 
 void main(void)
 {
@@ -39,6 +41,11 @@ void main(void)
     CheckTotalRAMSize();
     SetCursor(51, iCursorY++);
     Printf("Pass], Size = %d MB\n", GetTotalRAMSize());
+
+    Printf("[*] TCB Pool And Scheduler Initialize.............[Pass]\n");
+    iCursorY++;
+    InitializeScheduler();
+    InitializePIT(MSTOCOUNT(1), 1);
 
     Printf("[*] Keyboard Activate And Queue Initialize........[    ]");
     if (InitializeKeyboard() == TRUE)

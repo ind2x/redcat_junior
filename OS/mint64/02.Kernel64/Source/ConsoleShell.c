@@ -19,7 +19,7 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
     {"rdtsc", "Read Time Stamp Counter", ReadTimeStampCounter},
     {"cpuspeed", "Measure Processor Speed", MeasureProcessorSpeed},
     {"date", "Show Date And Time", ShowDateAndTime},
-    {"createtask", "Create Task, press 'q' to quit", CreateTestTask},
+    {"createtask", "Create Task ex) createtask 1(type) 10(count), press 'q' to quit", CreateTestTask},
 };
 
 void StartConsoleShell(void)
@@ -345,30 +345,137 @@ void ShowDateAndTime(const char *pcParameterBuffer)
 static TCB gs_vstTask[2] = {0, };
 static QWORD gs_vstStack[1024] = {0, };
 
-void TestTask(void)
+void TestTask1(void)
 {
-    int i=0;
-    while(1)
+    BYTE bData;
+    int i = 0, iX = 0, iY = 0, iMargin;
+    CHARACTER *pstScreen = (CHARACTER *)CONSOLE_VIDEOMEMORYADDRESS;
+    TCB *pstRunningTask;
+
+    // 자신의 ID를 얻어서 화면 오프셋으로 사용
+    pstRunningTask = GetRunningTask();
+    iMargin = (pstRunningTask->stLink.qwID & 0xFFFFFFFF) % 10;
+
+    // 화면 네 귀퉁이를 돌면서 문자 출력
+    while (1)
     {
-        Printf("[*] [%d] This is TestTask. Press any key to switch ConsoleShell....\n", i++);
-        GetCh();
-        SwitchContext(&(gs_vstTask[1].stContext), &(gs_vstTask[0].stContext));
+        switch (i)
+        {
+        case 0:
+            iX++;
+            if (iX >= (CONSOLE_WIDTH - iMargin))
+            {
+                i = 1;
+            }
+            break;
+
+        case 1:
+            iY++;
+            if (iY >= (CONSOLE_HEIGHT - iMargin))
+            {
+                i = 2;
+            }
+            break;
+
+        case 2:
+            iX--;
+            if (iX < iMargin)
+            {
+                i = 3;
+            }
+            break;
+
+        case 3:
+            iY--;
+            if (iY < iMargin)
+            {
+                i = 0;
+            }
+            break;
+        }
+
+        // 문자 및 색깔 지정
+        pstScreen[iY * CONSOLE_WIDTH + iX].bCharactor = bData;
+        pstScreen[iY * CONSOLE_WIDTH + iX].bAttribute = bData & 0x0F;
+        bData++;
+
+        // 다른 태스크로 전환
+        Schedule();
     }
 }
 
+/**
+ *  태스크 2
+ *      자신의 ID를 참고하여 특정 위치에 회전하는 바람개비를 출력
+ */
+void TestTask2(void)
+{
+    int i = 0, iOffset;
+    CHARACTER *pstScreen = (CHARACTER *)CONSOLE_VIDEOMEMORYADDRESS;
+    TCB *pstRunningTask;
+    char vcData[4] = {'-', '\\', '|', '/'};
+
+    // 자신의 ID를 얻어서 화면 오프셋으로 사용
+    pstRunningTask = GetRunningTask();
+    iOffset = (pstRunningTask->stLink.qwID & 0xFFFFFFFF) * 2;
+    iOffset = CONSOLE_WIDTH * CONSOLE_HEIGHT -
+              (iOffset % (CONSOLE_WIDTH * CONSOLE_HEIGHT));
+
+    while (1)
+    {
+        // 회전하는 바람개비를 표시
+        pstScreen[iOffset].bCharactor = vcData[i % 4];
+        // 색깔 지정
+        pstScreen[iOffset].bAttribute = (iOffset % 15) + 1;
+        i++;
+
+        // 다른 태스크로 전환
+        Schedule();
+    }
+}
+
+/**
+ *  태스크를 생성해서 멀티 태스킹 수행
+ */
 void CreateTestTask(const char *pcParameterBuffer)
 {
-    KEYDATA stData;
-    int i = 0;
+    PARAMETERLIST stList;
+    char vcType[30];
+    char vcCount[30];
+    int i;
 
-    SetUpTask(&(gs_vstTask[1]), 1, 0, (QWORD)TestTask, &(gs_vstStack), sizeof(gs_vstStack));
+    // 파라미터를 추출
+    InitializeParameter(&stList, pcParameterBuffer);
+    GetNextParameter(&stList, vcType);
+    GetNextParameter(&stList, vcCount);
 
-    while(1)
+    switch (AToI(vcType, 10))
     {
-        Printf("[*] [%d] This is ConsoleShell. Press any key to switch TestTask....\n", i++);
-        if(GetCh() == 'q') {
-            break;
+    // 타입 1 태스크 생성
+    case 1:
+        for (i = 0; i < AToI(vcCount, 10); i++)
+        {
+            if (CreateTask(0, (QWORD)TestTask1) == NULL)
+            {
+                break;
+            }
         }
-        SwitchContext(&(gs_vstTask[0].stContext), &(gs_vstTask[1].stContext));
+
+        Printf("Task1 %d Created\n", i);
+        break;
+
+    // 타입 2 태스크 생성
+    case 2:
+    default:
+        for (i = 0; i < AToI(vcCount, 10); i++)
+        {
+            if (CreateTask(0, (QWORD)TestTask2) == NULL)
+            {
+                break;
+            }
+        }
+
+        Printf("Task2 %d Created\n", i);
+        break;
     }
 }

@@ -1,7 +1,8 @@
 #include "Utility.h"
 #include "AssemblyUtility.h"
-
 #include <stdarg.h>
+
+volatile QWORD g_qwTickCount = 0;
 
 void MemSet(void *pvDestination, BYTE bData, int iSize)
 {
@@ -381,4 +382,9 @@ int VSPrintf(char *pcBuffer, const char *pcFormatString, va_list ap)
     // NULL을 추가하여 완전한 문자열로 만들고 출력한 문자의 길이를 반환
     pcBuffer[iBufferIndex] = '\0';
     return iBufferIndex;
+}
+
+QWORD GetTickCount(void)
+{
+    return g_qwTickCount;
 }
