@@ -124,6 +124,7 @@ MINT64 OS에서는 우선순위를 5가지(가장 높음 -> 높음 -> 중간 -> 
 
 <br>
 
+![image](https://user-images.githubusercontent.com/52172169/203007771-5871d373-fc47-4831-b0fd-890dd06be389.png)
 
 
 <br><br>
