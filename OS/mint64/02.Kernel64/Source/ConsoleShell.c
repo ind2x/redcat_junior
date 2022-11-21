@@ -20,6 +20,10 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
     {"cpuspeed", "Measure Processor Speed", MeasureProcessorSpeed},
     {"date", "Show Date And Time", ShowDateAndTime},
     {"createtask", "Create Task ex) createtask 1(type) 10(count), press 'q' to quit", CreateTestTask},
+    {"changepriority", "Change Task Priority, ex) changepriority 1(ID) 2(Priority)", ChangeTaskPriority},
+    {"tasklist", "Show Task List", ShowTaskList},
+    {"killtask", "End Task, ex) killtask 1(ID)", KillTask},
+    {"cpuload", "Show Processor Load", CPULoad},
 };
 
 void StartConsoleShell(void)
@@ -145,7 +149,7 @@ int GetNextParameter(PARAMETERLIST *pstList, char *pcParameter)
 
 }
 
-void Help(const char *pcParameterBuffer)
+static void Help(const char *pcParameterBuffer)
 {
     int i;
     int iCount;
@@ -179,19 +183,19 @@ void Help(const char *pcParameterBuffer)
     Printf("\n");
 }
 
-void Cls(const char *pcParameterBuffer)
+static void Cls(const char *pcParameterBuffer)
 {
     ClearScreen();
     SetCursor(0, 1);
 }
 
-void ShowTotalRAMSize(const char *pcParameterBuffer)
+static void ShowTotalRAMSize(const char *pcParameterBuffer)
 {
     Printf("[*] Total RAM Size = %d MB\n", GetTotalRAMSize());
 
 }
 
-void StringToDecimalHexTest(const char *pcParameterBuffer)
+static void StringToDecimalHexTest(const char *pcParameterBuffer)
 {
     char vcParameter[100];
     int iLength;
@@ -233,7 +237,7 @@ void StringToDecimalHexTest(const char *pcParameterBuffer)
     }
 }
 
-void ShutDownAndReboot(const char *pcParamegerBuffer)
+static void ShutDownAndReboot(const char *pcParamegerBuffer)
 {
     Printf("[*] System Shutdown........\n");
     Printf("[*] Press any key to restart.....");
@@ -241,7 +245,7 @@ void ShutDownAndReboot(const char *pcParamegerBuffer)
     Reboot();
 }
 
-void SetTimer(const char *pcParameterBuffer)
+static void SetTimer(const char *pcParameterBuffer)
 {
     char vcParameter[100];
     PARAMETERLIST stList;
@@ -268,7 +272,7 @@ void SetTimer(const char *pcParameterBuffer)
     Printf("[*] Time = %d ms, Periodic = %d Change Complete..\n", lValue, bPeriodic);
 }
 
-void WaitUsingPIT(const char *pcParameterBuffer)
+static void WaitUsingPIT(const char *pcParameterBuffer)
 {
     char vcParameter[100];
     int iLength;
@@ -279,7 +283,7 @@ void WaitUsingPIT(const char *pcParameterBuffer)
     InitializeParameter(&stList, pcParameterBuffer);
     if( GetNextParameter( &stList, vcParameter ) == 0 )
     {
-        Printf( "[!] ex)wait 100(ms)\n" );
+        Printf( "[!] ex) wait 100(ms)\n" );
         return ;
     }
 
@@ -298,7 +302,7 @@ void WaitUsingPIT(const char *pcParameterBuffer)
     InitializePIT( MSTOCOUNT( 1 ), TRUE );
 }
 
-void ReadTimeStampCounter(const char *pcParameterBuffer)
+static void ReadTimeStampCounter(const char *pcParameterBuffer)
 {
     QWORD qwTSC;
     
@@ -306,7 +310,7 @@ void ReadTimeStampCounter(const char *pcParameterBuffer)
     Printf( "[*] Time Stamp Counter = %q\n", qwTSC );
 }
 
-void MeasureProcessorSpeed(const char *pcParameterBuffer)
+static void MeasureProcessorSpeed(const char *pcParameterBuffer)
 {
     int i;
     QWORD qwLastTSC, qwTotalTSC = 0;
@@ -329,7 +333,7 @@ void MeasureProcessorSpeed(const char *pcParameterBuffer)
     Printf("\n[*] CPU Speed = %d MHz\n", qwTotalTSC / 10 / 1000 / 1000);
 }
 
-void ShowDateAndTime(const char *pcParameterBuffer)
+static void ShowDateAndTime(const char *pcParameterBuffer)
 {
     BYTE bSecond, bMinute, bHour;
     BYTE bDayOfWeek, bDayOfMonth, bMonth;
@@ -345,10 +349,10 @@ void ShowDateAndTime(const char *pcParameterBuffer)
 static TCB gs_vstTask[2] = {0, };
 static QWORD gs_vstStack[1024] = {0, };
 
-void TestTask1(void)
+static void TestTask1(void)
 {
     BYTE bData;
-    int i = 0, iX = 0, iY = 0, iMargin;
+    int i = 0, iX = 0, iY = 0, iMargin, j;
     CHARACTER *pstScreen = (CHARACTER *)CONSOLE_VIDEOMEMORYADDRESS;
     TCB *pstRunningTask;
 
@@ -357,7 +361,7 @@ void TestTask1(void)
     iMargin = (pstRunningTask->stLink.qwID & 0xFFFFFFFF) % 10;
 
     // 화면 네 귀퉁이를 돌면서 문자 출력
-    while (1)
+    for(j=0; j<2000; j++)
     {
         switch (i)
         {
@@ -394,28 +398,23 @@ void TestTask1(void)
             break;
         }
 
-        // 문자 및 색깔 지정
         pstScreen[iY * CONSOLE_WIDTH + iX].bCharactor = bData;
         pstScreen[iY * CONSOLE_WIDTH + iX].bAttribute = bData & 0x0F;
         bData++;
 
-        // 다른 태스크로 전환
-        Schedule();
+        //Schedule();
     }
+
+    ExitTask();
 }
 
-/**
- *  태스크 2
- *      자신의 ID를 참고하여 특정 위치에 회전하는 바람개비를 출력
- */
-void TestTask2(void)
+static void TestTask2(void)
 {
     int i = 0, iOffset;
     CHARACTER *pstScreen = (CHARACTER *)CONSOLE_VIDEOMEMORYADDRESS;
     TCB *pstRunningTask;
     char vcData[4] = {'-', '\\', '|', '/'};
 
-    // 자신의 ID를 얻어서 화면 오프셋으로 사용
     pstRunningTask = GetRunningTask();
     iOffset = (pstRunningTask->stLink.qwID & 0xFFFFFFFF) * 2;
     iOffset = CONSOLE_WIDTH * CONSOLE_HEIGHT -
@@ -423,59 +422,152 @@ void TestTask2(void)
 
     while (1)
     {
-        // 회전하는 바람개비를 표시
         pstScreen[iOffset].bCharactor = vcData[i % 4];
-        // 색깔 지정
         pstScreen[iOffset].bAttribute = (iOffset % 15) + 1;
         i++;
 
-        // 다른 태스크로 전환
-        Schedule();
+        //Schedule();
     }
 }
 
-/**
- *  태스크를 생성해서 멀티 태스킹 수행
- */
-void CreateTestTask(const char *pcParameterBuffer)
+static void CreateTestTask(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
     char vcType[30];
     char vcCount[30];
     int i;
 
-    // 파라미터를 추출
     InitializeParameter(&stList, pcParameterBuffer);
     GetNextParameter(&stList, vcType);
     GetNextParameter(&stList, vcCount);
 
     switch (AToI(vcType, 10))
     {
-    // 타입 1 태스크 생성
     case 1:
         for (i = 0; i < AToI(vcCount, 10); i++)
         {
-            if (CreateTask(0, (QWORD)TestTask1) == NULL)
+            if (CreateTask(TASK_FLAGS_LOW, (QWORD)TestTask1) == NULL)
             {
                 break;
             }
         }
 
-        Printf("Task1 %d Created\n", i);
+        Printf("[*] Task1 %d Created\n", i);
         break;
 
-    // 타입 2 태스크 생성
     case 2:
     default:
         for (i = 0; i < AToI(vcCount, 10); i++)
         {
-            if (CreateTask(0, (QWORD)TestTask2) == NULL)
+            if (CreateTask(TASK_FLAGS_LOW, (QWORD)TestTask2) == NULL)
             {
                 break;
             }
         }
 
-        Printf("Task2 %d Created\n", i);
+        Printf("[*] Task2 %d Created\n", i);
         break;
     }
+}
+
+static void ChangeTaskPriority(const char *pcParameterBuffer)
+{
+    PARAMETERLIST stList;
+    char vcID[30];
+    char vcPriority[30];
+    QWORD qwID;
+    BYTE bPriority;
+
+    InitializeParameter(&stList, pcParameterBuffer);
+    GetNextParameter(&stList, vcID);
+    GetNextParameter(&stList, vcPriority);
+
+    if (MemCmp(vcID, "0x", 2) == 0)
+    {
+        qwID = AToI(vcID + 2, 16);
+    }
+    else
+    {
+        qwID = AToI(vcID, 10);
+    }
+
+    bPriority = AToI(vcPriority, 10);
+
+    Printf("[*] Change Task Priority ID [0x%q] Priority[%d]..... ", qwID, bPriority);
+    if (ChangePriority(qwID, bPriority) == TRUE)
+    {
+        Printf("Success\n");
+    }
+    else
+    {
+        Printf("Fail\n");
+    }
+}
+
+
+static void ShowTaskList(const char *pcParameterBuffer)
+{
+    int i;
+    TCB *pstTCB;
+    int iCount = 0;
+
+    Printf("=========== Task Total Count [%d] ===========\n", GetTaskCount());
+    for (i = 0; i < TASK_MAXCOUNT; i++)
+    {
+        pstTCB = GetTCBInTCBPool(i);
+        if ((pstTCB->stLink.qwID >> 32) != 0)
+        {
+
+            if ((iCount != 0) && ((iCount % 10) == 0))
+            {
+                Printf("Press any key to continue... ('q' is exit) : ");
+                if (GetCh() == 'q')
+                {
+                    Printf("\n");
+                    break;
+                }
+                Printf("\n");
+            }
+
+            Printf("[%d] Task ID[0x%Q], Priority[%d], Flags[0x%Q]\n", 1 + iCount++, pstTCB->stLink.qwID, GETPRIORITY(pstTCB->qwFlags),pstTCB->qwFlags);
+        }
+    }
+}
+
+static void KillTask(const char *pcParameterBuffer)
+{
+    PARAMETERLIST stList;
+    char vcID[30];
+    QWORD qwID;
+
+    InitializeParameter(&stList, pcParameterBuffer);
+    GetNextParameter(&stList, vcID);
+
+    if (MemCmp(vcID, "0x", 2) == 0)
+    {
+        qwID = AToI(vcID + 2, 16);
+    }
+    else
+    {
+        qwID = AToI(vcID, 10);
+    }
+
+    Printf("Kill Task ID [0x%q] ", qwID);
+    
+    if (EndTask(qwID) == TRUE)
+    {
+        Printf("Success\n");
+    }
+    else
+    {
+        Printf("Fail\n");
+    }
+}
+
+/**
+ *  프로세서의 사용률을 표시
+ */
+static void CPULoad(const char *pcParameterBuffer)
+{
+    Printf("Processor Load : %d%%\n", GetProcessorLoad());
 }

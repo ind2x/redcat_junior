@@ -117,7 +117,7 @@ BYTE GetCh(void)
     {
         while(GetKeyFromKeyQueue(&stData) == FALSE)
         {
-            ;
+            Schedule();
         }
         
         if(stData.bFlags & KEY_FLAGS_DOWN) 
