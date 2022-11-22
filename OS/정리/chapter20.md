@@ -46,11 +46,11 @@
 
 <br>
 
-+ ```같은 자원을 두고 경쟁하는 상태 = Race Condition```
++ 같은 자원을 두고 경쟁하는 상태 = Race Condition
  
-+ ```코드 중에서 반드시 한 개의 태스크만 수행되어야 하는 영역 = 임계 영역, Critical Section```
++ 코드 중에서 반드시 한 개의 태스크만 수행되어야 하는 영역 = 임계 영역, Critical Section
  
-+ ```한 개의 태스크만 수행됨을 보장하는 용어 = 상호 배제, Mutual Exclusion```이 있다.
++ 한 개의 태스크만 수행됨을 보장하는 용어 = 상호 배제, Mutual Exclusion
 
 <br>
 
