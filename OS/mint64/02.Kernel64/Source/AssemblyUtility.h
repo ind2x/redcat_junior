@@ -16,4 +16,6 @@ QWORD ReadTSC( void );
 void SwitchContext(CONTEXT *pstCurrentContext, CONTEXT *pstNextContext);
 void Hlt(void);
 
+BOOL TestAndSet(volatile BYTE *pbDestination, BYTE bCompare, BYTE bSource);
+
 #endif /* __ASSEMBLMYUTILITY_H__ */

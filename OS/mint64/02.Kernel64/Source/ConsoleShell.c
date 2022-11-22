@@ -6,6 +6,7 @@
 #include "RTC.h"
 #include "AssemblyUtility.h"
 #include "Task.h"
+#include "Synchronization.h"
 
 SHELLCOMMANDENTRY gs_vstCommandTable[] =
 {
@@ -22,8 +23,9 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
     {"createtask", "Create Task ex) createtask 1(type) 10(count), press 'q' to quit", CreateTestTask},
     {"changepriority", "Change Task Priority, ex) changepriority 1(ID) 2(Priority)", ChangeTaskPriority},
     {"tasklist", "Show Task List", ShowTaskList},
-    {"killtask", "End Task, ex) killtask 1(ID)", KillTask},
+    {"killtask", "End Task, ex) killtask 1(ID) or 0xffffffff(All Task)", KillTask},
     {"cpuload", "Show Processor Load", CPULoad},
+    {"testmutex", "Test Mutex Function", TestMutex},
 };
 
 void StartConsoleShell(void)
@@ -539,6 +541,8 @@ static void KillTask(const char *pcParameterBuffer)
     PARAMETERLIST stList;
     char vcID[30];
     QWORD qwID;
+    TCB *pstTCB;
+    int i;
 
     InitializeParameter(&stList, pcParameterBuffer);
     GetNextParameter(&stList, vcID);
@@ -552,22 +556,95 @@ static void KillTask(const char *pcParameterBuffer)
         qwID = AToI(vcID, 10);
     }
 
-    Printf("Kill Task ID [0x%q] ", qwID);
-    
-    if (EndTask(qwID) == TRUE)
+    if(qwID != 0xFFFFFFFFF)
     {
-        Printf("Success\n");
+        Printf("[*] Kill Task ID [0x%q] ", qwID);
+        if (EndTask(qwID) == TRUE)
+        {
+            Printf("Success\n");
+        }
+        else
+        {
+            Printf("Fail\n");
+        }
     }
     else
     {
-        Printf("Fail\n");
+        for (i = 2; i < TASK_MAXCOUNT; i++)
+        {
+            pstTCB = GetTCBInTCBPool(i);
+            qwID = pstTCB->stLink.qwID;
+            
+            if ((qwID >> 32) != 0)
+            {
+                Printf("[*] Kill Task ID [0x%q] ", qwID);
+                if (EndTask(qwID) == TRUE)
+                {
+                    Printf("Success\n");
+                }
+                else
+                {
+                    Printf("Fail\n");
+                }
+            }
+        }
     }
 }
 
-/**
- *  프로세서의 사용률을 표시
- */
 static void CPULoad(const char *pcParameterBuffer)
 {
     Printf("Processor Load : %d%%\n", GetProcessorLoad());
+}
+
+static MUTEX gs_stMutex;
+static volatile QWORD gs_qwAdder;
+
+static void PrintNumberTask(void)
+{
+    int i;
+    int j;
+    QWORD qwTickCount;
+
+    qwTickCount = GetTickCount();
+    while ((GetTickCount() - qwTickCount) < 50)
+    {
+        Schedule();
+    }
+
+    for (i = 0; i < 5; i++)
+    {
+        Lock(&(gs_stMutex));
+        Printf("[*] Task ID [0x%Q] Value[%d]\n", GetRunningTask()->stLink.qwID, gs_qwAdder);
+
+        gs_qwAdder += 1;
+        Unlock(&(gs_stMutex));
+
+        for (j = 0; j < 30000; j++)
+            ;
+    }
+
+    qwTickCount = GetTickCount();
+    while ((GetTickCount() - qwTickCount) < 1000)
+    {
+        Schedule();
+    }
+
+    ExitTask();
+}
+
+static void TestMutex(const char *pcParameterBuffer)
+{
+    int i;
+
+    gs_qwAdder = 1;
+
+    InitializeMutex(&gs_stMutex);
+
+    for (i = 0; i < 3; i++)
+    {
+        CreateTask(TASK_FLAGS_LOW, (QWORD)PrintNumberTask);
+    }
+    
+    Printf("[*] Wait Util %d Task End.......\n", i);
+    GetCh();
 }

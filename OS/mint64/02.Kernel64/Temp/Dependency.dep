@@ -1,7 +1,11 @@
 ConsoleShell.o: ../Source/ConsoleShell.c ../Source/ConsoleShell.h \
   ../Source/Types.h ../Source/Console.h ../Source/Keyboard.h \
   ../Source/Utility.h ../Source/PIT.h ../Source/RTC.h \
-  ../Source/AssemblyUtility.h ../Source/Task.h ../Source/List.h
+  ../Source/AssemblyUtility.h ../Source/Task.h ../Source/List.h \
+  ../Source/Synchronization.h
+Synchronization.o: ../Source/Synchronization.c \
+  ../Source/Synchronization.h ../Source/Types.h ../Source/Utility.h \
+  ../Source/Task.h ../Source/List.h ../Source/AssemblyUtility.h
 PIT.o: ../Source/PIT.c ../Source/PIT.h ../Source/Types.h \
   ../Source/AssemblyUtility.h ../Source/Task.h ../Source/List.h
 Queue.o: ../Source/Queue.c ../Source/Queue.h ../Source/Types.h
@@ -24,8 +28,10 @@ main.o: ../Source/main.c ../Source/Types.h ../Source/Keyboard.h \
 PIC.o: ../Source/PIC.c ../Source/PIC.h ../Source/Types.h
 Keyboard.o: ../Source/Keyboard.c ../Source/Types.h \
   ../Source/AssemblyUtility.h ../Source/Task.h ../Source/List.h \
-  ../Source/Keyboard.h ../Source/Queue.h ../Source/Utility.h
+  ../Source/Keyboard.h ../Source/Queue.h ../Source/Utility.h \
+  ../Source/Synchronization.h
 RTC.o: ../Source/RTC.c ../Source/RTC.h ../Source/Types.h \
   ../Source/AssemblyUtility.h ../Source/Task.h ../Source/List.h
 Task.o: ../Source/Task.c ../Source/Task.h ../Source/Types.h \
-  ../Source/List.h ../Source/Descriptor.h ../Source/Utility.h
+  ../Source/List.h ../Source/Descriptor.h ../Source/Utility.h \
+  ../Source/Synchronization.h

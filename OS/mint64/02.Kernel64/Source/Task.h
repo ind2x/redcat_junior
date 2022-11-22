@@ -106,23 +106,23 @@ typedef struct SchedulerStruct
 
 #pragma pack(pop)
 
-void InitializeTCBPool(void);
-TCB *AllocateTCB(void);
-void FreeTCB(QWORD qwID);
+static void InitializeTCBPool(void);
+static TCB *AllocateTCB(void);
+static void FreeTCB(QWORD qwID);
 TCB* CreateTask(QWORD qwFlags, QWORD qwEntryPointAddress);
-void SetUpTask(TCB *pstTCB, QWORD qwFlags, QWORD qwEntryPointAddress, void *pvStackAddress, QWORD qwStackSize);
+static void SetUpTask(TCB *pstTCB, QWORD qwFlags, QWORD qwEntryPointAddress, void *pvStackAddress, QWORD qwStackSize);
 
 void InitializeScheduler(void);
 void SetRunningTask(TCB *pstTask);
 TCB *GetRunningTask(void);
-TCB *GetNextTaskToRun(void);
-BOOL AddTaskToReadyList(TCB *pstTask);
+static TCB *GetNextTaskToRun(void);
+static BOOL AddTaskToReadyList(TCB *pstTask);
 void Schedule(void);
 BOOL ScheduleInInterrupt(void);
 void DecreaseProcessorTime(void);
 BOOL IsProcessorTimeExpired(void);
 
-TCB* RemoveTaskFromReadyList(QWORD qwTaskID);
+static TCB* RemoveTaskFromReadyList(QWORD qwTaskID);
 BOOL ChangePriority(QWORD qwID, BYTE bPriority);
 BOOL EndTask(QWORD qwTaskID);
 void ExitTask(void);

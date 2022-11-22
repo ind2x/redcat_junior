@@ -1,11 +1,12 @@
 #include "Task.h"
 #include "Descriptor.h"
 #include "Utility.h"
+#include "Synchronization.h"
 
 static SCHEDULER gs_stScheduler;
 static TCBPOOLMANAGER gs_stTCBPoolManager;
 
-void InitializeTCBPool(void)
+static void InitializeTCBPool(void)
 {
     int i;
 
@@ -23,7 +24,7 @@ void InitializeTCBPool(void)
     gs_stTCBPoolManager.iAllocatedCount = 1;
 }
 
-TCB* AllocateTCB(void)
+static TCB* AllocateTCB(void)
 {
     TCB * pstEmptyTCB;
     int i;
@@ -54,7 +55,7 @@ TCB* AllocateTCB(void)
     return pstEmptyTCB;
 }
 
-void FreeTCB(QWORD qwID)
+static void FreeTCB(QWORD qwID)
 {
     int i;
     i = GETTCBOFFSET(qwID);
@@ -70,22 +71,34 @@ TCB *CreateTask(QWORD qwFlags, QWORD qwEntryPointAddress)
 {
     TCB *pstTask;
     void *pvStackAddress;
+    BOOL bPreviousFlag;
 
+    bPreviousFlag = LockForSystemData();
     pstTask = AllocateTCB();
+    
     if (pstTask == NULL)
     {
+        UnlockForSystemData(bPreviousFlag);
         return NULL;
     }
+
+    UnlockForSystemData(bPreviousFlag);
 
     pvStackAddress = (void *)(TASK_STACKPOOLADDRESS + (TASK_STACKSIZE * GETTCBOFFSET(pstTask->stLink.qwID)));
 
     SetUpTask(pstTask, qwFlags, qwEntryPointAddress, pvStackAddress, TASK_STACKSIZE);
+
+
+    bPreviousFlag = LockForSystemData();
+    
     AddTaskToReadyList(pstTask);
+    
+    UnlockForSystemData(bPreviousFlag);
 
     return pstTask;
 }
 
-void SetUpTask(TCB *pstTCB, QWORD qwFlags, QWORD qwEntryPointAddress, void *pvStackAddress, QWORD qwStackSize)
+static void SetUpTask(TCB *pstTCB, QWORD qwFlags, QWORD qwEntryPointAddress, void *pvStackAddress, QWORD qwStackSize)
 {
     MemSet(pstTCB->stContext.vqRegister, 0, sizeof(pstTCB->stContext.vqRegister));
 
@@ -134,15 +147,30 @@ void InitializeScheduler(void)
 
 void SetRunningTask(TCB *pstTask)
 {
+    BOOL bPreviousFlag;
+
+    bPreviousFlag = LockForSystemData();
+    
     gs_stScheduler.pstRunningTask = pstTask;
+
+    UnlockForSystemData(bPreviousFlag);
 }
 
 TCB *GetRunningTask(void)
 {
+    BOOL bPreviousFlag;
+    TCB *pstRunningTask;
+
+    bPreviousFlag = LockForSystemData();
+
+    pstRunningTask = gs_stScheduler.pstRunningTask;
+
+    UnlockForSystemData(bPreviousFlag);
+
     return gs_stScheduler.pstRunningTask;
 }
 
-TCB *GetNextTaskToRun(void)
+static TCB *GetNextTaskToRun(void)
 {
     TCB *pstTarget = NULL;
     int iTaskCount, i, j;
@@ -171,7 +199,7 @@ TCB *GetNextTaskToRun(void)
     return pstTarget;
 }
 
-BOOL AddTaskToReadyList(TCB *pstTask)
+static BOOL AddTaskToReadyList(TCB *pstTask)
 {
     BYTE bPriority;
 
@@ -185,7 +213,7 @@ BOOL AddTaskToReadyList(TCB *pstTask)
     return TRUE;
 }
 
-TCB* RemoveTaskFromReadyList(QWORD qwTaskID)
+static TCB* RemoveTaskFromReadyList(QWORD qwTaskID)
 {
     TCB *pstTarget;
     BYTE bPriority;
@@ -212,12 +240,15 @@ TCB* RemoveTaskFromReadyList(QWORD qwTaskID)
 BOOL ChangePriority(QWORD qwTaskID, BYTE bPriority)
 {
     TCB *pstTarget;
-
+    BOOL bPreviousFlag;
+    
     if (bPriority > TASK_MAXREADYLISTCOUNT)
     {
         return FALSE;
     }
-    
+
+    bPreviousFlag = LockForSystemData();
+
     pstTarget = gs_stScheduler.pstRunningTask;
     
     if (pstTarget->stLink.qwID == qwTaskID)
@@ -243,7 +274,8 @@ BOOL ChangePriority(QWORD qwTaskID, BYTE bPriority)
             AddTaskToReadyList(pstTarget);
         }
     }
-    
+
+    UnlockForSystemData(bPreviousFlag);
     return TRUE;
 }
 
@@ -257,12 +289,12 @@ void Schedule(void)
         return ;
     }
 
-    bPreviousFlag = SetInterruptFlag(FALSE);
+    bPreviousFlag = LockForSystemData();
     
     pstNextTask = GetNextTaskToRun();
     if (pstNextTask == NULL)
     {
-        SetInterruptFlag(bPreviousFlag);
+        UnlockForSystemData(bPreviousFlag);
         return;
     }
 
@@ -287,17 +319,21 @@ void Schedule(void)
 
     gs_stScheduler.iProcessorTime = TASK_PROCESSORTIME;
 
-    SetInterruptFlag(bPreviousFlag);
+    UnlockForSystemData(bPreviousFlag);
 }
 
 BOOL ScheduleInInterrupt(void)
 {
     TCB *pstRunningTask, *pstNextTask;
     char *pcContextAddress;
+    BOOL bPreviousFlag;
+
+    bPreviousFlag = LockForSystemData();
 
     pstNextTask = GetNextTaskToRun();
     if (pstNextTask == NULL)
     {
+        UnlockForSystemData(bPreviousFlag);
         return FALSE;
     }
 
@@ -320,6 +356,8 @@ BOOL ScheduleInInterrupt(void)
         MemCpy(&(pstRunningTask->stContext), pcContextAddress, sizeof(CONTEXT));
         AddTaskToReadyList(pstRunningTask);
     }
+
+    UnlockForSystemData(bPreviousFlag);
 
     MemCpy(pcContextAddress, &(pstNextTask->stContext), sizeof(CONTEXT));
 
@@ -349,6 +387,9 @@ BOOL EndTask(QWORD qwTaskID)
 {
     TCB *pstTarget;
     BYTE bPriority;
+    BOOL bPreviousFlag;
+
+    bPreviousFlag = LockForSystemData();
 
     pstTarget = gs_stScheduler.pstRunningTask;
     if (pstTarget->stLink.qwID == qwTaskID)
@@ -356,6 +397,8 @@ BOOL EndTask(QWORD qwTaskID)
         pstTarget->qwFlags |= TASK_FLAGS_ENDTASK;
         SETPRIORITY(pstTarget->qwFlags, TASK_FLAGS_WAIT);
 
+        UnlockForSystemData(bPreviousFlag);
+        
         Schedule();
 
         while (1)
@@ -372,13 +415,17 @@ BOOL EndTask(QWORD qwTaskID)
                 pstTarget->qwFlags |= TASK_FLAGS_ENDTASK;
                 SETPRIORITY(pstTarget->qwFlags, TASK_FLAGS_WAIT);
             }
-            return FALSE;
+
+            UnlockForSystemData(bPreviousFlag);
+            return TRUE;
         }
 
         pstTarget->qwFlags |= TASK_FLAGS_ENDTASK;
         SETPRIORITY(pstTarget->qwFlags, TASK_FLAGS_WAIT);
         AddListToTail(&(gs_stScheduler.stWaitList), pstTarget);
     }
+
+    UnlockForSystemData(bPreviousFlag);
     return TRUE;
 }
 
@@ -391,22 +438,31 @@ int GetReadyTaskCount(void)
 {
     int iTotalCount = 0;
     int i;
+    BOOL bPreviousFlag;
+
+    bPreviousFlag = LockForSystemData();
 
     for (i = 0; i < TASK_MAXREADYLISTCOUNT; i++)
     {
         iTotalCount += GetListCount(&(gs_stScheduler.vstReadyList[i]));
     }
 
+    UnlockForSystemData(bPreviousFlag);
     return iTotalCount;
 }
 
 int GetTaskCount(void)
 {
     int iTotalCount;
+    BOOL bPreviousFlag;
 
     iTotalCount = GetReadyTaskCount();
+
+    bPreviousFlag = LockForSystemData();
+
     iTotalCount += GetListCount(&(gs_stScheduler.stWaitList)) + 1;
 
+    UnlockForSystemData(bPreviousFlag);
     return iTotalCount;
 }
 
@@ -445,6 +501,9 @@ void IdleTask(void)
     QWORD qwLastMeasureTickCount, qwLastSpendTickInIdleTask;
     QWORD qwCurrentMeasureTickCount, qwCurrentSpendTickInIdleTask;
 
+    BOOL bPreviousFlag;
+    QWORD qwTaskID;
+
     qwLastSpendTickInIdleTask = gs_stScheduler.qwSpendProcessorTimeInIdleTask;
     qwLastMeasureTickCount = GetTickCount();
 
@@ -471,14 +530,22 @@ void IdleTask(void)
         {
             while (1)
             {
+                bPreviousFlag = LockForSystemData();
+                
                 pstTask = RemoveListFromHeader(&(gs_stScheduler.stWaitList));
                 if (pstTask == NULL)
                 {
+                    UnlockForSystemData(bPreviousFlag);
                     break;
                 }
-                Printf("IDLE: Task ID[0x%q] is completely ended.\n",
-                        pstTask->stLink.qwID);
+    
+                qwTaskID = pstTask->stLink.qwID;
                 FreeTCB(pstTask->stLink.qwID);
+
+                UnlockForSystemData(bPreviousFlag);
+
+                Printf("[*] IDLE: Task ID[0x%q] is completely ended.\n", qwTaskID);
+                
             }
         }
 

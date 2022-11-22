@@ -5,7 +5,7 @@ SECTION .text
 global InPortByte, OutPortByte, LoadGDTR, LoadTR, LoadIDTR
 global EnableInterrupt, DisableInterrupt, ReadRFLAGS
 global ReadTSC
-global SwitchContext, Hlt
+global SwitchContext, Hlt, TestAndSet
 
 InPortByte:
     push rdx
@@ -163,4 +163,18 @@ SwitchContext:
 Hlt:
     hlt
     hlt
+    ret
+
+TestAndSet:
+    mov rax, rsi
+
+    lock cmpxchg byte [rdi], dl
+    je .SUCCESS
+
+.NOTSAME:
+    mov rax, 0x00
+    ret
+
+.SUCCESS:
+    mov rax, 0x01
     ret
