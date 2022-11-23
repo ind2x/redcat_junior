@@ -81,7 +81,7 @@ TCB 최대 개수는 MINT 64 OS는 1024개까지 생성할 수 있으므로 1024
 
 태스크를 할당하려면 태스크 풀을 검색하여 해당 TCB가 할당된 상태인지, 해제된 상태인지 확인해야 한다.
 
-이는 TCBPOOLMANAGER 자료구조에 있는 iAllocatedCount 필드와 TCB의 ID 필드를 이용해서 확인할 수 있다.
+이는 TCBPOOLMANAGER 자료구조에 있는 iAllocatedCount 필드와 TCB의 ID 값을 이용해서 확인할 수 있다.
 
 <br>
 
