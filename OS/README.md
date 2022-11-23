@@ -1,3 +1,5 @@
+## INFO
+
 저자의 mint64 OS github : https://github.com/kkamagui/mint64os-examples
 
 MINT64 OS 홈페이지 : http://jsandroidapp.cafe24.com/xe/index
@@ -18,6 +20,16 @@ MINT64 OS 홈페이지 : http://jsandroidapp.cafe24.com/xe/index
 
 + 15장 Printf 함수 실행 중 xmm레지스터로 인한 에러 발생 -> makefile clang 컴파일 옵션으로 ```-msoft-float``` 추가
 
+
+<br>
+<hr style="border: 2px solid;">
+<br>
+
+## MINT64 OS Memory Map
+
+<br>
+
+![memory_map](https://user-images.githubusercontent.com/52172169/203483722-5504a36a-f0ad-4f19-a11b-bd9a587018fa.png)
 
 <br>
 <hr style="border: 2px solid;">
