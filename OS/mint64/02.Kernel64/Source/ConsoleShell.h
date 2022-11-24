@@ -4,7 +4,7 @@
 #include "Types.h"
 
 #define CONSOLESHELL_MAXCOMMANDBUFFERCOUNT 300
-#define CONSOLESHELL_PROMPTMESSAGE "redcat> "
+#define CONSOLESHELL_PROMPTMESSAGE "\nredcat> "
 
 typedef void (*CommandFunction)(const char *pcParameter);
 
@@ -51,5 +51,9 @@ static void KillTask(const char *pcParameterBuffer);
 static void CPULoad(const char *pcParameterBuffer);
 
 static void TestMutex(const char *pcParameterBuffer);
+
+static void CreateThreadTask(void);
+static void TestThread(const char *pcParameterBuffer);
+static void ShowMatrix(const char *pcParameterBuffer);
 
 #endif /*__CONSOLESHELL_H__*/

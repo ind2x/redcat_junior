@@ -388,3 +388,15 @@ QWORD GetTickCount(void)
 {
     return g_qwTickCount;
 }
+
+void Sleep(QWORD qwMillisecond)
+{
+    QWORD qwLastTickCount;
+
+    qwLastTickCount = g_qwTickCount;
+
+    while ((g_qwTickCount - qwLastTickCount) <= qwMillisecond)
+    {
+        Schedule();
+    }
+}

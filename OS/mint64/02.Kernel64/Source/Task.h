@@ -52,12 +52,16 @@
 #define TASK_FLAGS_WAIT 0xFF
 
 #define TASK_FLAGS_ENDTASK 0x8000000000000000
+#define TASK_FLAGS_SYSTEM 0x4000000000000000
+#define TASK_FLAGS_PROCESS 0x2000000000000000
+#define TASK_FLAGS_THREAD 0x1000000000000000
 #define TASK_FLAGS_IDLE 0x0800000000000000
 
 #define GETPRIORITY(x) ((x)&0xFF)
-#define SETPRIORITY(x, priority) ((x) = ((x)&0xFFFFFFFFFFFFFF00) | \
-                                        (priority))
+#define SETPRIORITY(x, priority) ((x) = ((x)&0xFFFFFFFFFFFFFF00) | (priority))
 #define GETTCBOFFSET(x) ((x)&0xFFFFFFFF)
+
+#define GETTCBFROMTHREADLINK(x) (TCB *)((QWORD)(x)-offsetof(TCB, stThreadLink))
 
 #pragma pack(push, 1)
 
@@ -70,9 +74,17 @@ typedef struct TaskControlBlockStruct
 {
     LISTLINK stLink;
 
-    CONTEXT stContext;
-
     QWORD qwFlags;
+
+    void *pvMemoryAddress;
+    QWORD qwMemorySize;
+
+    LISTLINK stThreadLink;
+    LIST stChildThreadList;
+
+    QWORD qwParentProcessID;
+
+    CONTEXT stContext;
 
     void *pvStackAddress;
     QWORD qwStackSize;
@@ -109,7 +121,7 @@ typedef struct SchedulerStruct
 static void InitializeTCBPool(void);
 static TCB *AllocateTCB(void);
 static void FreeTCB(QWORD qwID);
-TCB* CreateTask(QWORD qwFlags, QWORD qwEntryPointAddress);
+TCB *CreateTask(QWORD qwFlags, void *pvMemoryAddress, QWORD qwMemorySize, QWORD qwEntryPointAddress);
 static void SetUpTask(TCB *pstTCB, QWORD qwFlags, QWORD qwEntryPointAddress, void *pvStackAddress, QWORD qwStackSize);
 
 void InitializeScheduler(void);
@@ -131,6 +143,8 @@ int GetTaskCount(void);
 TCB* GetTCBInTCBPool(int iOffset);
 BOOL IsTaskExist(QWORD qwID);
 QWORD GetProcessorLoad(void);
+
+static TCB *GetProcessByThread(TCB *pstThread);
 
 void IdleTask(void);
 void HaltProcessorByLoad(void);

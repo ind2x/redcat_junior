@@ -9,23 +9,25 @@
 #include "Synchronization.h"
 
 SHELLCOMMANDENTRY gs_vstCommandTable[] =
-{
-    {"help", "Show Help", Help},
-    {"clear", "Clear Screen", Cls},
-    {"totalram", "Show Total RAM Size", ShowTotalRAMSize},
-    {"strtod", "String To Decimal/Hex Convert", StringToDecimalHexTest},
-    {"reboot", "Shutdown And Reboot OS", ShutDownAndReboot},
-    {"settimer", "Set PIT Controller Counter0, ex) settimer 10(ms) 1(periodic)", SetTimer},
-    {"wait", "Wait ms Using PIT, ex) wait 100(ms)", WaitUsingPIT},
-    {"rdtsc", "Read Time Stamp Counter", ReadTimeStampCounter},
-    {"cpuspeed", "Measure Processor Speed", MeasureProcessorSpeed},
-    {"date", "Show Date And Time", ShowDateAndTime},
-    {"createtask", "Create Task ex) createtask 1(type) 10(count), press 'q' to quit", CreateTestTask},
-    {"changepriority", "Change Task Priority, ex) changepriority 1(ID) 2(Priority)", ChangeTaskPriority},
-    {"tasklist", "Show Task List", ShowTaskList},
-    {"killtask", "End Task, ex) killtask 1(ID) or 0xffffffff(All Task)", KillTask},
-    {"cpuload", "Show Processor Load", CPULoad},
-    {"testmutex", "Test Mutex Function", TestMutex},
+    {
+        {"help", "Show Help", Help},
+        {"clear", "Clear Screen", Cls},
+        {"totalram", "Show Total RAM Size", ShowTotalRAMSize},
+        {"strtod", "String To Decimal/Hex Convert", StringToDecimalHexTest},
+        {"reboot", "Shutdown And Reboot OS", ShutDownAndReboot},
+        {"settimer", "Set PIT Controller Counter0, ex) settimer 10(ms) 1(periodic)", SetTimer},
+        {"wait", "Wait ms Using PIT, ex) wait 100(ms)", WaitUsingPIT},
+        {"rdtsc", "Read Time Stamp Counter", ReadTimeStampCounter},
+        {"cpuspeed", "Measure Processor Speed", MeasureProcessorSpeed},
+        {"date", "Show Date And Time", ShowDateAndTime},
+        {"createtask", "Create Task ex) createtask 1(type) 10(count), press 'q' to quit", CreateTestTask},
+        {"changepriority", "Change Task Priority, ex) changepriority 1(ID) 2(Priority)", ChangeTaskPriority},
+        {"tasklist", "Show Task List", ShowTaskList},
+        {"killtask", "End Task, ex) killtask 1(ID) or 0xffffffff(All Task)", KillTask},
+        {"cpuload", "Show Processor Load", CPULoad},
+        {"testmutex", "Test Mutex Function", TestMutex},
+        {"testthread", "Test Thread And Process Function", TestThread},
+        {"showmatrix", "Show Matrix Screen", ShowMatrix},
 };
 
 void StartConsoleShell(void)
@@ -448,7 +450,7 @@ static void CreateTestTask(const char *pcParameterBuffer)
     case 1:
         for (i = 0; i < AToI(vcCount, 10); i++)
         {
-            if (CreateTask(TASK_FLAGS_LOW, (QWORD)TestTask1) == NULL)
+            if (CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD) TestTask1) == NULL)
             {
                 break;
             }
@@ -461,7 +463,7 @@ static void CreateTestTask(const char *pcParameterBuffer)
     default:
         for (i = 0; i < AToI(vcCount, 10); i++)
         {
-            if (CreateTask(TASK_FLAGS_LOW, (QWORD)TestTask2) == NULL)
+            if (CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD)TestTask2) == NULL)
             {
                 break;
             }
@@ -506,14 +508,13 @@ static void ChangeTaskPriority(const char *pcParameterBuffer)
     }
 }
 
-
 static void ShowTaskList(const char *pcParameterBuffer)
 {
     int i;
     TCB *pstTCB;
     int iCount = 0;
 
-    Printf("=========== Task Total Count [%d] ===========\n", GetTaskCount());
+    Printf("\n==================== Task Total Count [%d] ====================\n\n", GetTaskCount());
     for (i = 0; i < TASK_MAXCOUNT; i++)
     {
         pstTCB = GetTCBInTCBPool(i);
@@ -531,7 +532,9 @@ static void ShowTaskList(const char *pcParameterBuffer)
                 Printf("\n");
             }
 
-            Printf("[%d] Task ID[0x%Q], Priority[%d], Flags[0x%Q]\n", 1 + iCount++, pstTCB->stLink.qwID, GETPRIORITY(pstTCB->qwFlags),pstTCB->qwFlags);
+            Printf("[%d] Task ID[0x%Q], Priority[%d], Flags[0x%Q], Thread[%d]\n", 1 + iCount++, pstTCB->stLink.qwID, GETPRIORITY(pstTCB->qwFlags), pstTCB->qwFlags, GetListCount(&(pstTCB->stChildThreadList)));
+            
+            Printf("    Parent PID[0x%Q], Memory Address[0x%Q], Size[0x%Q]\n\n", pstTCB->qwParentProcessID, pstTCB->pvMemoryAddress, pstTCB->qwMemorySize);
         }
     }
 }
@@ -558,24 +561,34 @@ static void KillTask(const char *pcParameterBuffer)
 
     if(qwID != 0xFFFFFFFFF)
     {
-        Printf("[*] Kill Task ID [0x%q] ", qwID);
-        if (EndTask(qwID) == TRUE)
+        pstTCB = GetTCBInTCBPool(GETTCBOFFSET(qwID));
+        qwID = pstTCB->stLink.qwID;
+
+        if (((qwID >> 32) != 0) && ((pstTCB->qwFlags & TASK_FLAGS_SYSTEM) == 0x00))
         {
-            Printf("Success\n");
+            Printf("[*] Kill Task ID [0x%q] ", qwID);
+            if (EndTask(qwID) == TRUE)
+            {
+                Printf("Success\n");
+            }
+            else
+            {
+                Printf("Fail\n");
+            }
         }
         else
         {
-            Printf("Fail\n");
+            Printf("[!] Task does not exist or task is system task....\n");
         }
     }
     else
     {
-        for (i = 2; i < TASK_MAXCOUNT; i++)
+        for (i = 0; i < TASK_MAXCOUNT; i++)
         {
             pstTCB = GetTCBInTCBPool(i);
             qwID = pstTCB->stLink.qwID;
             
-            if ((qwID >> 32) != 0)
+            if (((qwID >> 32) != 0) && ((pstTCB->qwFlags & TASK_FLAGS_SYSTEM) == 0x00))
             {
                 Printf("[*] Kill Task ID [0x%q] ", qwID);
                 if (EndTask(qwID) == TRUE)
@@ -642,9 +655,123 @@ static void TestMutex(const char *pcParameterBuffer)
 
     for (i = 0; i < 3; i++)
     {
-        CreateTask(TASK_FLAGS_LOW, (QWORD)PrintNumberTask);
+        CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD)PrintNumberTask);
     }
     
     Printf("[*] Wait Util %d Task End.......\n", i);
     GetCh();
+}
+
+static void CreateThreadTask(void)
+{
+    int i;
+
+    for (i = 0; i < 3; i++)
+    {
+        CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD)TestTask2);
+    }
+
+    while (1)
+    {
+        Sleep(1);
+    }
+}
+
+static void TestThread(const char *pcParameterBuffer)
+{
+    TCB *pstProcess;
+
+    pstProcess = CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_PROCESS, (void *)0xEEEEEEEE, 0x1000, (QWORD)CreateThreadTask);
+    
+    if (pstProcess != NULL)
+    {
+        Printf("[*] Process [0x%Q] Create Success\n\n", pstProcess->stLink.qwID);
+    }
+    else
+    {
+        Printf("[!] Process Create Fail\n\n");
+    }
+}
+
+static volatile QWORD gs_qwRandomValue = 0;
+
+
+QWORD Random(void)
+{
+    gs_qwRandomValue = (gs_qwRandomValue * 412153 + 5571031) >> 16;
+    
+    return gs_qwRandomValue;
+}
+
+static void DropCharactorThread(void)
+{
+    int iX, iY;
+    int i;
+    char vcText[2];
+
+    iX = Random() % CONSOLE_WIDTH;
+
+    while (1)
+    {
+        Sleep(Random() % 20);
+
+        if ((Random() % 20) < 16)
+        {
+            vcText[0] = ' ';
+            for (i = 0; i < CONSOLE_HEIGHT - 1; i++)
+            {
+                PrintStringXY(iX, i, vcText);
+                Sleep(50);
+            }
+        }
+        else
+        {
+            for (i = 0; i < CONSOLE_HEIGHT - 1; i++)
+            {
+                vcText[0] = i + Random();
+                PrintStringXY(iX, i, vcText);
+                Sleep(50);
+            }
+        }
+    }
+}
+
+static void MatrixProcess(void)
+{
+    int i;
+
+    for (i = 0; i < 300; i++)
+    {
+        if (CreateTask(TASK_FLAGS_THREAD | TASK_FLAGS_LOW, 0, 0, (QWORD)DropCharactorThread) == NULL)
+        {
+            break;
+        }
+
+        Sleep(Random() % 5 + 5);
+    }
+
+    Printf("[*] %d Thread is created\n", i);
+
+    GetCh();
+}
+
+static void ShowMatrix(const char *pcParameterBuffer)
+{
+    TCB *pstProcess;
+
+    pstProcess = CreateTask(TASK_FLAGS_PROCESS | TASK_FLAGS_LOW, (void *)0xE00000, 0xE00000,(QWORD)MatrixProcess);
+    
+    if (pstProcess != NULL)
+    {
+        Printf("[*] Matrix Process [0x%Q] Create Success\n");
+
+        while ((pstProcess->stLink.qwID >> 32) != 0)
+        {
+            Sleep(100);
+        }
+    }
+    else
+    {
+        Printf("[!] Matrix Process Create Fail\n");
+    }
 }

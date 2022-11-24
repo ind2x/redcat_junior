@@ -67,9 +67,9 @@ static void FreeTCB(QWORD qwID)
     gs_stTCBPoolManager.iUseCount--;
 }
 
-TCB *CreateTask(QWORD qwFlags, QWORD qwEntryPointAddress)
+TCB *CreateTask(QWORD qwFlags, void *pvMemoryAddress, QWORD qwMemorySize, QWORD qwEntryPointAddress)
 {
-    TCB *pstTask;
+    TCB *pstTask, *pstProcess;
     void *pvStackAddress;
     BOOL bPreviousFlag;
 
@@ -82,12 +82,39 @@ TCB *CreateTask(QWORD qwFlags, QWORD qwEntryPointAddress)
         return NULL;
     }
 
+    pstProcess = GetProcessByThread(GetRunningTask());
+
+    if(pstProcess == NULL)
+    {
+        FreeTCB(pstTask->stLink.qwID);
+        UnlockForSystemData(bPreviousFlag);
+        return NULL;
+    }
+
+    if(qwFlags & TASK_FLAGS_THREAD)
+    {
+        pstTask->qwParentProcessID = pstProcess->stLink.qwID;
+        pstTask->pvMemoryAddress = pstProcess->pvMemoryAddress;
+        pstTask->qwMemorySize = pstProcess->qwMemorySize;
+
+        AddListToTail(&(pstProcess->stChildThreadList), &(pstTask->stThreadLink));
+    }
+    else
+    {
+        pstTask->qwParentProcessID = pstProcess->stLink.qwID;
+        pstTask->pvMemoryAddress = pvMemoryAddress;
+        pstTask->qwMemorySize = qwMemorySize;
+    }
+
+    pstTask->stThreadLink.qwID = pstTask->stLink.qwID;
+
     UnlockForSystemData(bPreviousFlag);
 
     pvStackAddress = (void *)(TASK_STACKPOOLADDRESS + (TASK_STACKSIZE * GETTCBOFFSET(pstTask->stLink.qwID)));
 
     SetUpTask(pstTask, qwFlags, qwEntryPointAddress, pvStackAddress, TASK_STACKSIZE);
 
+    InitializeList(&(pstTask->stChildThreadList));
 
     bPreviousFlag = LockForSystemData();
     
@@ -102,10 +129,10 @@ static void SetUpTask(TCB *pstTCB, QWORD qwFlags, QWORD qwEntryPointAddress, voi
 {
     MemSet(pstTCB->stContext.vqRegister, 0, sizeof(pstTCB->stContext.vqRegister));
 
-    pstTCB->stContext.vqRegister[TASK_RSPOFFSET] = (QWORD)pvStackAddress +
-                                                   qwStackSize;
-    pstTCB->stContext.vqRegister[TASK_RBPOFFSET] = (QWORD)pvStackAddress +
-                                                   qwStackSize;
+    pstTCB->stContext.vqRegister[TASK_RSPOFFSET] = (QWORD)pvStackAddress + qwStackSize - 8;
+    pstTCB->stContext.vqRegister[TASK_RBPOFFSET] = (QWORD)pvStackAddress + qwStackSize - 8;
+
+    *(QWORD *)( (QWORD) pvStackAddress + qwStackSize - 8) = (QWORD) ExitTask;
 
     pstTCB->stContext.vqRegister[TASK_CSOFFSET] = GDT_KERNELCODESEGMENT;
     pstTCB->stContext.vqRegister[TASK_DSOFFSET] = GDT_KERNELDATASEGMENT;
@@ -126,6 +153,7 @@ static void SetUpTask(TCB *pstTCB, QWORD qwFlags, QWORD qwEntryPointAddress, voi
 void InitializeScheduler(void)
 {
     int i;
+    TCB *pstTask;
 
     InitializeTCBPool();
 
@@ -137,8 +165,17 @@ void InitializeScheduler(void)
 
     InitializeList(&(gs_stScheduler.stWaitList));
 
-    gs_stScheduler.pstRunningTask = AllocateTCB();
-    gs_stScheduler.pstRunningTask->qwFlags = TASK_FLAGS_HIGHEST;
+    pstTask = AllocateTCB();
+    
+    gs_stScheduler.pstRunningTask = pstTask;
+    
+    pstTask->qwFlags = TASK_FLAGS_HIGHEST | TASK_FLAGS_PROCESS | TASK_FLAGS_SYSTEM;
+    
+    pstTask->qwParentProcessID = pstTask->stLink.qwID;
+    pstTask->pvMemoryAddress = (void *)0x100000;
+    pstTask->qwMemorySize = 0x500000;
+    pstTask->pvStackAddress = (void *)0x600000;
+    pstTask->qwStackSize = 0x100000;
 
     gs_stScheduler.qwSpendProcessorTimeInIdleTask = 0;
     gs_stScheduler.qwProcessorLoad = 0;
@@ -489,20 +526,41 @@ BOOL IsTaskExist(QWORD qwID)
     return TRUE;
 }
 
-
 QWORD GetProcessorLoad(void)
 {
     return gs_stScheduler.qwProcessorLoad;
 }
 
+static TCB *GetProcessByThread(TCB *pstThread)
+{
+    TCB *pstProcess;
+
+    if (pstThread->qwFlags & TASK_FLAGS_PROCESS)
+    {
+        return pstThread;
+    }
+
+    pstProcess = GetTCBInTCBPool(GETTCBOFFSET(pstThread->qwParentProcessID));
+
+    if ((pstProcess == NULL) || (pstProcess->stLink.qwID != pstThread->qwParentProcessID))
+    {
+        return NULL;
+    }
+
+    return pstProcess;
+}
+
 void IdleTask(void)
 {
-    TCB *pstTask;
+    TCB *pstTask, *pstChildThread, *pstProcess;
     QWORD qwLastMeasureTickCount, qwLastSpendTickInIdleTask;
     QWORD qwCurrentMeasureTickCount, qwCurrentSpendTickInIdleTask;
 
     BOOL bPreviousFlag;
     QWORD qwTaskID;
+
+    int i, iCount;
+    void *pstThreadLink;
 
     qwLastSpendTickInIdleTask = gs_stScheduler.qwSpendProcessorTimeInIdleTask;
     qwLastMeasureTickCount = GetTickCount();
@@ -538,7 +596,49 @@ void IdleTask(void)
                     UnlockForSystemData(bPreviousFlag);
                     break;
                 }
-    
+
+                if(pstTask->qwFlags & TASK_FLAGS_PROCESS)
+                {
+                    iCount = GetListCount(&(pstTask->stChildThreadList));
+                    
+                    for(i=0; i<iCount; i++)
+                    {
+                        pstThreadLink = (TCB*)RemoveListFromHeader(&(pstTask->stChildThreadList));
+                        
+                        if(pstThreadLink == NULL)
+                        {
+                            break;
+                        }
+
+                        pstChildThread = GETTCBFROMTHREADLINK(pstThreadLink);
+
+                        AddListToTail(&(pstTask->stChildThreadList), &(pstChildThread->stThreadLink));
+
+                        EndTask(pstChildThread->stLink.qwID);
+                    }
+
+                    if (GetListCount(&(pstTask->stChildThreadList)) > 0)
+                    {
+                        AddListToTail(&(gs_stScheduler.stWaitList), pstTask);
+
+                        UnlockForSystemData(bPreviousFlag);
+                        continue;
+                    }
+                    else
+                    {
+                        
+                    }
+                }
+
+                else if (pstTask->qwFlags & TASK_FLAGS_THREAD)
+                {
+                    pstProcess = GetProcessByThread(pstTask);
+                    if (pstProcess != NULL)
+                    {
+                        RemoveList(&(pstProcess->stChildThreadList), pstTask->stLink.qwID);
+                    }
+                }
+
                 qwTaskID = pstTask->stLink.qwID;
                 FreeTCB(pstTask->stLink.qwID);
 

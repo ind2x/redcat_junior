@@ -69,6 +69,6 @@ void main(void)
     SetCursor(51, iCursorY++);
     Printf("Pass\n");
 
-    CreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_IDLE, (QWORD) IdleTask);
+    CreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD | TASK_FLAGS_SYSTEM | TASK_FLAGS_IDLE, 0, 0, (QWORD)IdleTask);
     StartConsoleShell();
 }

@@ -24,6 +24,8 @@ int VSPrintf(char *pcBuffer, const char *pcFormatString, va_list ap);
 
 QWORD GetTickCount(void);
 
+void Sleep(QWORD qwMillisecond);
+
 extern volatile QWORD g_qwTickCount;
 
 #endif /*__UTILITY_H__*/
