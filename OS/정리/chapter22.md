@@ -110,8 +110,7 @@ testpie 함수는 355/113을 수행하여 결과 값을 구한 뒤, 태스크 10
 
 <br>
 
-
-
+![image](https://user-images.githubusercontent.com/52172169/203916450-f9ef38e0-3a07-4727-86a2-370fe5073892.png)
 
 <br><br>
 <hr style="border: 2px solid;">
