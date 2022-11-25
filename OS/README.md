@@ -38,5 +38,9 @@ MINT64 OS 홈페이지 : http://jsandroidapp.cafe24.com/xe/index
 ![image](https://user-images.githubusercontent.com/52172169/203499023-16f11474-a2cc-4e06-b2f4-01b37b107a70.png)
 
 <br>
+
+![image](https://user-images.githubusercontent.com/52172169/203925329-16d0d4a1-721b-40db-8814-598871adb966.png)
+
+<br>
 <hr style="border: 2px solid;">
 <br>
