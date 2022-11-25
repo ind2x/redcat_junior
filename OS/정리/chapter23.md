@@ -82,7 +82,27 @@
 
 <br>
 
-설계 부분부터는 p.881에서부터 복습
+설계 부분부터는 p.881에서부터 복습 (이해 못함)
+
+비트맵으로 블록의 위치를 찾을 것이며, 비트맵은 1비트에 블록 한개씩 연결한 것으로 비트 값이 1이면 블록이 할당된거를 뜻한다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/203929225-7fcb959b-0d95-4b44-878c-95f184bc167c.png)
+
+<br>
+
+구현하는 부분은 너무 이해가 안되서 일단 넘어가고 추후에 os 1권을 마무리하면 다시 공부
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
+
+## 빌드
+
+<br>
+
+
 
 <br><br>
 <hr style="border: 2px solid;">
