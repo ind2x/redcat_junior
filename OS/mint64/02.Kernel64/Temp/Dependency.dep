@@ -2,7 +2,7 @@ ConsoleShell.o: ../Source/ConsoleShell.c ../Source/ConsoleShell.h \
   ../Source/Types.h ../Source/Console.h ../Source/Keyboard.h \
   ../Source/Utility.h ../Source/PIT.h ../Source/RTC.h \
   ../Source/AssemblyUtility.h ../Source/Task.h ../Source/List.h \
-  ../Source/Synchronization.h
+  ../Source/Synchronization.h ../Source/DynamicMemory.h
 Synchronization.o: ../Source/Synchronization.c \
   ../Source/Synchronization.h ../Source/Types.h ../Source/Utility.h \
   ../Source/Task.h ../Source/List.h ../Source/AssemblyUtility.h
@@ -13,7 +13,8 @@ List.o: ../Source/List.c ../Source/List.h ../Source/Types.h
 InterruptHandler.o: ../Source/InterruptHandler.c \
   ../Source/InterruptHandler.h ../Source/Types.h ../Source/PIC.h \
   ../Source/Keyboard.h ../Source/Console.h ../Source/Utility.h \
-  ../Source/Task.h ../Source/List.h ../Source/Descriptor.h
+  ../Source/Task.h ../Source/List.h ../Source/Descriptor.h \
+  ../Source/AssemblyUtility.h
 Descriptor.o: ../Source/Descriptor.c ../Source/Descriptor.h \
   ../Source/Types.h ../Source/Utility.h ../Source/ISR.h
 Console.o: ../Source/Console.c ../Source/Console.h ../Source/Types.h \
@@ -24,7 +25,8 @@ Utility.o: ../Source/Utility.c ../Source/Utility.h ../Source/Types.h \
 main.o: ../Source/main.c ../Source/Types.h ../Source/Keyboard.h \
   ../Source/Descriptor.h ../Source/PIC.h ../Source/Console.h \
   ../Source/ConsoleShell.h ../Source/AssemblyUtility.h ../Source/Task.h \
-  ../Source/List.h ../Source/Utility.h ../Source/PIT.h
+  ../Source/List.h ../Source/Utility.h ../Source/PIT.h \
+  ../Source/DynamicMemory.h
 PIC.o: ../Source/PIC.c ../Source/PIC.h ../Source/Types.h
 Keyboard.o: ../Source/Keyboard.c ../Source/Types.h \
   ../Source/AssemblyUtility.h ../Source/Task.h ../Source/List.h \
@@ -32,6 +34,9 @@ Keyboard.o: ../Source/Keyboard.c ../Source/Types.h \
   ../Source/Synchronization.h
 RTC.o: ../Source/RTC.c ../Source/RTC.h ../Source/Types.h \
   ../Source/AssemblyUtility.h ../Source/Task.h ../Source/List.h
+DynamicMemory.o: ../Source/DynamicMemory.c ../Source/DynamicMemory.h \
+  ../Source/Types.h ../Source/Task.h ../Source/List.h \
+  ../Source/Utility.h
 Task.o: ../Source/Task.c ../Source/Task.h ../Source/Types.h \
   ../Source/List.h ../Source/Descriptor.h ../Source/Utility.h \
   ../Source/Synchronization.h

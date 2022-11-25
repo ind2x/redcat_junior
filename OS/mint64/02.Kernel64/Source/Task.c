@@ -116,6 +116,8 @@ TCB *CreateTask(QWORD qwFlags, void *pvMemoryAddress, QWORD qwMemorySize, QWORD 
 
     InitializeList(&(pstTask->stChildThreadList));
 
+    pstTask->bFPUUsed = FALSE;
+
     bPreviousFlag = LockForSystemData();
     
     AddTaskToReadyList(pstTask);
@@ -179,6 +181,8 @@ void InitializeScheduler(void)
 
     gs_stScheduler.qwSpendProcessorTimeInIdleTask = 0;
     gs_stScheduler.qwProcessorLoad = 0;
+
+    gs_stScheduler.qwLastFPUUsedTaskID = TASK_INVALIDID;
 }
 
 
@@ -343,6 +347,17 @@ void Schedule(void)
         gs_stScheduler.qwSpendProcessorTimeInIdleTask += TASK_PROCESSORTIME - gs_stScheduler.iProcessorTime;
     }
 
+    if(gs_stScheduler.qwLastFPUUsedTaskID != pstNextTask->stLink.qwID)
+    {
+        SetTS();
+    }
+    else
+    {
+        ClearTS();
+    }
+
+    gs_stScheduler.iProcessorTime = TASK_PROCESSORTIME;
+
     if (pstRunningTask->qwFlags & TASK_FLAGS_ENDTASK)
     {
         AddListToTail(&(gs_stScheduler.stWaitList), pstRunningTask);
@@ -395,6 +410,15 @@ BOOL ScheduleInInterrupt(void)
     }
 
     UnlockForSystemData(bPreviousFlag);
+
+    if (gs_stScheduler.qwLastFPUUsedTaskID != pstNextTask->stLink.qwID)
+    {
+        SetTS();
+    }
+    else
+    {
+        ClearTS();
+    }
 
     MemCpy(pcContextAddress, &(pstNextTask->stContext), sizeof(CONTEXT));
 
@@ -670,4 +694,14 @@ void HaltProcessorByLoad(void)
     {
         Hlt();
     }
+}
+
+QWORD GetLastFPUUsedTaskID(void)
+{
+    return gs_stScheduler.qwLastFPUUsedTaskID;
+}
+
+void SetLastFPUUsedTaskID(QWORD qwTaskID)
+{
+    gs_stScheduler.qwLastFPUUsedTaskID = qwTaskID;
 }

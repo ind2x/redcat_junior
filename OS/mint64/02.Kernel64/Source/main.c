@@ -8,6 +8,7 @@
 #include "Utility.h"
 #include "PIT.h"
 #include "Task.h"
+#include "DynamicMemory.h"
 
 void main(void)
 {
@@ -45,6 +46,11 @@ void main(void)
     Printf("[*] TCB Pool And Scheduler Initialize.............[Pass]\n");
     iCursorY++;
     InitializeScheduler();
+
+    Printf("[*] Dynamic Memory Initialize.....................[Pass]\n");
+    iCursorY++;
+    InitializeDynamicMemory();
+
     InitializePIT(MSTOCOUNT(1), 1);
 
     Printf("[*] Keyboard Activate And Queue Initialize........[    ]");

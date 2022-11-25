@@ -6,6 +6,7 @@ global InPortByte, OutPortByte, LoadGDTR, LoadTR, LoadIDTR
 global EnableInterrupt, DisableInterrupt, ReadRFLAGS
 global ReadTSC
 global SwitchContext, Hlt, TestAndSet
+global InitializeFPU, SaveFPUContext, LoadFPUContext, SetTS, ClearTS
 
 InPortByte:
     push rdx
@@ -177,4 +178,32 @@ TestAndSet:
 
 .SUCCESS:
     mov rax, 0x01
+    ret
+
+
+
+InitializeFPU:
+    finit
+    ret
+
+SaveFPUContext:
+    fxsave [rdi]
+    ret
+
+LoadFPUContext:
+    fxrstor [rdi]
+    ret
+
+SetTS:
+    push rax
+    
+    mov rax, cr0
+    or rax, 0x08
+    mov cr0, rax
+
+    pop rax
+    ret
+
+ClearTS:
+    clts
     ret

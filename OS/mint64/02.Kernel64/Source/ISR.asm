@@ -4,7 +4,7 @@ SECTION .text       ; text 섹션(세그먼트)을 정의
 
 ; 외부에서 정의된 함수를 쓸 수 있도록 선언함(Import)
 extern CommonExceptionHandler, CommonInterruptHandler, KeyboardHandler
-extern TimerHandler
+extern TimerHandler, DeviceNotAvailableHandler
 
 ; C 언어에서 호출할 수 있도록 이름을 노출함(Export)
 ; 예외(Exception) 처리를 위한 ISR
@@ -170,7 +170,7 @@ kISRDeviceNotAvailable:
 
     ; 핸들러에 예외 번호를 삽입하고 핸들러 호출
     mov rdi, 7
-    call CommonExceptionHandler
+    call DeviceNotAvailableHandler
 
     KLOADCONTEXT    ; 콘텍스트를 복원
     iretq           ; 인터럽트 처리를 완료하고 이전에 수행하던 코드로 복원

@@ -8,4 +8,6 @@ void CommonInterruptHandler(int iVectorNumber);
 void KeyboardHandler(int iVectorNumber);
 void TimerHandler(int iVectorNumber);
 
+void DeviceNotAvailableHandler(int iVectorNumber);
+
 #endif /*__INTERRUPTHANDLER_H__*/

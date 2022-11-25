@@ -56,4 +56,11 @@ static void CreateThreadTask(void);
 static void TestThread(const char *pcParameterBuffer);
 static void ShowMatrix(const char *pcParameterBuffer);
 
+static void TestPIE(const char *pcParameterBuffer);
+
+static void ShowDyanmicMemoryInformation(const char *pcParameterBuffer);
+static void TestSequentialAllocation(const char *pcParameterBuffer);
+static void TestRandomAllocation(const char *pcParameterBuffer);
+static void RandomAllocationTask(void);
+
 #endif /*__CONSOLESHELL_H__*/

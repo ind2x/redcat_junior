@@ -18,4 +18,10 @@ void Hlt(void);
 
 BOOL TestAndSet(volatile BYTE *pbDestination, BYTE bCompare, BYTE bSource);
 
+void InitializeFPU(void);
+void SaveFPUContext(void *pvFPUContext);
+void LoadFPUContext(void *pvFPUContext);
+void SetTS(void);
+void ClearTS(void);
+
 #endif /* __ASSEMBLMYUTILITY_H__ */

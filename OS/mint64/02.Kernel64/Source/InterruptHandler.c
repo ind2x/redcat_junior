@@ -5,6 +5,7 @@
 #include "Utility.h"
 #include "Task.h"
 #include "Descriptor.h"
+#include "AssemblyUtility.h"
 
 
 void CommonExceptionHandler(int iVectorNumber, QWORD qwErrorCode)
@@ -91,4 +92,50 @@ void TimerHandler(int iVectorNumber)
     {
         ScheduleInInterrupt();
     }
+}
+
+void DeviceNotAvailableHandler(int iVectorNumber)
+{
+    TCB *pstFPUTask, *pstCurrentTask;
+    QWORD qwLastFPUTaskID;
+
+    char vcBuffer[] = "[EXC:  , ]";
+    static int g_iFPUInterruptCount = 0;
+
+    vcBuffer[5] = '0' + iVectorNumber / 10;
+    vcBuffer[6] = '0' + iVectorNumber % 10;
+
+    vcBuffer[8] = '0' + g_iFPUInterruptCount;
+    g_iFPUInterruptCount = (g_iFPUInterruptCount + 1) % 10;
+    PrintStringXY(0, 0, vcBuffer);
+
+    ClearTS();
+
+    qwLastFPUTaskID = GetLastFPUUsedTaskID();
+    pstCurrentTask = GetRunningTask();
+
+    if (qwLastFPUTaskID == pstCurrentTask->stLink.qwID)
+    {
+        return;
+    }
+    else if (qwLastFPUTaskID != TASK_INVALIDID)
+    {
+        pstFPUTask = GetTCBInTCBPool(GETTCBOFFSET(qwLastFPUTaskID));
+        if ((pstFPUTask != NULL) && (pstFPUTask->stLink.qwID == qwLastFPUTaskID))
+        {
+            SaveFPUContext(pstFPUTask->vqwFPUContext);
+        }
+    }
+
+    if (pstCurrentTask->bFPUUsed == FALSE)
+    {
+        InitializeFPU();
+        pstCurrentTask->bFPUUsed = TRUE;
+    }
+    else
+    {
+        LoadFPUContext(pstCurrentTask->vqwFPUContext);
+    }
+
+    SetLastFPUUsedTaskID(pstCurrentTask->stLink.qwID);
 }

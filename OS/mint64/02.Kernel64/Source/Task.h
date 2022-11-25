@@ -80,14 +80,21 @@ typedef struct TaskControlBlockStruct
     QWORD qwMemorySize;
 
     LISTLINK stThreadLink;
-    LIST stChildThreadList;
 
     QWORD qwParentProcessID;
+
+    QWORD vqwFPUContext[512 / 8];
+
+    LIST stChildThreadList;
 
     CONTEXT stContext;
 
     void *pvStackAddress;
     QWORD qwStackSize;
+
+    BOOL bFPUUsed;
+
+    char vcPadding[11];
 } TCB;
 
 typedef struct TCBPoolManagerStruct
@@ -114,6 +121,9 @@ typedef struct SchedulerStruct
     QWORD qwProcessorLoad;
 
     QWORD qwSpendProcessorTimeInIdleTask;
+
+    QWORD qwLastFPUUsedTaskID;
+
 } SCHEDULER;
 
 #pragma pack(pop)
@@ -148,5 +158,8 @@ static TCB *GetProcessByThread(TCB *pstThread);
 
 void IdleTask(void);
 void HaltProcessorByLoad(void);
+
+QWORD GetLastFPUUsedTaskID(void);
+void SetLastFPUUsedTaskID(QWORD qwTaskID);
 
 #endif /*__TASK_H__*/

@@ -297,12 +297,13 @@ int SPrintf(char *pcBuffer, const char *pcFormatString, ...)
 
 int VSPrintf(char *pcBuffer, const char *pcFormatString, va_list ap)
 {
-    QWORD i, j;
+    QWORD i, j, k;
     int iBufferIndex = 0;
     int iFormatLength, iCopyLength;
     char *pcCopyString;
     QWORD qwValue;
     int iValue;
+    double dValue;
 
     iFormatLength = Strlen(pcFormatString);
 
@@ -364,6 +365,28 @@ int VSPrintf(char *pcBuffer, const char *pcFormatString, va_list ap)
 
                 // 위에 해당하지 않으면 문자를 그대로 출력하고 버퍼의 인덱스를
                 // 1만큼 이동
+            case 'f':
+                dValue = (double) (va_arg(ap, double));
+                
+                dValue += 0.005;
+
+                pcBuffer[iBufferIndex] = '0' + (QWORD) (dValue * 100) % 10;
+                pcBuffer[iBufferIndex + 1] = '0' + (QWORD) (dValue * 10) % 10;
+                pcBuffer[iBufferIndex + 2] = '.';
+                
+                for(k=0; ; k++)
+                {
+                    if(((QWORD) dValue == 0) && (k != 0))
+                    {
+                        break;
+                    }
+
+                    pcBuffer[iBufferIndex + 3 + k] = '\0';
+
+                    ReverseString(pcBuffer + iBufferIndex);
+                    iBufferIndex += 3 + k;
+                    break;
+                }
             default:
                 pcBuffer[iBufferIndex] = pcFormatString[i];
                 iBufferIndex++;
