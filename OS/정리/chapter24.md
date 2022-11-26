@@ -94,8 +94,7 @@ p.936부터 읽으면서 복습
 
 <br>
 
-
-
+![image](https://user-images.githubusercontent.com/52172169/204090341-3091edcc-7f6a-4619-95ed-5ec0aa71ec7c.png)
 
 <br><br>
 <hr style="border: 2px solid;">
