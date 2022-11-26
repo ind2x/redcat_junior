@@ -8,6 +8,7 @@
 #include "Task.h"
 #include "Synchronization.h"
 #include "DynamicMemory.h"
+#include "HardDisk.h"
 
 SHELLCOMMANDENTRY gs_vstCommandTable[] =
     {
@@ -33,6 +34,9 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         {"dynamicmeminfo", "Show Dyanmic Memory Information", ShowDyanmicMemoryInformation},
         {"testseqalloc", "Test Sequential Allocation & Free", TestSequentialAllocation},
         {"testranalloc", "Test Random Allocation & Free", TestRandomAllocation},
+        {"hddinfo", "Show HDD Information", ShowHDDInformation},
+        {"readsector", "Read HDD Sector, ex) readsector 0(LBA) 10(count)", ReadSector},
+        {"writesector", "Write HDD Sector, ex) writesector 0(LBA) 10(count)", WriteSector},
 };
 
 void StartConsoleShell(void)
@@ -182,14 +186,14 @@ static void Help(const char *pcParameterBuffer)
 
     for (i = 0; i < iCount; i++)
     {
-        Printf("%s", gs_vstCommandTable[i].pcCommand);
+        Printf(" %s", gs_vstCommandTable[i].pcCommand);
         GetCursor(&iCursorX, &iCursorY);
         SetCursor(iMaxCommandLength, iCursorY);
         Printf("  - %s\n", gs_vstCommandTable[i].pcHelp);
 
         if((i != 0) && ((i % 20) == 0))
         {
-            Printf("\n[*] Press any key to continue... ('q' is exit) : ");
+            Printf("\n------------ Press any key to continue.... ('q' is exit) : ------------\n");
             if(GetCh() == 'q')
             {
                 Printf("\n");
@@ -1001,4 +1005,188 @@ static void TestRandomAllocation(const char *pcParameterBuffer)
     {
         CreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD, 0, 0, (QWORD)RandomAllocationTask);
     }
+}
+
+static void ShowHDDInformation(const char *pcParameterBuffer)
+{
+    HDDINFORMATION stHDD;
+    char vcBuffer[100];
+
+    // 하드 디스크의 정보를 읽음
+    if (ReadHDDInformation(TRUE, TRUE, &stHDD) == FALSE)
+    {
+        Printf("\n[!] HDD Information Read Fail\n");
+        return;
+    }
+
+    Printf("\n============ Primary Master HDD Information ============\n\n");
+
+    MemCpy(vcBuffer, stHDD.vwModelNumber, sizeof(stHDD.vwModelNumber));
+    vcBuffer[sizeof(stHDD.vwModelNumber) - 1] = '\0';
+    Printf("[*] Model Number:\t %s\n", vcBuffer);
+
+    MemCpy(vcBuffer, stHDD.vwSerialNumber, sizeof(stHDD.vwSerialNumber));
+    vcBuffer[sizeof(stHDD.vwSerialNumber) - 1] = '\0';
+    Printf("[*] Serial Number:\t %s\n", vcBuffer);
+
+    Printf("[*] Head Count:\t\t %d\n", stHDD.wNumberOfHead);
+    Printf("[*] Cylinder Count:\t %d\n", stHDD.wNumberOfCylinder);
+    Printf("[*] Sector Count:\t %d\n", stHDD.wNumberOfSectorPerCylinder);
+
+    Printf("[*] Total Sector:\t %d Sector, %dMB\n", stHDD.dwTotalSectors, stHDD.dwTotalSectors / 2 / 1024);
+}
+
+static void ReadSector(const char *pcParameterBuffer)
+{
+    PARAMETERLIST stList;
+    char vcLBA[50], vcSectorCount[50];
+    DWORD dwLBA;
+    int iSectorCount;
+    char *pcBuffer;
+    int i, j;
+    BYTE bData;
+    BOOL bExit = FALSE;
+
+    InitializeParameter(&stList, pcParameterBuffer);
+    if ((GetNextParameter(&stList, vcLBA) == 0) || (GetNextParameter(&stList, vcSectorCount) == 0))
+    {
+        Printf("\nex) readsector 0(LBA) 10(count)\n");
+        return;
+    }
+
+    dwLBA = AToI(vcLBA, 10);
+    iSectorCount = AToI(vcSectorCount, 10);
+
+    pcBuffer = AllocateMemory(iSectorCount * 512);
+    if (ReadHDDSector(TRUE, TRUE, dwLBA, iSectorCount, pcBuffer) == iSectorCount)
+    {
+        Printf("[*] LBA [%d], [%d] Sector Read Success......\n", dwLBA, iSectorCount);
+
+        for (j = 0; j < iSectorCount; j++)
+        {
+            for (i = 0; i < 512; i++)
+            {
+                if (!((j == 0) && (i == 0)) && ((i % 256) == 0))
+                {
+                    Printf("\n\nPress any key to continue... ('q' is exit) : ");
+                    
+                    if (GetCh() == 'q')
+                    {
+                        bExit = TRUE;
+                        break;
+                    }
+                }
+
+                if ((i % 16) == 0)
+                {
+                    Printf("\n[LBA: %d, Offset: %d]\t| ", dwLBA + j, i);
+                }
+
+                bData = pcBuffer[j * 512 + i] & 0xFF;
+                if (bData < 16)
+                {
+                    Printf("0");
+                }
+                Printf("%X ", bData);
+            }
+
+            if (bExit == TRUE)
+            {
+                break;
+            }
+        }
+        Printf("\n");
+    }
+    else
+    {
+        Printf("Read Fail\n");
+    }
+
+    FreeMemory(pcBuffer);
+}
+
+
+static void WriteSector(const char *pcParameterBuffer)
+{
+    PARAMETERLIST stList;
+    char vcLBA[50], vcSectorCount[50];
+    DWORD dwLBA;
+    int iSectorCount;
+    char *pcBuffer;
+    int i, j;
+    BOOL bExit = FALSE;
+    BYTE bData;
+    static DWORD s_dwWriteCount = 0;
+
+    InitializeParameter(&stList, pcParameterBuffer);
+    
+    if ((GetNextParameter(&stList, vcLBA) == 0) || (GetNextParameter(&stList, vcSectorCount) == 0))
+    {
+        Printf("\nex) writesector 0(LBA) 10(count)\n");
+        return;
+    }
+    
+    dwLBA = AToI(vcLBA, 10);
+    iSectorCount = AToI(vcSectorCount, 10);
+
+    s_dwWriteCount++;
+
+    pcBuffer = AllocateMemory(iSectorCount * 512);
+    
+    for (j = 0; j < iSectorCount; j++)
+    {
+        for (i = 0; i < 512; i += 8)
+        {
+            *(DWORD *)&(pcBuffer[j * 512 + i]) = dwLBA + j;
+            *(DWORD *)&(pcBuffer[j * 512 + i + 4]) = s_dwWriteCount;
+        }
+    }
+
+    if (WriteHDDSector(TRUE, TRUE, dwLBA, iSectorCount, pcBuffer) != iSectorCount)
+    {
+        Printf("\n[!] Write Fail\n");
+        return;
+    }
+    
+    Printf("\n[*] LBA [%d], [%d] Sector Write Success......\n", dwLBA, iSectorCount);
+
+    for (j = 0; j < iSectorCount; j++)
+    {
+        for (i = 0; i < 512; i++)
+        {
+            if (!((j == 0) && (i == 0)) && ((i % 256) == 0))
+            {
+                Printf("\nPress any key to continue... ('q' is exit) : ");
+                
+                if (GetCh() == 'q')
+                {
+                    bExit = TRUE;
+                    break;
+                }
+            }
+
+            if ((i % 16) == 0)
+            {
+                Printf("\n[LBA: %d, Offset: %d]\t| ", dwLBA + j, i);
+            }
+
+            bData = pcBuffer[j * 512 + i] & 0xFF;
+            
+            if (bData < 16)
+            {
+                Printf("0");
+            }
+            
+            Printf("%X ", bData);
+        }
+
+        if (bExit == TRUE)
+        {
+            break;
+        }
+    }
+    
+    Printf("\n");
+    
+    FreeMemory(pcBuffer);
 }

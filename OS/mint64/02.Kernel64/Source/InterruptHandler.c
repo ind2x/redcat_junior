@@ -6,6 +6,7 @@
 #include "Task.h"
 #include "Descriptor.h"
 #include "AssemblyUtility.h"
+#include "HardDisk.h"
 
 
 void CommonExceptionHandler(int iVectorNumber, QWORD qwErrorCode)
@@ -138,4 +139,30 @@ void DeviceNotAvailableHandler(int iVectorNumber)
     }
 
     SetLastFPUUsedTaskID(pstCurrentTask->stLink.qwID);
+}
+
+void HDDHandler(int iVectorNumber)
+{
+    char vcBuffer[] = "[INT:  , ]";
+    static int g_iHDDInterruptCount = 0;
+    BYTE bTemp;
+
+    vcBuffer[5] = '0' + iVectorNumber / 10;
+    vcBuffer[6] = '0' + iVectorNumber % 10;
+
+    vcBuffer[8] = '0' + g_iHDDInterruptCount;
+    g_iHDDInterruptCount = (g_iHDDInterruptCount + 1) % 10;
+
+    PrintStringXY(10, 0, vcBuffer);
+
+    if (iVectorNumber - PIC_IRQSTARTVECTOR == 14)
+    {
+        SetHDDInterruptFlag(TRUE, TRUE);
+    }
+    else
+    {
+        SetHDDInterruptFlag(FALSE, TRUE);
+    }
+
+    SendEOIToPIC(iVectorNumber - PIC_IRQSTARTVECTOR);
 }

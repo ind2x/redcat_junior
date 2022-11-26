@@ -63,4 +63,8 @@ static void TestSequentialAllocation(const char *pcParameterBuffer);
 static void TestRandomAllocation(const char *pcParameterBuffer);
 static void RandomAllocationTask(void);
 
+static void ShowHDDInformation(const char *pcParameterBuffer);
+static void ReadSector(const char *pcParameterBuffer);
+static void WriteSector(const char *pcParameterBuffer);
+
 #endif /*__CONSOLESHELL_H__*/

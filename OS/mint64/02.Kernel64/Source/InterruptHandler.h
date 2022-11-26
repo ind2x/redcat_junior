@@ -10,4 +10,6 @@ void TimerHandler(int iVectorNumber);
 
 void DeviceNotAvailableHandler(int iVectorNumber);
 
+void HDDHandler(int iVectorNumber);
+
 #endif /*__INTERRUPTHANDLER_H__*/

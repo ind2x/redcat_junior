@@ -2,7 +2,8 @@
 
 SECTION .text
 
-global InPortByte, OutPortByte, LoadGDTR, LoadTR, LoadIDTR
+global InPortByte, OutPortByte, InPortWord, OutPortWord, 
+global LoadGDTR, LoadTR, LoadIDTR
 global EnableInterrupt, DisableInterrupt, ReadRFLAGS
 global ReadTSC
 global SwitchContext, Hlt, TestAndSet
@@ -29,6 +30,29 @@ OutPortByte:
     pop rax
     pop rdx
     ret
+
+InPortWord:
+    push rdx       
+    
+    mov rdx, rdi    
+    mov rax, 0      
+    in ax, dx       
+
+    
+    pop rdx         
+    ret             
+    
+OutPortWord:
+    push rdx        
+    push rax        
+    
+    mov rdx, rdi
+    mov rax, rsi
+    out dx, ax  
+     
+    pop rax     
+    pop rdx
+    ret         
 
 LoadGDTR:
     lgdt [rdi]

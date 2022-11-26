@@ -2,7 +2,7 @@
 
 make;
 
-qemu-system-x86_64 -L . -m 64 -fda ./Disk.img -M pc -rtc base=localtime;
+qemu-system-x86_64 -L . -m 64 -fda ./Disk.img -hda ./HDD.img -boot a -M pc -rtc base=localtime;
 
 : << 'END'
 usage : -d in_asm
