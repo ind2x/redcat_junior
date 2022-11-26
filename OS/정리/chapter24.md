@@ -42,6 +42,14 @@
 
 이 부분은 그냥 읽고 넘기면 될 듯. p.929
 
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/204077060-720d332f-639b-4376-86ca-4e7d30726053.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/204077066-795ccc82-d2a9-467d-bdc0-b04fb982628f.png)
+
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
