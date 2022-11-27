@@ -183,6 +183,24 @@ MINT 파일 시스템은 루트 디렉터리만 사용하고 서브 디렉터리
 
 <br>
 
+p.999에서 읽어보면 됨
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/204122884-fd9b6398-8023-4382-92b3-5ff0a8ce997c.png)
+
+<br>
+
+bMounted 필드는 어차피 인식 안되면 무용지물이니까 추가한 것이고, 마지막 필드는 빈 클러스터 검색 시 처음부터 순차적으로 검색하지 않게끔 하기 위해 정의한 것이다.
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
+
+## 저수준 함수 구현
+
+<br>
+
 
 
 <br><br>
