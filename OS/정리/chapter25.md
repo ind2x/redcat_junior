@@ -166,9 +166,24 @@ MINT 파일 시스템은 루트 디렉터리만 사용하고 서브 디렉터리
 
 <br>
 
+![image](https://user-images.githubusercontent.com/52172169/204122417-866cfe83-eef9-4806-8035-a326ee04aa99.png)
 
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/204122621-4448242e-d679-4580-a088-165f1d54f6fa.png)
+
+<br>
+
+물론 위의 알고리즘은 파일의 클러스터가 한 개인 경우를 뜻하며 여러 개의 경우 클러스터를 따라 설정하거나 초기화하는 과정이 필요하다.
 
 <br><br>
+
+### MINT 파일 시스템 자료구조 설계
+---
+
+<br>
+
+
 
 <br><br>
 <hr style="border: 2px solid;">
