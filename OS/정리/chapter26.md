@@ -77,7 +77,11 @@ FILE, DIR 자료구조를 먼저 우리 특성에 맞게 정의를 해준다.
 
 <br>
 
+![image](https://user-images.githubusercontent.com/52172169/204286436-c82a5bd3-b659-4c93-bbe6-5a23f119088d.png)
 
+<br>
+
+testfileio 명령어를 실행하면 계속 에러가 발생하는데 이유를 모르겠다..
 
 <br><br>
 <hr style="border: 2px solid;">
