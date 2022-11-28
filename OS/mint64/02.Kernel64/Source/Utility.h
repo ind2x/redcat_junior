@@ -4,6 +4,9 @@
 #include <stdarg.h>
 #include "Types.h"
 
+#define MIN(x, y) ( ( (x) < (y) ) ? (x) : (y) )
+#define MAX(x, y) ( ( (x) > (y) ) ? (x) : (y) )
+
 void MemSet(void *pvDestination, BYTE bData, int iSize);
 int MemCpy(void *pvDestination, const void *pvSource, int iSize);
 int MemCmp(const void *pvDestination, const void *pvSource, int iSize);

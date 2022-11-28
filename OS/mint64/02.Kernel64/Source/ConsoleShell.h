@@ -67,4 +67,15 @@ static void ShowHDDInformation(const char *pcParameterBuffer);
 static void ReadSector(const char *pcParameterBuffer);
 static void WriteSector(const char *pcParameterBuffer);
 
+static void MountHDD(const char *pcParameterBuffer);
+static void FormatHDD(const char *pcParameterBuffer);
+static void ShowFileSystemInformation(const char *pcParameterBuffer);
+static void CreateFileInRootDirectory(const char *pcParameterBuffer);
+static void DeleteFileInRootDirectory(const char *pcParameterBuffer);
+static void ShowRootDirectory(const char *pcParameterBuffer);
+
+static void WriteDataToFile(const char *pcParameterBuffer);
+static void ReadDataFromFile(const char *pcParameterBuffer);
+static void TestFileIO(const char *pcParameterBuffer);
+
 #endif /*__CONSOLESHELL_H__*/

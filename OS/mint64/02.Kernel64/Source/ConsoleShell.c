@@ -9,6 +9,7 @@
 #include "Synchronization.h"
 #include "DynamicMemory.h"
 #include "HardDisk.h"
+#include "FileSystem.h"
 
 SHELLCOMMANDENTRY gs_vstCommandTable[] =
     {
@@ -37,6 +38,16 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         {"hddinfo", "Show HDD Information", ShowHDDInformation},
         {"readsector", "Read HDD Sector, ex) readsector 0(LBA) 10(count)", ReadSector},
         {"writesector", "Write HDD Sector, ex) writesector 0(LBA) 10(count)", WriteSector},
+        {"mounthdd", "Mount HDD", MountHDD},
+        {"formathdd", "Format HDD", FormatHDD},
+        {"filesysinfo", "Show File System Information", ShowFileSystemInformation},
+        {"touch", "Create File, ex) touch a.txt", CreateFileInRootDirectory},
+        {"rm", "Delete File, ex) deletefile a.txt", DeleteFileInRootDirectory},
+        {"ls", "Show Directory", ShowRootDirectory},
+        {"writefile", "Write Data To File, ex) writefile a.txt", WriteDataToFile},
+        {"cat", "Read Data From File, ex) cat a.txt", ReadDataFromFile},
+        {"testfileio", "Test File I/O Function", TestFileIO},
+
 };
 
 void StartConsoleShell(void)
@@ -1189,4 +1200,546 @@ static void WriteSector(const char *pcParameterBuffer)
     Printf("\n");
     
     FreeMemory(pcBuffer);
+}
+
+static void MountHDD(const char *pcParameterBuffer)
+{
+    if (Mount() == FALSE)
+    {
+        Printf("[!] HDD Mount Fail.......\n");
+        return;
+    }
+    
+    Printf("[*] HDD Mount Success.......\n");
+}
+
+static void FormatHDD(const char *pcParameterBuffer)
+{
+    if (Format() == FALSE)
+    {
+        Printf("[!] HDD Format Fail.......\n");
+        return;
+    }
+    
+    Printf("[*] HDD Format Success.......\n");
+}
+
+static void ShowFileSystemInformation(const char *pcParameterBuffer)
+{
+    FILESYSTEMMANAGER stManager;
+
+    GetFileSystemInformation(&stManager);
+
+    Printf("\n================== File System Information ==================\n\n");
+    Printf("[*] Mouted:\t\t\t\t\t %d\n", stManager.bMounted);
+    Printf("[*] Reserved Sector Count:\t\t\t %d Sector\n", stManager.dwReservedSectorCount);
+    Printf("[*] Cluster Link Table Start Address:\t\t %d Sector\n",
+            stManager.dwClusterLinkAreaStartAddress);
+    Printf("[*] Cluster Link Table Size:\t\t\t %d Sector\n", stManager.dwClusterLinkAreaSize);
+    Printf("[*] Data Area Start Address:\t\t\t %d Sector\n", stManager.dwDataAreaStartAddress);
+    Printf("[*] Total Cluster Count:\t\t\t %d Cluster\n", stManager.dwTotalClusterCount);
+}
+
+static void CreateFileInRootDirectory(const char *pcParameterBuffer)
+{
+    PARAMETERLIST stList;
+    char vcFileName[50];
+    int iLength;
+    DWORD dwCluster;
+    DIRECTORYENTRY stEntry;
+    int i;
+    FILE *pstFile;
+
+    InitializeParameter(&stList, pcParameterBuffer);
+    iLength = GetNextParameter(&stList, vcFileName);
+    vcFileName[iLength] = '\0';
+
+    if ((iLength > (FILESYSTEM_MAXFILENAMELENGTH - 1)) || (iLength == 0))
+    {
+        Printf("\n[!] Too Long or Too Short File Name.......\n");
+        return;
+    }
+
+    pstFile = fopen(vcFileName, "w");
+
+    if(pstFile == NULL)
+    {
+        Printf("\n[!] File Create Fail.........\n");
+        return;
+    }
+    
+    fclose(pstFile);
+    Printf("\n[*] File Create Success...........\n");
+    
+}
+
+static void DeleteFileInRootDirectory(const char *pcParameterBuffer)
+{
+    PARAMETERLIST stList;
+    char vcFileName[50];
+    int iLength;
+
+    InitializeParameter(&stList, pcParameterBuffer);
+    
+    iLength = GetNextParameter(&stList, vcFileName);
+    vcFileName[iLength] = '\0';
+    
+    if ((iLength > (FILESYSTEM_MAXFILENAMELENGTH - 1)) || (iLength == 0))
+    {
+        Printf("\n[!] Too Long or Too Short File Name.......\n");
+        return;
+    }
+
+    if(remove(vcFileName) != 0)
+    {
+        Printf("\n[!] File Not Found or File Opened........\n");
+        return ;
+    }
+
+    Printf("\n[*] File delete success..........\n");
+}
+
+static void ShowRootDirectory(const char *pcParameterBuffer)
+{
+    DIR *pstDirectory;
+    int i, iCount, iTotalCount;
+    struct dirent *pstEntry;
+    char vcBuffer[400];
+    char vcTempValue[50];
+    DWORD dwTotalByte;
+    DWORD dwUsedClusterCount;
+    FILESYSTEMMANAGER stManager;
+
+    GetFileSystemInformation(&stManager);
+
+    pstDirectory = opendir("/");
+
+    Printf("\n");
+    
+    if (pstDirectory == NULL)
+    {
+        Printf("[!] Root Directory Open Fail.........\n");
+        return ;
+    }
+
+    iTotalCount = 0;
+    dwTotalByte = 0;
+    dwUsedClusterCount = 0;
+
+    while(1)
+    {
+        pstEntry = readdir(pstDirectory);
+        
+        if(pstEntry == NULL)
+        {
+            break;
+        }
+
+        iTotalCount++;
+        dwTotalByte += pstEntry->dwFileSize;
+
+        if(pstEntry->dwFileSize == 0)
+        {
+            dwUsedClusterCount++;
+        }
+        else
+        {
+            dwUsedClusterCount += (pstEntry->dwFileSize + (FILESYSTEM_CLUSTERSIZE - 1)) / FILESYSTEM_CLUSTERSIZE;
+        }
+    }
+
+    rewinddir(pstDirectory);
+    iCount = 0;
+
+    while (1)
+    {
+        pstEntry = readdir(pstDirectory);
+        
+        if (pstEntry == NULL)
+        {
+            break;
+        }
+
+        MemSet(vcBuffer, ' ', sizeof(vcBuffer) - 1);
+        vcBuffer[sizeof(vcBuffer) - 1] = '\0';
+
+        MemCpy(vcBuffer, pstEntry->d_name,
+                Strlen(pstEntry->d_name));
+
+        SPrintf(vcTempValue, "%d Byte", pstEntry->dwFileSize);
+        MemCpy(vcBuffer + 30, vcTempValue, Strlen(vcTempValue));
+
+        SPrintf(vcTempValue, "0x%X Cluster", pstEntry->dwStartClusterIndex);
+        MemCpy(vcBuffer + 55, vcTempValue, Strlen(vcTempValue) + 1);
+        Printf("    %s\n", vcBuffer);
+
+        if ((iCount != 0) && ((iCount % 20) == 0))
+        {
+            Printf("\n----------------- Press any key to continue... ('q' is exit) : -----------------\n\n");
+            if (GetCh() == 'q')
+            {
+                Printf("\n");
+                break;
+            }
+        }
+        
+        iCount++;
+    }
+
+    Printf("\t\tTotal File Count: %d\n", iTotalCount);
+    Printf("\t\tTotal File Size: %d KByte (%d Cluster)\n", dwTotalByte, dwUsedClusterCount);
+
+    Printf("\t\tFree Space: %d KByte (%d Cluster)\n", (stManager.dwTotalClusterCount - dwUsedClusterCount) * FILESYSTEM_CLUSTERSIZE / 1024, stManager.dwTotalClusterCount - dwUsedClusterCount);
+
+    closedir(pstDirectory);
+}
+
+static void WriteDataToFile(const char *pcParameterBuffer)
+{
+    PARAMETERLIST stList;
+    char vcFileName[50];
+    int iLength;
+    FILE *fp;
+    int iEnterCount;
+    BYTE bKey;
+
+    InitializeParameter(&stList, pcParameterBuffer);
+    iLength = GetNextParameter(&stList, vcFileName);
+    vcFileName[iLength] = '\0';
+    if ((iLength > (FILESYSTEM_MAXFILENAMELENGTH - 1)) || (iLength == 0))
+    {
+        Printf("\n[!] Too Long or Too Short File Name.......\n");
+        return;
+    }
+
+    fp = fopen(vcFileName, "w");
+    if (fp == NULL)
+    {
+        Printf("\n[!] %s File Open Fail.........\n", vcFileName);
+        return;
+    }
+
+    iEnterCount = 0;
+    while (1)
+    {
+        bKey = GetCh();
+        if (bKey == KEY_ENTER)
+        {
+            iEnterCount++;
+            if (iEnterCount >= 3)
+            {
+                break;
+            }
+        }
+        else
+        {
+            iEnterCount = 0;
+        }
+
+        Printf("%c", bKey);
+        if (fwrite(&bKey, 1, 1, fp) != 1)
+        {
+            Printf("\n[!] File Write Fail...........\n");
+            break;
+        }
+    }
+
+    Printf("\n[*] File Create Success..............\n");
+    fclose(fp);
+}
+
+
+static void ReadDataFromFile(const char *pcParameterBuffer)
+{
+    PARAMETERLIST stList;
+    char vcFileName[50];
+    int iLength;
+    FILE *fp;
+    int iEnterCount;
+    BYTE bKey;
+
+    InitializeParameter(&stList, pcParameterBuffer);
+    iLength = GetNextParameter(&stList, vcFileName);
+    vcFileName[iLength] = '\0';
+    if ((iLength > (FILESYSTEM_MAXFILENAMELENGTH - 1)) || (iLength == 0))
+    {
+        Printf("\n[!] Too Long or Too Short File Name\n");
+        return;
+    }
+
+    fp = fopen(vcFileName, "r");
+    if (fp == NULL)
+    {
+        Printf("\n[!] %s File Open Fail\n", vcFileName);
+        return;
+    }
+
+    iEnterCount = 0;
+    while (1)
+    {
+        if (fread(&bKey, 1, 1, fp) != 1)
+        {
+            break;
+        }
+        Printf("%c", bKey);
+
+        if (bKey == KEY_ENTER)
+        {
+            iEnterCount++;
+
+            if ((iEnterCount != 0) && ((iEnterCount % 20) == 0))
+            {
+                Printf("\n-------------- Press any key to continue... ('q' is exit) : --------------\n");
+                if (GetCh() == 'q')
+                {
+                    Printf("\n");
+                    break;
+                }
+                Printf("\n");
+                iEnterCount = 0;
+            }
+        }
+    }
+    fclose(fp);
+}
+
+static void TestFileIO(const char *pcParameterBuffer)
+{
+    FILE *pstFile;
+    BYTE *pbBuffer;
+    int i;
+    int j;
+    DWORD dwRandomOffset;
+    DWORD dwByteCount;
+    BYTE vbTempBuffer[1024];
+    DWORD dwMaxFileSize;
+
+    Printf("\n================== File I/O Function Test ==================\n");
+
+    dwMaxFileSize = 4 * 1024 * 1024;
+    pbBuffer = AllocateMemory(dwMaxFileSize);
+    if (pbBuffer == NULL)
+    {
+        Printf("\n[!] Memory Allocation Fail........\n");
+        return;
+    }
+    else
+    {
+        Printf("\n[*] Memory Allocation Success.........\n");
+    }
+
+    remove("testfileio.bin");
+
+    Printf("\n[*] 1. File Open Fail Test...");
+    
+    pstFile = fopen("testfileio.bin", "r");
+    if (pstFile == NULL)
+    {
+        Printf("[Pass]\n");
+    }
+    else
+    {
+        Printf("[Fail]\n");
+        fclose(pstFile);
+    }
+
+    Printf("\n[*] 2. File Create Test...");
+    pstFile = fopen("testfileio.bin", "w");
+    if (pstFile != NULL)
+    {
+        Printf("[Pass]\n");
+        Printf("    File Handle [0x%Q]\n", pstFile);
+    }
+    else
+    {
+        Printf("[Fail]\n");
+        return ;    // 내가 추가한 거
+    }
+
+    Printf("\n[*] 3. Sequential Write Test(Cluster Size)...");
+    for (i = 0; i < 100; i++)
+    {
+        MemSet(pbBuffer, i, FILESYSTEM_CLUSTERSIZE);
+        if (fwrite(pbBuffer, 1, FILESYSTEM_CLUSTERSIZE, pstFile) !=
+            FILESYSTEM_CLUSTERSIZE)
+        {
+            Printf("[Fail]\n");
+            Printf("    %d Cluster Error\n", i);
+            break;
+        }
+    }
+    if (i >= 100)
+    {
+        Printf("[Pass]\n");
+    }
+
+    Printf("\n[*] 4. Sequential Read And Verify Test(Cluster Size)...");
+    fseek(pstFile, -100 * FILESYSTEM_CLUSTERSIZE, SEEK_END);
+
+    for (i = 0; i < 100; i++)
+    {
+        if (fread(pbBuffer, 1, FILESYSTEM_CLUSTERSIZE, pstFile) !=
+            FILESYSTEM_CLUSTERSIZE)
+        {
+            Printf("[Fail]\n");
+            return;
+        }
+
+        for (j = 0; j < FILESYSTEM_CLUSTERSIZE; j++)
+        {
+            if (pbBuffer[j] != (BYTE)i)
+            {
+                Printf("[Fail]\n");
+                Printf("    %d Cluster Error. [%X] != [%X]\n", i, pbBuffer[j],
+                        (BYTE)i);
+                break;
+            }
+        }
+    }
+    if (i >= 100)
+    {
+        Printf("[Pass]\n");
+    }
+
+    Printf("\n[*] 5. Random Write Test...\n");
+
+    MemSet(pbBuffer, 0, dwMaxFileSize);
+
+    fseek(pstFile, -100 * FILESYSTEM_CLUSTERSIZE, SEEK_CUR);
+    fread(pbBuffer, 1, dwMaxFileSize, pstFile);
+
+    for (i = 0; i < 100; i++)
+    {
+        dwByteCount = (Random() % (sizeof(vbTempBuffer) - 1)) + 1;
+        dwRandomOffset = Random() % (dwMaxFileSize - dwByteCount);
+
+        Printf("    [%d] Offset [%d] Byte [%d]...", i, dwRandomOffset,
+                dwByteCount);
+
+        fseek(pstFile, dwRandomOffset, SEEK_SET);
+        MemSet(vbTempBuffer, i, dwByteCount);
+
+        if (fwrite(vbTempBuffer, 1, dwByteCount, pstFile) != dwByteCount)
+        {
+            Printf("[Fail]\n");
+            break;
+        }
+        else
+        {
+            Printf("[Pass]\n");
+        }
+
+        MemSet(pbBuffer + dwRandomOffset, i, dwByteCount);
+    }
+
+    fseek(pstFile, dwMaxFileSize - 1, SEEK_SET);
+    fwrite(&i, 1, 1, pstFile);
+    pbBuffer[dwMaxFileSize - 1] = (BYTE)i;
+
+    Printf("\n[*] 6. Random Read And Verify Test...\n");
+    
+    for (i = 0; i < 100; i++)
+    {
+        dwByteCount = (Random() % (sizeof(vbTempBuffer) - 1)) + 1;
+        dwRandomOffset = Random() % ((dwMaxFileSize)-dwByteCount);
+
+        Printf("    [%d] Offset [%d] Byte [%d]...", i, dwRandomOffset,
+                dwByteCount);
+
+        fseek(pstFile, dwRandomOffset, SEEK_SET);
+
+        if (fread(vbTempBuffer, 1, dwByteCount, pstFile) != dwByteCount)
+        {
+            Printf("[Fail]\n");
+            Printf("    Read Fail\n", dwRandomOffset);
+            break;
+        }
+
+        if (MemCmp(pbBuffer + dwRandomOffset, vbTempBuffer, dwByteCount) != 0)
+        {
+            Printf("[Fail]\n");
+            Printf("    Compare Fail\n", dwRandomOffset);
+            break;
+        }
+
+        Printf("[Pass]\n");
+    }
+
+    Printf("\n[*] 7. Sequential Write, Read And Verify Test(1024 Byte)...\n");
+
+    fseek(pstFile, -dwMaxFileSize, SEEK_CUR);
+
+    for (i = 0; i < (2 * 1024 * 1024 / 1024); i++)
+    {
+        Printf("    [%d] Offset [%d] Byte [%d] Write...", i, i * 1024, 1024);
+
+        if (fwrite(pbBuffer + (i * 1024), 1, 1024, pstFile) != 1024)
+        {
+            Printf("[Fail]\n");
+            return;
+        }
+        else
+        {
+            Printf("[Pass]\n");
+        }
+    }
+
+    fseek(pstFile, -dwMaxFileSize, SEEK_SET);
+
+    for (i = 0; i < (dwMaxFileSize / 1024); i++)
+    {
+        Printf("    [%d] Offset [%d] Byte [%d] Read And Verify...", i,
+                i * 1024, 1024);
+
+        if (fread(vbTempBuffer, 1, 1024, pstFile) != 1024)
+        {
+            Printf("[Fail]\n");
+            return;
+        }
+
+        if (MemCmp(pbBuffer + (i * 1024), vbTempBuffer, 1024) != 0)
+        {
+            Printf("[Fail]\n");
+            break;
+        }
+        else
+        {
+            Printf("[Pass]\n");
+        }
+    }
+
+    Printf("\n[*] 8. File Delete Fail Test...  ");
+    
+    if (remove("testfileio.bin") != 0)
+    {
+        Printf("[Pass]\n");
+    }
+    else
+    {
+        Printf("[Fail]\n");
+    }
+
+    Printf("\n[*] 9. File Close Test...  ");
+
+    if (fclose(pstFile) == 0)
+    {
+        Printf("[Pass]\n");
+    }
+    else
+    {
+        Printf("[Fail]\n");
+    }
+
+    Printf("\n[*] 10. File Delete Test...  ");
+
+    if (remove("testfileio.bin") == 0)
+    {
+        Printf("[Pass]\n");
+    }
+    else
+    {
+        Printf("[Fail]\n");
+    }
+
+    FreeMemory(pbBuffer);
 }

@@ -10,6 +10,7 @@
 #include "Task.h"
 #include "DynamicMemory.h"
 #include "HardDisk.h"
+#include "FileSystem.h"
 
 void main(void)
 {
@@ -78,6 +79,18 @@ void main(void)
 
     Printf("[*] HDD Initialize................................[    ]");
     if(InitializeHDD() == TRUE)
+    {
+        SetCursor(51, iCursorY++);
+        Printf("Pass\n");
+    }
+    else
+    {
+        SetCursor(51, iCursorY++);
+        Printf("Fail\n");
+    }
+
+    Printf("[*] File System Initialize........................[    ]");
+    if(InitializeFileSystem() == TRUE)
     {
         SetCursor(51, iCursorY++);
         Printf("Pass\n");
