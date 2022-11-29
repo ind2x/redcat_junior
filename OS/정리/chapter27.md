@@ -30,3 +30,25 @@
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
+
+## 램 디스크 설계와 구현
+
+<br>
+
+램은 HDD와 달리 휘발성 저장매체로, 전원이 꺼지면 데이터가 날라간다.
+
+하지만 처리 속도가 빠르다는 장점이 있고, 디스크가 없는 PC에서도 데이터를 저장할 수 있다.
+
+그래서 SATA 형식의 PC에서는 부팅했을 때 하드디스크 인식이 안되는데, 이 때 램 디스크를 생성한다면 파일 시스템을 사용할 수 있다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/204462913-ba85c433-7414-4216-86d5-00273bf1db08.png)
+
+<br>
+
+p.1172부터 읽으면 된다.
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
