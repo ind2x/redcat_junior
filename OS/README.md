@@ -22,7 +22,7 @@ MINT64 OS 홈페이지 : http://jsandroidapp.cafe24.com/xe/index
 
 + 15장 Printf 함수 실행 중 xmm레지스터로 인한 에러 발생 -> makefile clang 컴파일 옵션으로 ```-msoft-float``` 추가
 
-+ 26장 testfileio 명령어 에러 발생.. 
++ 26장 testfileio 명령어 에러 발생.. (-msoft-float 옵션 제거해도 이상 무)
 
 
 <br>
