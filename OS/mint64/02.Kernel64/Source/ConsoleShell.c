@@ -47,6 +47,8 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         {"writefile", "Write Data To File, ex) writefile a.txt", WriteDataToFile},
         {"cat", "Read Data From File, ex) cat a.txt", ReadDataFromFile},
         {"testfileio", "Test File I/O Function", TestFileIO},
+        {"testperformance", "Test File Read/Write Performance", TestPerformance},
+        {"flush", "Flush File System Cache", FlushCache},
 
 };
 
@@ -792,7 +794,7 @@ static void ShowMatrix(const char *pcParameterBuffer)
     
     if (pstProcess != NULL)
     {
-        Printf("[*] Matrix Process [0x%Q] Create Success\n");
+        Printf("[*] Matrix Process [0x%Q] Create Success\n", pstProcess->stLink.qwID);
 
         while ((pstProcess->stLink.qwID >> 32) != 0)
         {
@@ -1024,7 +1026,7 @@ static void ShowHDDInformation(const char *pcParameterBuffer)
     char vcBuffer[100];
 
     // 하드 디스크의 정보를 읽음
-    if (ReadHDDInformation(TRUE, TRUE, &stHDD) == FALSE)
+    if (GetHDDInformation( &stHDD ) == FALSE)
     {
         Printf("\n[!] HDD Information Read Fail\n");
         return;
@@ -1553,7 +1555,6 @@ static void TestFileIO(const char *pcParameterBuffer)
     else
     {
         Printf("[Fail]\n");
-        return ;    // 내가 추가한 거
     }
 
     Printf("\n[*] 3. Sequential Write Test(Cluster Size)...");
@@ -1742,4 +1743,137 @@ static void TestFileIO(const char *pcParameterBuffer)
     }
 
     FreeMemory(pbBuffer);
+}
+
+static void TestPerformance(const char *pcParameterBuffer)
+{
+    FILE *pstFile;
+    DWORD dwClusterTestFileSize;
+    DWORD dwOneByteTestFileSize;
+    QWORD qwLastTickCount;
+    DWORD i;
+    BYTE *pbBuffer;
+
+    dwClusterTestFileSize = 1024 * 1024;
+    dwOneByteTestFileSize = 16 * 1024;
+
+    pbBuffer = AllocateMemory(dwClusterTestFileSize);
+    if (pbBuffer == NULL)
+    {
+        Printf("\n[!] Memory Allocate Fail\n");
+        return;
+    }
+
+    Printf("\n[*] 0. Memory Allocate Success......\n");
+
+    MemSet(pbBuffer, 0, FILESYSTEM_CLUSTERSIZE);
+
+    Printf("\n================== File I/O Performance Test ==================\n");
+
+    Printf("[*] 1.Sequential Read/Write Test(Cluster Size)\n");
+
+    remove("performance.txt");
+    pstFile = fopen("performance.txt", "w");
+    if (pstFile == NULL)
+    {
+        Printf("\t[!] File Open Fail.......\n");
+        FreeMemory(pbBuffer);
+        return;
+    }
+
+    qwLastTickCount = GetTickCount();
+    for (i = 0; i < (dwClusterTestFileSize / FILESYSTEM_CLUSTERSIZE); i++)
+    {
+        if (fwrite(pbBuffer, 1, FILESYSTEM_CLUSTERSIZE, pstFile) !=
+            FILESYSTEM_CLUSTERSIZE)
+        {
+            Printf("\t[!] Write Fail.......\n");
+            fclose(pstFile);
+            FreeMemory(pbBuffer);
+            return;
+        }
+    }
+    Printf("   Sequential Write(Cluster Size): %d ms\n", GetTickCount() -
+                                                              qwLastTickCount);
+
+    fseek(pstFile, 0, SEEK_SET);
+
+    qwLastTickCount = GetTickCount();
+    for (i = 0; i < (dwClusterTestFileSize / FILESYSTEM_CLUSTERSIZE); i++)
+    {
+        if (fread(pbBuffer, 1, FILESYSTEM_CLUSTERSIZE, pstFile) !=
+            FILESYSTEM_CLUSTERSIZE)
+        {
+            Printf("\t[!] Read Fail..........\n");
+            fclose(pstFile);
+            FreeMemory(pbBuffer);
+            return;
+        }
+    }
+    Printf("   Sequential Read(Cluster Size): %d ms\n", GetTickCount() -
+                                                             qwLastTickCount);
+
+    Printf("[*] 2.Sequential Read/Write Test(1 Byte)\n");
+
+    remove("performance.txt");
+    pstFile = fopen("performance.txt", "w");
+    if (pstFile == NULL)
+    {
+        Printf("\t[!] File Open Fail\n");
+        FreeMemory(pbBuffer);
+        return;
+    }
+
+    qwLastTickCount = GetTickCount();
+    for (i = 0; i < dwOneByteTestFileSize; i++)
+    {
+        if (fwrite(pbBuffer, 1, 1, pstFile) != 1)
+        {
+            Printf("\t[!] Write Fail...............\n");
+            fclose(pstFile);
+            FreeMemory(pbBuffer);
+            return;
+        }
+    }
+    
+    Printf("   Sequential Write(1 Byte): %d ms\n", GetTickCount() -
+                                                        qwLastTickCount);
+
+    fseek(pstFile, 0, SEEK_SET);
+
+    qwLastTickCount = GetTickCount();
+    for (i = 0; i < dwOneByteTestFileSize; i++)
+    {
+        if (fread(pbBuffer, 1, 1, pstFile) != 1)
+        {
+            Printf("\t[!] Read Fail................\n");
+            fclose(pstFile);
+            FreeMemory(pbBuffer);
+            return;
+        }
+    }
+    Printf("   Sequential Read(1 Byte): %d ms\n", GetTickCount() -  qwLastTickCount);
+
+    fclose(pstFile);
+    FreeMemory(pbBuffer);
+}
+
+static void FlushCache(const char *pcParameterBuffer)
+{
+    QWORD qwTickCount;
+
+    qwTickCount = GetTickCount();
+    
+    Printf("\n[*] Cache Flush...... ");
+    
+    if (FlushFileSystemCache() == TRUE)
+    {
+        Printf("Pass\n");
+    }
+    else
+    {
+        Printf("Fail\n");
+    }
+    
+    Printf("[*] Total Time = %d ms\n", GetTickCount() - qwTickCount);
 }

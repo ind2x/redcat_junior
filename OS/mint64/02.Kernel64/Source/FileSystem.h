@@ -4,6 +4,7 @@
 #include "Types.h"
 #include "Synchronization.h"
 #include "HardDisk.h"
+#include "CacheManager.h"
 
 #define FILESYSTEM_SIGNATURE 0x7E38CF10
 #define FILESYSTEM_SECTORSPERCLUSTER 8
@@ -148,6 +149,8 @@ typedef struct FileSystemManagerStruct
     MUTEX stMutex;
 
     FILE *pstHandlePool;
+
+    BOOL bCacheEnable;
 } FILESYSTEMMANAGER;
 
 
@@ -170,6 +173,18 @@ static BOOL GetDirectoryEntryData(int iIndex, DIRECTORYENTRY *pstEntry);
 static int FindDirectoryEntry(const char *pcFileName, DIRECTORYENTRY *pstEntry);
 void GetFileSystemInformation(FILESYSTEMMANAGER *pstManager);
 
+static BOOL InternalReadClusterLinkTableWithoutCache(DWORD dwOffset, BYTE *pbBuffer);
+static BOOL InternalReadClusterLinkTableWithCache(DWORD dwOffset, BYTE *pbBuffer);
+static BOOL InternalWriteClusterLinkTableWithoutCache(DWORD dwOffset, BYTE *pbBuffer);
+static BOOL InternalWriteClusterLinkTableWithCache(DWORD dwOffset, BYTE *pbBuffer);
+static BOOL InternalReadClusterWithoutCache(DWORD dwOffset, BYTE *pbBuffer);
+static BOOL InternalReadClusterWithCache(DWORD dwOffset, BYTE *pbBuffer);
+static BOOL InternalWriteClusterWithoutCache(DWORD dwOffset, BYTE *pbBuffer);
+static BOOL InternalWriteClusterWithCache(DWORD dwOffset, BYTE *pbBuffer);
+
+static CACHEBUFFER *AllocateCacheBufferWithFlush(int iCacheTableIndex);
+BOOL FlushFileSystemCache(void);
+
 FILE *OpenFile(const char *pcFileName, const char *pcMode);
 DWORD ReadFile(void *pvBuffer, DWORD dwSize, DWORD dwCount, FILE *pstFile);
 DWORD WriteFile(const void *pvBuffer, DWORD dwSize, DWORD dwCount, FILE *pstFile);
@@ -177,7 +192,7 @@ int SeekFile(FILE *pstFile, int iOffset, int iOrigin);
 int CloseFile(FILE *pstFile);
 int RemoveFile(const char *pcFileName);
 DIR *OpenDirectory(const char *pcDirectoryName);
-struct DirectoryEntryStruct *kReadDirectory(DIR *pstDirectory);
+struct DirectoryEntryStruct *ReadDirectory(DIR *pstDirectory);
 void RewindDirectory(DIR *pstDirectory);
 int CloseDirectory(DIR *pstDirectory);
 BOOL WriteZero(FILE *pstFile, DWORD dwCount);

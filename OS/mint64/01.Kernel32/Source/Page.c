@@ -1,5 +1,16 @@
+/**
+ *  file    Types.h
+ *  date    2008/12/28
+ *  author  kkamagui
+ *          Copyright(c)2008 All rights reserved by kkamagui
+ *  brief   페이징에 관련된 각종 정보를 정의한 파일
+ */
+
 #include "Page.h"
 
+/**
+ *	IA-32e 모드 커널을 위한 페이지 테이블 생성
+ */
 void InitializePageTables(void)
 {
     PML4TENTRY *pstPML4TEntry;

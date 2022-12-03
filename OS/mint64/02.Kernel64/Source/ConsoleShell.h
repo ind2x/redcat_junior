@@ -78,4 +78,7 @@ static void WriteDataToFile(const char *pcParameterBuffer);
 static void ReadDataFromFile(const char *pcParameterBuffer);
 static void TestFileIO(const char *pcParameterBuffer);
 
+static void FlushCache(const char *pcParameterBuffer);
+static void TestPerformance(const char *pcParameterBuffer);
+
 #endif /*__CONSOLESHELL_H__*/

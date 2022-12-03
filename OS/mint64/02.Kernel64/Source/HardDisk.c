@@ -267,7 +267,7 @@ int ReadHDDSector(BOOL bPrimary, BOOL bMaster, DWORD dwLBA, int iSectorCount, ch
         
         if ((bStatus & HDD_STATUS_ERROR) == HDD_STATUS_ERROR)
         {
-            Printf("\n[!] Error Occur\n");
+            Printf("Error Occur....\n");
             Unlock(&(gs_stHDDManager.stMutex));
             
             return i;
@@ -280,7 +280,7 @@ int ReadHDDSector(BOOL bPrimary, BOOL bMaster, DWORD dwLBA, int iSectorCount, ch
 
             if (bWaitResult == FALSE)
             {
-                Printf("\n[!] Interrupt Not Occur\n");
+                Printf("Interrupt Not Occur....\n");
                 Unlock(&(gs_stHDDManager.stMutex));
                 return FALSE;
             }

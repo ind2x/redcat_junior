@@ -3,6 +3,9 @@
 #include "DynamicMemory.h"
 #include "Utility.h"
 #include "Task.h"
+#include "Console.h"
+#include "CacheManager.h"
+#include "RAMDisk.h"
 
 static FILESYSTEMMANAGER gs_stFileSystemManager;
 
@@ -14,6 +17,8 @@ fWriteHDDSector gs_pfWriteHDDSector = NULL;
 
 BOOL InitializeFileSystem(void)
 {
+    BOOL bCacheEnable = FALSE;
+
     MemSet(&gs_stFileSystemManager, 0, sizeof(gs_stFileSystemManager));
 
     InitializeMutex(&(gs_stFileSystemManager.stMutex));
@@ -23,6 +28,19 @@ BOOL InitializeFileSystem(void)
         gs_pfReadHDDInformation = ReadHDDInformation;
         gs_pfReadHDDSector = ReadHDDSector;
         gs_pfWriteHDDSector = WriteHDDSector;
+
+        bCacheEnable = TRUE;
+    }
+    else if(InitializeRDD(RDD_TOTALSECTORCOUNT) == TRUE)
+    {
+        gs_pfReadHDDInformation = ReadRDDInformation;
+        gs_pfReadHDDSector = ReadRDDSector;
+        gs_pfWriteHDDSector = WriteRDDSector;
+
+        if(Format() == FALSE)
+        {
+            return FALSE;
+        }
     }
     else
     {
@@ -43,6 +61,11 @@ BOOL InitializeFileSystem(void)
     }
 
     MemSet(gs_stFileSystemManager.pstHandlePool, 0, FILESYSTEM_HANDLE_MAXCOUNT * sizeof(FILE));
+
+    if(bCacheEnable == TRUE)
+    {
+        gs_stFileSystemManager.bCacheEnable = InitializeCacheManager();
+    }
 
     return TRUE;
 }
@@ -155,6 +178,12 @@ BOOL Format(void)
         }
     }
 
+    if(gs_stFileSystemManager.bCacheEnable == TRUE)
+    {
+        DiscardAllCacheBuffer(CACHE_CLUSTERLINKTABLEAREA);
+        DiscardAllCacheBuffer(CACHE_DATAAREA);
+    }
+
     Unlock(&(gs_stFileSystemManager.stMutex));
     return TRUE;
 }
@@ -174,22 +203,233 @@ BOOL GetHDDInformation(HDDINFORMATION *pstInformation)
 
 static BOOL ReadClusterLinkTable(DWORD dwOffset, BYTE *pbBuffer)
 {
+    if(gs_stFileSystemManager.bCacheEnable == FALSE)
+    {
+        return InternalReadClusterLinkTableWithoutCache(dwOffset, pbBuffer);
+    }
+    else
+    {
+        return InternalReadClusterLinkTableWithCache(dwOffset, pbBuffer);
+    }
+}
+
+static BOOL InternalReadClusterLinkTableWithoutCache(DWORD dwOffset,BYTE *pbBuffer)
+{
     return gs_pfReadHDDSector(TRUE, TRUE, dwOffset + gs_stFileSystemManager.dwClusterLinkAreaStartAddress, 1, pbBuffer);
+}
+
+static BOOL InternalReadClusterLinkTableWithCache(DWORD dwOffset, BYTE *pbBuffer)
+{
+    CACHEBUFFER *pstCacheBuffer;
+
+    pstCacheBuffer = FindCacheBuffer(CACHE_CLUSTERLINKTABLEAREA, dwOffset);
+
+    if (pstCacheBuffer != NULL)
+    {
+        MemCpy(pbBuffer, pstCacheBuffer->pbBuffer, 512);
+        return TRUE;
+    }
+
+    if (InternalReadClusterLinkTableWithoutCache(dwOffset, pbBuffer) == FALSE)
+    {
+        return FALSE;
+    }
+
+    pstCacheBuffer = AllocateCacheBufferWithFlush(CACHE_CLUSTERLINKTABLEAREA);
+    
+    if (pstCacheBuffer == NULL)
+    {
+        return FALSE;
+    }
+
+    MemCpy(pstCacheBuffer->pbBuffer, pbBuffer, 512);
+    pstCacheBuffer->dwTag = dwOffset;
+
+    pstCacheBuffer->bChanged = FALSE;
+    return TRUE;
+}
+
+static CACHEBUFFER *AllocateCacheBufferWithFlush(int iCacheTableIndex)
+{
+    CACHEBUFFER *pstCacheBuffer;
+
+    pstCacheBuffer = AllocateCacheBuffer(iCacheTableIndex);
+    if (pstCacheBuffer == NULL)
+    {
+        pstCacheBuffer = GetVictimInCacheBuffer(iCacheTableIndex);
+        if (pstCacheBuffer == NULL)
+        {
+            Printf("[!] Cache Allocate Fail~!!!!\n");
+            return NULL;
+        }
+
+        if (pstCacheBuffer->bChanged == TRUE)
+        {
+            switch (iCacheTableIndex)
+            {
+            case CACHE_CLUSTERLINKTABLEAREA:
+                if (InternalWriteClusterLinkTableWithoutCache(pstCacheBuffer->dwTag, pstCacheBuffer->pbBuffer) == FALSE)
+                {
+                    Printf("[!] Cache Buffer Write Fail~!!!!\n");
+                    return NULL;
+                }
+                break;
+
+            case CACHE_DATAAREA:
+                if (InternalWriteClusterWithoutCache(pstCacheBuffer->dwTag, pstCacheBuffer->pbBuffer) == FALSE)
+                {
+                    Printf("[!] Cache Buffer Write Fail~!!!!\n");
+                    return NULL;
+                }
+                break;
+
+            default:
+                Printf("[!] AllocateCacheBufferWithFlush Fail\n");
+                return NULL;
+                break;
+            }
+        }
+    }
+    return pstCacheBuffer;
 }
 
 static BOOL WriteClusterLinkTable(DWORD dwOffset, BYTE *pbBuffer)
 {
+    if (gs_stFileSystemManager.bCacheEnable == FALSE)
+    {
+        return InternalWriteClusterLinkTableWithoutCache(dwOffset, pbBuffer);
+    }
+    else
+    {
+        return InternalWriteClusterLinkTableWithCache(dwOffset, pbBuffer);
+    }
+}
+
+static BOOL InternalWriteClusterLinkTableWithoutCache(DWORD dwOffset,BYTE *pbBuffer)
+{
     return gs_pfWriteHDDSector(TRUE, TRUE, dwOffset + gs_stFileSystemManager.dwClusterLinkAreaStartAddress, 1, pbBuffer);
+}
+
+static BOOL InternalWriteClusterLinkTableWithCache(DWORD dwOffset, BYTE *pbBuffer)
+{
+    CACHEBUFFER *pstCacheBuffer;
+
+    pstCacheBuffer = FindCacheBuffer(CACHE_CLUSTERLINKTABLEAREA, dwOffset);
+
+    if (pstCacheBuffer != NULL)
+    {
+        MemCpy(pstCacheBuffer->pbBuffer, pbBuffer, 512);
+
+        pstCacheBuffer->bChanged = TRUE;
+        return TRUE;
+    }
+
+    pstCacheBuffer = AllocateCacheBufferWithFlush(CACHE_CLUSTERLINKTABLEAREA);
+    
+    if (pstCacheBuffer == NULL)
+    {
+        return FALSE;
+    }
+
+    MemCpy(pstCacheBuffer->pbBuffer, pbBuffer, 512);
+    pstCacheBuffer->dwTag = dwOffset;
+
+    pstCacheBuffer->bChanged = TRUE;
+
+    return TRUE;
 }
 
 static BOOL ReadCluster(DWORD dwOffset, BYTE *pbBuffer)
 {
+    if (gs_stFileSystemManager.bCacheEnable == FALSE)
+    {
+        return InternalReadClusterWithoutCache(dwOffset, pbBuffer);
+    }
+    else
+    {
+        return InternalReadClusterWithCache(dwOffset, pbBuffer);
+    }
+}
+
+static BOOL InternalReadClusterWithoutCache(DWORD dwOffset, BYTE *pbBuffer)
+{
     return gs_pfReadHDDSector(TRUE, TRUE, (dwOffset * FILESYSTEM_SECTORSPERCLUSTER) + gs_stFileSystemManager.dwDataAreaStartAddress, FILESYSTEM_SECTORSPERCLUSTER, pbBuffer);
+}
+
+static BOOL InternalReadClusterWithCache(DWORD dwOffset, BYTE *pbBuffer)
+{
+    CACHEBUFFER *pstCacheBuffer;
+
+    pstCacheBuffer = FindCacheBuffer(CACHE_DATAAREA, dwOffset);
+
+    if (pstCacheBuffer != NULL)
+    {
+        MemCpy(pbBuffer, pstCacheBuffer->pbBuffer, FILESYSTEM_CLUSTERSIZE);
+        return TRUE;
+    }
+
+    if (InternalReadClusterWithoutCache(dwOffset, pbBuffer) == FALSE)
+    {
+        return FALSE;
+    }
+
+    pstCacheBuffer = AllocateCacheBufferWithFlush(CACHE_DATAAREA);
+    if (pstCacheBuffer == NULL)
+    {
+        return FALSE;
+    }
+
+    MemCpy(pstCacheBuffer->pbBuffer, pbBuffer, FILESYSTEM_CLUSTERSIZE);
+    pstCacheBuffer->dwTag = dwOffset;
+
+    pstCacheBuffer->bChanged = FALSE;
+    return TRUE;
 }
 
 static BOOL WriteCluster(DWORD dwOffset, BYTE *pbBuffer)
 {
+    if (gs_stFileSystemManager.bCacheEnable == FALSE)
+    {
+        return InternalWriteClusterWithoutCache(dwOffset, pbBuffer);
+    }
+    else
+    {
+        return InternalWriteClusterWithCache(dwOffset, pbBuffer);
+    }
+}
+
+static BOOL InternalWriteClusterWithoutCache(DWORD dwOffset, BYTE *pbBuffer)
+{
     return gs_pfWriteHDDSector(TRUE, TRUE, (dwOffset * FILESYSTEM_SECTORSPERCLUSTER) + gs_stFileSystemManager.dwDataAreaStartAddress, FILESYSTEM_SECTORSPERCLUSTER, pbBuffer);
+}
+
+static BOOL InternalWriteClusterWithCache(DWORD dwOffset, BYTE *pbBuffer)
+{
+    CACHEBUFFER *pstCacheBuffer;
+
+    pstCacheBuffer = FindCacheBuffer(CACHE_DATAAREA, dwOffset);
+
+    if (pstCacheBuffer != NULL)
+    {
+        MemCpy(pstCacheBuffer->pbBuffer, pbBuffer, FILESYSTEM_CLUSTERSIZE);
+
+        pstCacheBuffer->bChanged = TRUE;
+
+        return TRUE;
+    }
+
+    pstCacheBuffer = AllocateCacheBufferWithFlush(CACHE_DATAAREA);
+    if (pstCacheBuffer == NULL)
+    {
+        return FALSE;
+    }
+
+    MemCpy(pstCacheBuffer->pbBuffer, pbBuffer, FILESYSTEM_CLUSTERSIZE);
+    pstCacheBuffer->dwTag = dwOffset;
+
+    pstCacheBuffer->bChanged = TRUE;
+
+    return TRUE;
 }
 
 static DWORD FindFreeCluster(void)
@@ -1007,7 +1247,7 @@ DIR *OpenDirectory(const char *pcDirectoryName)
 
     pstDirectoryBuffer = (DIRECTORYENTRY *)AllocateMemory(FILESYSTEM_CLUSTERSIZE);
     
-    if (pstDirectory == NULL)
+    if (pstDirectoryBuffer == NULL)
     {
         FreeFileDirectoryHandle(pstDirectory);
         Unlock(&(gs_stFileSystemManager.stMutex));
@@ -1107,4 +1347,52 @@ int CloseDirectory(DIR *pstDirectory)
     Unlock(&(gs_stFileSystemManager.stMutex));
 
     return 0;
+}
+
+BOOL FlushFileSystemCache(void)
+{
+    CACHEBUFFER *pstCacheBuffer;
+    int iCacheCount;
+    int i;
+
+    if (gs_stFileSystemManager.bCacheEnable == FALSE)
+    {
+        return TRUE;
+    }
+
+    Lock(&(gs_stFileSystemManager.stMutex));
+
+    GetCacheBufferAndCount(CACHE_CLUSTERLINKTABLEAREA, &pstCacheBuffer, &iCacheCount);
+    
+    for (i = 0; i < iCacheCount; i++)
+    {
+        if (pstCacheBuffer[i].bChanged == TRUE)
+        {
+            if (InternalWriteClusterLinkTableWithoutCache(pstCacheBuffer[i].dwTag, pstCacheBuffer[i].pbBuffer) == FALSE)
+            {
+                return FALSE;
+            }
+            
+            pstCacheBuffer[i].bChanged = FALSE;
+        }
+    }
+
+    GetCacheBufferAndCount(CACHE_DATAAREA, &pstCacheBuffer, &iCacheCount);
+    
+    for (i = 0; i < iCacheCount; i++)
+    {
+        if (pstCacheBuffer[i].bChanged == TRUE)
+        {
+            if (InternalWriteClusterWithoutCache(pstCacheBuffer[i].dwTag, pstCacheBuffer[i].pbBuffer) == FALSE)
+            {
+                return FALSE;
+            }
+            
+            pstCacheBuffer[i].bChanged = FALSE;
+        }
+    }
+
+    Unlock(&(gs_stFileSystemManager.stMutex));
+    
+    return TRUE;
 }

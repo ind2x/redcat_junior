@@ -2,6 +2,8 @@
 #include "Descriptor.h"
 #include "Utility.h"
 #include "Synchronization.h"
+#include "AssemblyUtility.h"
+#include "Console.h"
 
 static SCHEDULER gs_stScheduler;
 static TCBPOOLMANAGER gs_stTCBPoolManager;

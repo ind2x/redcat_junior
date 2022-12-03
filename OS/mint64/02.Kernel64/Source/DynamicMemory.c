@@ -1,6 +1,7 @@
 #include "DynamicMemory.h"
 #include "Utility.h"
 #include "Task.h"
+#include "Synchronization.h"
 
 static DYNAMICMEMORY gs_stDynamicMemory;
 

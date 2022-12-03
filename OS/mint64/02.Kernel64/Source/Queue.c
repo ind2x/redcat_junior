@@ -1,4 +1,5 @@
 #include "Queue.h"
+#include "Utility.h"
 
 void InitializeQueue(QUEUE *pstQueue, void *pvQueueBuffer, int iMaxDataCount,
                      int iDataSize)
