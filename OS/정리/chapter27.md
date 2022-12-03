@@ -52,3 +52,56 @@ p.1172부터 읽으면 된다.
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
+
+## 오류 해결
+### ls(dir) 명령어 오류
+---
+
+<br>
+
+첫 번째 오류는 무엇보다 Utility.c 코드에서 MemSet, MemCpy 등의 함수들이 변경되었음에도 책에서 언급이 없었음. 이 부분부터 코드를 찾아서 확인해가면서 고쳐줘야 함.
+
+Mem 종류와 VSPrintf에서 case f 부분이 변경되었던 걸로 기억.
+
+<br>
+
+ls(dir) 명령어 오류 해결 과정은 다음과 같다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/205440511-a8084033-9cf8-43e1-a79c-3716ba2e9bda.png)
+
+<br>
+
+왼쪽이 수정된 것이고 오른쪽이 기존 코드인데, 수정된 곳은 다음과 같다.
+
+<br>
+
+```c
+pstDirectoryBuffer = (DIRECTORYENTRY *)AllocateMemory(FILESYSTEM_CLUSTERSIZE);
+    
+if (pstDirectory == NULL) 를 ---> if(pstDirectoryBuffer == NULL)로 변
+```
+
+<br>
+
+그 다음 실질적인 문제점인 Readcluster가 TRUE임에도 rax 값이 0으로 변경되어 FALSE가 되는 부분은 다음과 같이 수정해준다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/205440669-8b00743a-14a1-46b3-83dd-0f672e777554.png)
+
+<br>
+
+해당 코드를 수정해주면 ls(dir) 명령어가 정상적으로 작동한다.
+
+<br><br>
+
+### RAM 오류
+---
+
+
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
