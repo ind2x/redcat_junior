@@ -95,6 +95,8 @@ if (pstDirectory == NULL) 를 ---> if(pstDirectoryBuffer == NULL)로 변
 
 해당 코드를 수정해주면 ls(dir) 명령어가 정상적으로 작동한다.
 
+다른 코드들도 마찬가지로 Write나 WriteClusterLink나 등등 그런 것들도 수정해주자..
+
 <br><br>
 
 ### RAM 오류
