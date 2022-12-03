@@ -24,7 +24,7 @@ MINT64 OS 홈페이지 : http://jsandroidapp.cafe24.com/xe/index
 
 + 26장 testfileio 명령어 에러 발생..인가 10번 중에 1번은 명령어가 정상으로 작동을 함 -> 애매함
 
-+ 27장 ls 명령어 오류 발생.. ReadCluster 부분을 고쳐야 함, 과정은 아래와 같음
++ 27장 ls 명령어 오류 발생.. ReadCluster 부분을 고쳐야 함, 과정은 아래와 같고 27장 끝에다 기록해둠
  
   + pstDirectoryBuffer 다음 if문에서 pstDirectory == NULL 구문 ->  why 두 번 검사? -> pstDirectoryBuffer로 변경해줘야 함
 
