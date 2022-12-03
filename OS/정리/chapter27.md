@@ -133,12 +133,35 @@ if (pstDirectory == NULL) 를 ---> if(pstDirectoryBuffer == NULL)로 변
 
 <br><br>
 
-### 
+### RAM 
 ---
 
 
 
 <br><br>
-<br><br>
 <hr style="border: 2px solid;">
 <br><br>
+
+## 빌드 실행
+
+<br>
+
+일단 RAM 오류를 뺀 2개의 오류를 해결한 다음 26장과 마찬가지로 한번에 명령어가 딱 되진 않았지만 어찌됬든 실행은 된다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/205445704-c0ad5768-7005-4f97-b112-03b83f8f3790.png)
+
+<br>
+
+이제 RAM으로 실행해보면 아래처럼 에러가 난다.
+
+처음엔 RAM이 아예 안되는 줄 알았는데 시간이 좀 걸린 다음에서야 활성화가 되었고, 다른 에러가 발생했다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/205445801-7c2e8bdb-7785-48b5-8fa5-ee1880e12a9e.png)
+
+<br>
+
+
