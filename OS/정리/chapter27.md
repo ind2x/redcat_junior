@@ -168,4 +168,13 @@ ConsoleShell.c 코드에서 ShowHDDInformation 부분에서 GetHDDInformation �
 
 <br>
 
+![image](https://user-images.githubusercontent.com/52172169/205447055-e8065950-4396-43e5-85d5-70a23232fe6c.png)
+
+<br>
+
+testfileio 명령어도 잘 된다. 그냥 하드디스크가 ㅈ같은거였다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/205447079-3ce9fc9d-1b3c-4fdf-8348-b9402d7c1e0a.png)
 
