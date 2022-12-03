@@ -1,6 +1,6 @@
 NASM = nasm
 CC = clang -c -m32 -ffreestanding
-LD = ld -melf_i386 -T ../elf_i386.x -nostdlib -e main -Ttext 0x10200
+LD = ld -melf_i386 -T ../elf_i386.x -nostdlib -e Main -Ttext 0x10200
 OBJCOPY = objcopy -j .text -j .data -j .rodata -j .bss -S -O binary
 
 OBJECTDIR = Temp
@@ -34,10 +34,10 @@ clean:
 
 
 ## for InternalDependency
-CENTRYPOINTOBJECTFILE = main.o
+CENTRYPOINTOBJECTFILE = Main.o
 CSOURCEFILES = $(wildcard ../$(SOURCEDIR)/*.c)
 ASSEMBLYSOURCEFILES = $(wildcard ../$(SOURCEDIR)/*.asm)
-COBJECTFILES = $(subst main.o, , $(notdir $(patsubst %.c,%.o,$(CSOURCEFILES))))
+COBJECTFILES = $(subst Main.o, , $(notdir $(patsubst %.c,%.o,$(CSOURCEFILES))))
 ASSEMBLYOBJECTFILES = $(notdir $(patsubst %.asm,%.o,$(ASSEMBLYSOURCEFILES)))
 
 %.o: ../$(SOURCEDIR)/%.c
