@@ -133,10 +133,14 @@ if (pstDirectory == NULL) 를 ---> if(pstDirectoryBuffer == NULL)로 변
 
 <br><br>
 
-### RAM 
+### RAM디스크에서 hddinfo 에러
 ---
 
+ConsoleShell.c 코드에서 ShowHDDInformation 부분에서 GetHDDInformation 부분 코드를 바꿔주지 않아서 에러가 발생했다.
 
+저자 코드처럼 바꿔주면 정상 작동한다. 
+
+단, 너무 저자 코드를 신뢰해선 안될 것 같고 추후 1권이 끝난 다음에 코드를 분석해가면서 이해도 할겸 다 뜯어고쳐봐야겠다.
 
 <br><br>
 <hr style="border: 2px solid;">
