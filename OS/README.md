@@ -22,7 +22,17 @@ MINT64 OS 홈페이지 : http://jsandroidapp.cafe24.com/xe/index
 
 + 15장 Printf 함수 실행 중 xmm레지스터로 인한 에러 발생 -> makefile clang 컴파일 옵션으로 ```-msoft-float``` 추가
 
-+ 26장 testfileio 명령어 에러 발생..
++ 26장 testfileio 명령어 에러 발생..인가 10번 중에 1번은 명령어가 정상으로 작동을 함 -> 애매함
+
++ 27장 ls 명령어 오류 발생.. ReadCluster 부분을 고쳐야 함, 과정은 아래와 같음
+ 
+  + pstDirectoryBuffer 다음 if문에서 pstDirectory == NULL 구문 ->  why 두 번 검사? -> pstDirectoryBuffer로 변경해줘야 함
+
+    + ReadCluster if문에서 FALSE 임을 확인
+
+    + 해당 함수로 가서 분석 결과 TRUE가 리턴되는데 ReadCluster 함수에서 나올 때 rax 값이 0이 되는 것을 확인함
+
+  + 따라서 ReadCluster에 각각 return을 붙여주었더니 dir 명령어가 정상 작동이 되었음.
 
 
 <br>
