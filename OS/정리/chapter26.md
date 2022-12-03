@@ -91,6 +91,9 @@ testfileio 명령어를 실행하면 계속 에러가 발생하는데 이유를 
 
 ![image](https://user-images.githubusercontent.com/52172169/205427906-96d9f5f8-d201-4de6-9d25-9bed79d1280d.png)
 
+<br>
+
+hyper-v로 우분투 20.04 서버 만들어서 해본 결과고 wsl2에서도 어쩌다 되기도 
 
 <br><br>
 <hr style="border: 2px solid;">
