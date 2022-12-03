@@ -121,7 +121,15 @@ if (pstDirectory == NULL) 를 ---> if(pstDirectoryBuffer == NULL)로 변
 
 저 if문에서 FALSE가 되어 null이 리턴되어 파일 생성에 실패한다. 해당 함수로 들어가서 문제점을 살펴본다.
 
+해당 함수로 가보면 마지막 if문인 kWriteCluster 함수에서 FALSE가 되어 FALSE가 리턴된다.
 
+다시 이 함수로 들어간다.
+
+<br>
+
+확인해보니.. ls 명령어 해결할 때 같이 해결할 수 있는 부분인데, return을 꼼꼼히 붙여줘야 한다..
+
+안붙여준 부분이 있어서(WriteCluster) 붙여준 뒤, formathdd와 mounthdd를 해준 다음 확인해줘야 한다. (안해주면 에러 남)
 
 <br><br>
 
