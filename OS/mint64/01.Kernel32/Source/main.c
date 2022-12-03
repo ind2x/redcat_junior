@@ -7,7 +7,7 @@ BOOL InitializeKernel64Area(void);
 BOOL ISMemoryEnough(void);
 void CopyKernel64ImageTo2MB(void);
 
-void main(void)
+void Main(void)
 {
     DWORD i;
     DWORD dwEAX, dwEBX, dwECX, dwEDX;
