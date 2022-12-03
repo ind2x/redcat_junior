@@ -12,7 +12,7 @@
 #include "HardDisk.h"
 #include "FileSystem.h"
 
-void main(void)
+void Main(void)
 {
     int iCursorX, iCursorY;
 
