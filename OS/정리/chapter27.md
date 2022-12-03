@@ -99,11 +99,38 @@ if (pstDirectory == NULL) 를 ---> if(pstDirectoryBuffer == NULL)로 변
 
 <br><br>
 
-### RAM 오류
+
+### file create 오류
+---
+
+위의 ls 명령어를 해결해주고 추가로 나머지 return이 안붙은 write 쪽이나 등등에도 return을 붙여줘야 함. 
+
+안붙여주면 어차피 붙여줘야 다음으로 넘어갈 수 있기 때문에.
+
+<br>
+
+붙여줬다면 이제 createfile을 해주면 에러가 나는데 우선 Consoleshell.c의 CreateFileInRootDirectory 함수에 break를 걸어준다.
+
+걸면 FileSystem.c의 OpenFile 함수로 넘어가는데 w모드로 넘어가므로 w 모드를 처리해주는 코드를 보면 가장 마지막 부분 if문이 있다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/205443015-6b0bce1b-8b17-4b3a-aaeb-ca81fe1bd5ae.png)
+
+<br>
+
+저 if문에서 FALSE가 되어 null이 리턴되어 파일 생성에 실패한다. 해당 함수로 들어가서 문제점을 살펴본다.
+
+
+
+<br><br>
+
+### 
 ---
 
 
 
+<br><br>
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
