@@ -59,3 +59,23 @@ COM 포트 별로 12개의 레지스터가 개별적으로 있으며 IRQ 3, 4번
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
+
+## 빌드 및 구현
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/205488587-0d3bc761-a7a8-4fb1-99f8-63b0b320dd37.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/205488596-8be29892-e8e4-41ba-b45e-fa2a66c48548.png)
+
+<br>
+
+이번 장은 무사히 아무 오류없이 끝냈다. 
+
+내용 또한 어렵진 않고 책으로 복습해주면 될 것 같다.
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
