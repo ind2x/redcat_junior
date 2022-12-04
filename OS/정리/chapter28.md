@@ -40,6 +40,22 @@ PC와의 데이터 통신을 위한 최소한의 구성으로는 TxD/RxD 핀과 
 
 시리얼 포트의 자세한 내용은 이제 p.1223부터 읽어야 된다.
 
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/205480997-7dff52bc-b1af-4524-9b1d-154ec14a0bd0.png)
+
+<br>
+
+COM 포트 별로 12개의 레지스터가 개별적으로 있으며 IRQ 3, 4번을 공유해서 사용한다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/205481013-c562eb82-781d-4e61-94ae-e0fe4c013187.png)
+
+<br>
+
+우리가 사용할 레지스터에 대해서는 책으로 읽기
+
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
