@@ -81,4 +81,6 @@ static void TestFileIO(const char *pcParameterBuffer);
 static void FlushCache(const char *pcParameterBuffer);
 static void TestPerformance(const char *pcParameterBuffer);
 
+static void DownloadFile(const char *pcParameterBuffer);
+
 #endif /*__CONSOLESHELL_H__*/

@@ -11,6 +11,7 @@
 #include "DynamicMemory.h"
 #include "HardDisk.h"
 #include "FileSystem.h"
+#include "SerialPort.h"
 
 void Main(void)
 {
@@ -88,6 +89,10 @@ void Main(void)
         SetCursor(51, iCursorY++);
         Printf("Fail\n");
     }
+
+    Printf("[*] Serial Port Initialize........................[PASS]");
+    iCursorY++;
+    InitializeSerialPort();
 
     CreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD | TASK_FLAGS_SYSTEM | TASK_FLAGS_IDLE, 0, 0, (QWORD)IdleTask);
     StartConsoleShell();
