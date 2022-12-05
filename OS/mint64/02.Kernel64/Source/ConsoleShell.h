@@ -83,4 +83,6 @@ static void TestPerformance(const char *pcParameterBuffer);
 
 static void DownloadFile(const char *pcParameterBuffer);
 
+static void ShowMPConfigurationTable( const char* pcParameterBuffer );
+
 #endif /*__CONSOLESHELL_H__*/
