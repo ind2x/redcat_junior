@@ -20,7 +20,7 @@ MINT64 OS 홈페이지 : http://jsandroidapp.cafe24.com/xe/index
 <hr style="border: 2px solid;">
 <br>
 
-## 변경사항
+## 오류
 
 <br>
 
