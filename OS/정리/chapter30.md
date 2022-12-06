@@ -46,7 +46,7 @@ AP를 활성화 하기 위해서 **로컬 APIC에 대해 자세히 알아보고,
 
 하나는 IA32_APIC_BASE_MSR 레지스터이며, 다른 하나는 Spurious Interrupt Vector Register (의사 인터럽트 벡터 레지스터)이다.
 
-IA32_APIC_BASE_MSR 레지스터는 MSR로 프로세서 모델 별로 정의된 **특수 목적 레지스터**로, **APIC 레지스터의 기준 주소, APIC 활성화 여부, BSP 여부를 담당**한다.
+IA32_APIC_BASE_MSR 레지스터는 MSR로 프로세서 모델 별로 정의된 **특수 목적 레지스터**로, **APIC 레지스터의 기준 주소, 모든 APIC 활성화 여부, BSP 여부를 담당**한다.
 
 <br>
 
@@ -74,9 +74,37 @@ IA32_APIC_BASE_MSR 레지스터는 MSR로 프로세서 모델 별로 정의된 *
 
 자세한 내용은 p.1342에서 확인.
 
+MINT64 OS에서는 이 레지스터를 로컬 APIC를 임시 활성/비활성 하는데 사용한다.
+
+IA32_APIC_BASE_MSR 레지스터는 모든 로컬 APIC를 활성화 한다면, 의사 인터럽트 벡터 레지스터는 해당 코어의 로컬 APIC에만 적용된다.
+
+따라서 IA32_APIC_BASE_MSR 레지스터로 먼저 활성화 한 뒤, BSP와 AP를 의사 레지스터로 활성화 시켜준다.
+
 <br>
 
+이제 IPI 메시지를 이용해 코어를 깨우기만 하면 되며, 절차는 다음과 같다.
 
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/205842785-4cc6a022-5da9-4df5-92dc-19f0977e75d5.png)
+
+<br>
+
+IPI(InterProcessor Interrupt)는 프로세서 간 인터럽트이다. (p.1345)
+
+로컬 APIC의 상위, 하위 커맨드 레지스터 (ICR)로 IPI를 생성할 수 있다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/205843107-a0c5a844-9be1-42a0-b91f-9961522a2d3c.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/205843160-157d7284-f703-41f5-bd5a-e5a0872d398f.png)
+
+<br>
+
+내용이 방대하고 굳이 외울 필요는 없을 것 같아서 책으로 복습 (p.1345)
 
 <br><br>
 <hr style="border: 2px solid;">
