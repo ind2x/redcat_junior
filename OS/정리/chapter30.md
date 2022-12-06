@@ -106,6 +106,28 @@ IPI(InterProcessor Interrupt)는 프로세서 간 인터럽트이다. (p.1345)
 
 내용이 방대하고 굳이 외울 필요는 없을 것 같아서 책으로 복습 (p.1345)
 
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/205843759-60dee1b7-ce47-479c-b4bb-469c4cd17c37.png)
+
+<br>
+
+필드에 전달 모드가 있는데, 우리가 전달할 수 있는 인터럽트는 위의 표와 같다.
+
+여기서 볼 부분은 초기화 IPI, 시작 IPI 부분만 보면 된다.
+
+책으로 계속 복습해주면 될 듯하다.
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
+
+## 멀티코어 프로세스용 OS로 업그레이드
+
+<br>
+
+
+
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
