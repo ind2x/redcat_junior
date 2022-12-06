@@ -6,7 +6,7 @@
 
 MINT64 OS 홈페이지 : http://jsandroidapp.cafe24.com/xe/index
 
-환경 : Ubuntu 20.04 / qemu 4.x
+환경 : win11 wsl2 Ubuntu 20.04 / qemu 4.x
 
 + PART
   + PART 1 (1 ~ 5)   OS 개발을 위한 첫 걸음
