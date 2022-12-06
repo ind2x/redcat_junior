@@ -7,11 +7,19 @@ BOOL InitializeKernel64Area(void);
 BOOL ISMemoryEnough(void);
 void CopyKernel64ImageTo2MB(void);
 
+#define BOOTSTRAPPROCESSOR_FLAGADDRESS  0x7C09
+
 void Main(void)
 {
     DWORD i;
     DWORD dwEAX, dwEBX, dwECX, dwEDX;
     char vcVendorString[13];
+
+    if( *( ( BYTE* ) BOOTSTRAPPROCESSOR_FLAGADDRESS ) == 0 )
+    {
+        SwitchAndExecute64bitKernel();
+        while( 1 ) ;
+    }
 
     PrintString(0, 3, "[*] Protected Mode C Language Kernel Start........[Pass]");
     PrintString(0, 4, "[*] Minimum Memory Size Check.....................[    ]");

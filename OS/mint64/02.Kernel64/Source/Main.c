@@ -12,10 +12,20 @@
 #include "HardDisk.h"
 #include "FileSystem.h"
 #include "SerialPort.h"
+#include "MultiProcessor.h"
+
+void MainForApplicationProcessor(void);
 
 void Main(void)
 {
     int iCursorX, iCursorY;
+
+    if(*((BYTE*) BOOTSTRAPPROCESSOR_FLAGADDRESS) == 0)
+    {
+        MainForApplicationProcessor();
+    }
+    
+    *((BYTE*) BOOTSTRAPPROCESSOR_FLAGADDRESS) = 0;
 
     InitializeConsole(0, 10);
 
@@ -96,4 +106,27 @@ void Main(void)
 
     CreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD | TASK_FLAGS_SYSTEM | TASK_FLAGS_IDLE, 0, 0, (QWORD)IdleTask);
     StartConsoleShell();
+}
+
+void MainForApplicationProcessor(void)
+{
+    QWORD qwTickCount;
+
+    LoadGDTR( GDTR_STARTADDRESS );
+
+    LoadTR( GDT_TSSSEGMENT + ( GetAPICID() * sizeof( GDTENTRY16 ) ) );
+
+    LoadIDTR( IDTR_STARTADDRESS );
+
+    qwTickCount = GetTickCount();
+    
+    while( 1 )
+    {
+        if( GetTickCount() - qwTickCount > 1000 )
+        {
+            qwTickCount = GetTickCount();
+            
+            Printf( "[*] Application Processor[APIC ID: %d] Is Activated\n",GetAPICID() );
+        }
+    }
 }

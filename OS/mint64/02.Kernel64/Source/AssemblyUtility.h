@@ -28,4 +28,6 @@ void LoadFPUContext(void *pvFPUContext);
 void SetTS(void);
 void ClearTS(void);
 
+void EnableGlobalLocalAPIC(void);
+
 #endif /* __ASSEMBLMYUTILITY_H__ */

@@ -12,6 +12,8 @@
 #include "FileSystem.h"
 #include "SerialPort.h"
 #include "MPConfigurationTable.h"
+#include "LocalAPIC.h"
+#include "MultiProcessor.h"
 
 SHELLCOMMANDENTRY gs_vstCommandTable[] =
     {
@@ -53,7 +55,7 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         {"flush", "Flush File System Cache", FlushCache},
         {"download", "Download Data From Serial, ex) download a.txt", DownloadFile },
         {"showmpinfo", "Show MP Configuration Table Information", ShowMPConfigurationTable },
-
+        {"startap", "Start Application Processor", StartApplicationProcessor},
 };
 
 void StartConsoleShell(void)
@@ -2000,4 +2002,16 @@ static void DownloadFile( const char* pcParameterBuffer )
 static void ShowMPConfigurationTable( const char* pcParameterBuffer )
 {
     PrintMPConfigurationTable();
+}
+
+static void StartApplicationProcessor( const char* pcParameterBuffer )
+{
+    if( StartUpApplicationProcessor() == FALSE )
+    {
+        Printf("\n[!] Application Processor Start Fail\n" );
+        return ;
+    }
+    Printf("\n[*] Application Processor Start Success.....\n" );
+    
+    Printf("[*] Bootstrap Processor [APIC ID: %d] Start Application Processor.....\n", GetAPICID() );
 }

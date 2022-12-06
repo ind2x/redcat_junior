@@ -8,6 +8,7 @@ global EnableInterrupt, DisableInterrupt, ReadRFLAGS
 global ReadTSC
 global SwitchContext, Hlt, TestAndSet
 global InitializeFPU, SaveFPUContext, LoadFPUContext, SetTS, ClearTS
+global EnableGlobalLocalAPIC
 
 InPortByte:
     push rdx
@@ -230,4 +231,20 @@ SetTS:
 
 ClearTS:
     clts
+    ret
+
+EnableGlobalLocalAPIC:
+    push rax           
+    push rcx
+    push rdx
+    
+    mov rcx, 27         
+    rdmsr               
+    
+    or eax, 0x0800      
+    wrmsr               
+
+    pop rdx            
+    pop rcx
+    pop rax
     ret

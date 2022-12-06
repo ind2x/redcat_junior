@@ -7,6 +7,7 @@ jmp 0x07C0:START
 
 TOTALSECTORCOUNT: dw 0x02  ; 보호모드 커널 + C커널
 KERNEL32SECTORCOUNT: dw 0x02    ; 보호모드 커널 총 섹터 수
+BOOTSTRAPPROCESSOR: db 0x01     ; 0x7C09
 
 START:
     mov ax, 0x07C0

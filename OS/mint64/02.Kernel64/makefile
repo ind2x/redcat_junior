@@ -1,5 +1,5 @@
 NASM = nasm -f elf64
-CC = clang -c -m64 -ffreestanding -msoft-float
+CC = clang -c -m64 -ffreestanding -msoft-float -Wpointer-sign
 LD = ld -melf_x86_64 -T ../elf_x86_64.x -nostdlib -e Main -Ttext 0x200000
 OBJCOPY = objcopy -j .text -j .data -j .rodata -j .bss -S -O binary
 

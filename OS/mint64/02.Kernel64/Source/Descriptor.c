@@ -1,6 +1,7 @@
 #include "Descriptor.h"
 #include "Utility.h"
 #include "ISR.h"
+#include "MultiProcessor.h"
 
 void InitializeGDTTableAndTSS(void)
 {
@@ -13,6 +14,7 @@ void InitializeGDTTableAndTSS(void)
     pstEntry = (GDTENTRY8 *)(GDTR_STARTADDRESS + sizeof(GDTR));
     pstGDTR->wLimit = GDT_TABLESIZE - 1;
     pstGDTR->qwBaseAddress = (QWORD)pstEntry;
+    
     pstTSS = (TSSSEGMENT *)((QWORD)pstEntry + GDT_TABLESIZE);
 
     SetGDTEntry8(&(pstEntry[0]), 0, 0, 0, 0, 0);
@@ -20,9 +22,14 @@ void InitializeGDTTableAndTSS(void)
                   GDT_FLAGS_LOWER_KERNELCODE, GDT_TYPE_CODE);
     SetGDTEntry8(&(pstEntry[2]), 0, 0xFFFFF, GDT_FLAGS_UPPER_DATA,
                   GDT_FLAGS_LOWER_KERNELDATA, GDT_TYPE_DATA);
-    SetGDTEntry16((GDTENTRY16 *)&(pstEntry[3]), (QWORD)pstTSS,
-                   sizeof(TSSSEGMENT) - 1, GDT_FLAGS_UPPER_TSS, GDT_FLAGS_LOWER_TSS,
-                   GDT_TYPE_TSS);
+    
+    for( i = 0 ; i < MAXPROCESSORCOUNT ; i++ )
+    {
+        SetGDTEntry16( ( GDTENTRY16* ) &( pstEntry[ GDT_MAXENTRY8COUNT + 
+                ( i * 2 ) ] ), ( QWORD ) pstTSS + ( i * sizeof( TSSSEGMENT ) ), 
+                sizeof( TSSSEGMENT ) - 1, GDT_FLAGS_UPPER_TSS, 
+                GDT_FLAGS_LOWER_TSS, GDT_TYPE_TSS ); 
+    }
 
     // TSS 초기화 GDT 이하 영역을 사용함
     InitializeTSSSegment(pstTSS);
@@ -67,10 +74,25 @@ void SetGDTEntry16(GDTENTRY16 *pstEntry, QWORD qwBaseAddress, DWORD dwLimit,
  */
 void InitializeTSSSegment(TSSSEGMENT *pstTSS)
 {
-    MemSet(pstTSS, 0, sizeof(TSSSEGMENT));
-    pstTSS->qwIST[0] = IST_STARTADDRESS + IST_SIZE;
-    // IO 를 TSS의 limit 값보다 크게 설정함으로써 IO Map을 사용하지 않도록 함
-    pstTSS->wIOMapBaseAddress = 0xFFFF;
+   int i;
+    
+    // 최대 프로세서 또는 코어의 수만큼 루프를 돌면서 생성
+    for( i = 0 ; i < MAXPROCESSORCOUNT ; i++ )
+    {
+        // 0으로 초기화
+        MemSet( pstTSS, 0, sizeof( TSSSEGMENT ) );
+
+        // IST의 뒤에서부터 잘라서 할당함. (주의, IST는 16바이트 단위로 정렬해야 함)
+        pstTSS->qwIST[ 0 ] = IST_STARTADDRESS + IST_SIZE - 
+            ( IST_SIZE / MAXPROCESSORCOUNT * i );
+        
+        // IO Map의 기준 주소를 TSS 디스크립터의 Limit 필드보다 크게 설정함으로써 
+        // IO Map을 사용하지 않도록 함
+        pstTSS->wIOMapBaseAddress = 0xFFFF;
+
+        // 다음 엔트리로 이동
+        pstTSS++;
+    }
 }
 
 //==============================================================================
