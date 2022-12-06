@@ -171,3 +171,13 @@ p.1362로 확인
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
+
+## 빌드
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/205933433-8bc42f5d-e212-42fc-afdf-ee2b55dd3b1d.png)
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
