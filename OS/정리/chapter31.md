@@ -24,7 +24,33 @@
 
 해당 레지스터로 여러 설정을 할 수 있는데 그 중 전달 경로를 설정할 수 있으며, 전달 경로에는 목적지 필드가 있고 이 필드의 값에 따라 특정 로컬 APIC나 전체 로컬 APIC로 인터럽트를 전달할 수 있다.
 
+<br>
 
+![image](https://user-images.githubusercontent.com/52172169/206087919-77852352-6a37-4a6d-b6fa-6da64cd801f4.png)
+
+<br>
+
+위의 사진은 I/O APIC 구조이다.
+
+메모리 맵 I/O 방식으로 특정 메모리 주소에 값을 읽고 쓰는 방식으로 제어, 부팅 후 기준 주소는 ```0xFEC0000```
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/206087994-e6f6b5e7-6d36-4835-8daf-ecefa6850864.png)
+
+<br>
+
+단, 특정 레지스터 2개에만 메모리 주소를 부여했으며, 2개의 레지스터 중 하나인 ````I/O 레지스터 선택 레지스터```로 나머지 숨긴 레지스터를 지정할 수 있도록 하였다.
+
+숨긴 레지스터들은 인덱스가 부여되어있다. 아래가 나머지 레지스터들이다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/206088050-2779371b-8e53-48e4-9dbf-9bbc71f7b350.png)
+
+<br>
+
+자세한 내용들은 p.1399부터 읽기.
 
 <br><br>
 <hr style="border: 2px solid;">
