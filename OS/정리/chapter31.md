@@ -64,7 +64,17 @@
 
 <br>
 
+이 또한 p.1404, 1405를 읽으면 된다. 대체로 ICR 레지스터와 비슷하며 몇 가지만 보면 된다.
 
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
+
+## 대칭모드 구현과 전환
+
+<br>
+
+구현 부분은 p.1406부터 
 
 <br><br>
 <hr style="border: 2px solid;">
