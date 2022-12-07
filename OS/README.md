@@ -8,13 +8,18 @@ MINT64 OS 홈페이지 : http://jsandroidapp.cafe24.com/xe/index
 
 환경 : win11 wsl2 Ubuntu 20.04 / qemu 4.x
 
-+ PART
++ 1권
   + PART 1 (1 ~ 5)   OS 개발을 위한 첫 걸음
   + PART 2 (6 ~ 10)  64비트 세계로 점프
   + PART 3 (11 ~ 16) 키보드와 타이머, 인터럽트와 예외
   + PART 4 (17 ~ 22) 멀티태스킹과 멀티쓰레딩, 동기화와 실수 연산 장치
   + PART 5 (23 ~ 28) 동적 메모리 관리와 파일 시스템, 시리얼 통신과 파일 전송
   + PART 6 (29 ~ 33) 멀티코어 프로세서 세상으로 점프
+
+<br>
+
++ 2권
+
 
 <br>
 <hr style="border: 2px solid;">
