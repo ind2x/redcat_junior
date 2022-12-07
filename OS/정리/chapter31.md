@@ -52,6 +52,20 @@
 
 자세한 내용들은 p.1399부터 읽기.
 
+<br>
+
+미리 말했듯이 중요한 부분은 목적지를 설정하는 리다이렉션 테이블 레지스터이다.
+
+다른 레지스터들은 하드웨어적이나 BIOS에서 설정을 해줄 것이다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/206088912-6f7587ac-3fb9-47cf-8bf8-268cbd226440.png)
+
+<br>
+
+
+
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
