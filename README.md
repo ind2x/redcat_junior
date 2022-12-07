@@ -24,6 +24,8 @@
 
 ## LLVM
 
++ llvm ? : <a href="https://zeddios.tistory.com/1175">zeddios.tistory.com/1175</a>
+
 + Compile : <a href="https://bradbury.tistory.com/226">bradbury.tistory.com/226</a>
 
 + tutorial: <a href="https://llvm.org/docs/tutorial/index.html">llvm.org/docs/tutorial/index.html</a>
