@@ -13,6 +13,8 @@
 #include "FileSystem.h"
 #include "SerialPort.h"
 #include "MultiProcessor.h"
+#include "LocalAPIC.h"
+#include "IOAPIC.h"
 
 void MainForApplicationProcessor(void);
 
@@ -100,7 +102,7 @@ void Main(void)
         Printf("Fail\n");
     }
 
-    Printf("[*] Serial Port Initialize........................[PASS]");
+    Printf("[*] Serial Port Initialize........................[Pass]");
     iCursorY++;
     InitializeSerialPort();
 
@@ -118,6 +120,16 @@ void MainForApplicationProcessor(void)
 
     LoadIDTR( IDTR_STARTADDRESS );
 
+    EnableSoftwareLocalAPIC();
+
+    SetTaskPriority(0);
+
+    InitializeLocalVectorTable();
+
+    EnableInterrupt();
+
+    Printf("[*] Application Processor[APIC ID: %d] Is Activated\n", GetAPICID());
+
     qwTickCount = GetTickCount();
     
     while( 1 )
@@ -125,8 +137,6 @@ void MainForApplicationProcessor(void)
         if( GetTickCount() - qwTickCount > 1000 )
         {
             qwTickCount = GetTickCount();
-            
-            Printf( "[*] Application Processor[APIC ID: %d] Is Activated\n",GetAPICID() );
         }
     }
 }

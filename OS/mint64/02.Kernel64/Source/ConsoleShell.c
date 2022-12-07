@@ -3,6 +3,7 @@
 #include "Keyboard.h"
 #include "Utility.h"
 #include "PIT.h"
+#include "PIC.h"
 #include "RTC.h"
 #include "AssemblyUtility.h"
 #include "Task.h"
@@ -14,6 +15,7 @@
 #include "MPConfigurationTable.h"
 #include "LocalAPIC.h"
 #include "MultiProcessor.h"
+#include "IOAPIC.h"
 
 SHELLCOMMANDENTRY gs_vstCommandTable[] =
     {
@@ -27,7 +29,7 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         {"rdtsc", "Read Time Stamp Counter", ReadTimeStampCounter},
         {"cpuspeed", "Measure Processor Speed", MeasureProcessorSpeed},
         {"date", "Show Date And Time", ShowDateAndTime},
-        {"createtask", "Create Task ex) createtask 1(type) 10(count), press 'q'(quit)", CreateTestTask},
+        {"createtask", "Create Task ex) createtask 1(type) 10(count), press 'q'", CreateTestTask},
         {"changepriority", "Change Task Priority, ex) changepriority 1(ID) 2(Priority)", ChangeTaskPriority},
         {"tasklist", "Show Task List", ShowTaskList},
         {"killtask", "End Task, ex) killtask 1(ID) or 0xffffffff(All Task)", KillTask},
@@ -56,6 +58,8 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         {"download", "Download Data From Serial, ex) download a.txt", DownloadFile },
         {"showmpinfo", "Show MP Configuration Table Information", ShowMPConfigurationTable },
         {"startap", "Start Application Processor", StartApplicationProcessor},
+        {"startsymmetricio", "Start Symmetric I/O Mode", StartSymmetricIOMode },
+        {"showirqintinmap", "Show IRQ->INITIN Mapping Table", ShowIRQINTINMappingTable },
 };
 
 void StartConsoleShell(void)
@@ -65,6 +69,7 @@ void StartConsoleShell(void)
     BYTE bKey;
     int iCursorX, iCursorY;
 
+    Printf("\n");
     Printf(CONSOLESHELL_PROMPTMESSAGE);
 
     while(1)
@@ -186,7 +191,7 @@ static void Help(const char *pcParameterBuffer)
     int i;
     int iCount;
     int iCursorX, iCursorY;
-    int iLength, iMaxCommandLength = 0;
+    int iLength, iMaxCommandLength = 17; // = 0; -> 글자 짤림 추후에 확인해서 고칠 것
 
     Printf("=========================================================\n");
     Printf("                           Help                          \n");
@@ -324,7 +329,7 @@ static void WaitUsingPIT(const char *pcParameterBuffer)
     InitializeParameter(&stList, pcParameterBuffer);
     if( GetNextParameter( &stList, vcParameter ) == 0 )
     {
-        Printf( "[!] ex) wait 100(ms)\n" );
+        Printf("[*] [!] ex) wait 100(ms)\n" );
         return ;
     }
 
@@ -338,7 +343,7 @@ static void WaitUsingPIT(const char *pcParameterBuffer)
     }
     WaitUsingDirectPIT( MSTOCOUNT( lMillisecond % 30 ) );   
     EnableInterrupt();
-    Printf( "[*] %d ms Sleep Complete...\n", lMillisecond );
+    Printf("[*] [*] %d ms Sleep Complete...\n", lMillisecond );
     
     InitializePIT( MSTOCOUNT( 1 ), TRUE );
 }
@@ -348,7 +353,7 @@ static void ReadTimeStampCounter(const char *pcParameterBuffer)
     QWORD qwTSC;
     
     qwTSC = ReadTSC();
-    Printf( "[*] Time Stamp Counter = %q\n", qwTSC );
+    Printf("[*] [*] Time Stamp Counter = %q\n", qwTSC );
 }
 
 static void MeasureProcessorSpeed(const char *pcParameterBuffer)
@@ -383,8 +388,8 @@ static void ShowDateAndTime(const char *pcParameterBuffer)
     ReadRTCTime( &bHour, &bMinute, &bSecond );
     ReadRTCDate( &wYear, &bMonth, &bDayOfMonth, &bDayOfWeek );
     
-    Printf( "[*] Date: %d/%d/%d %s\n", wYear, bMonth, bDayOfMonth, ConvertDayOfWeekToString( bDayOfWeek ) );
-    Printf( "[*] Time: %d:%d:%d\n", bHour, bMinute, bSecond );
+    Printf("[*] [*] Date: %d/%d/%d %s\n", wYear, bMonth, bDayOfMonth, ConvertDayOfWeekToString( bDayOfWeek ) );
+    Printf("[*] [*] Time: %d:%d:%d\n", bHour, bMinute, bSecond );
 }
 
 static TCB gs_vstTask[2] = {0, };
@@ -1902,15 +1907,15 @@ static void DownloadFile( const char* pcParameterBuffer )
     
     if( ( iFileNameLength > ( FILESYSTEM_MAXFILENAMELENGTH - 1 ) ) || ( iFileNameLength == 0 ) )
     {
-        Printf( "\nToo Long or Too Short File Name\n" );
-        Printf( "ex) download a.txt\n" );
+        Printf("[*] \nToo Long or Too Short File Name\n" );
+        Printf("[*] ex) download a.txt\n" );
         
         return ;
     }
     
     ClearSerialFIFO();
     
-    Printf( "\n[*] Waiting For Data Length......" );
+    Printf("[*] \n[*] Waiting For Data Length......" );
     dwReceivedSize = 0;
     qwLastReceivedTickCount = GetTickCount();
     
@@ -1926,7 +1931,7 @@ static void DownloadFile( const char* pcParameterBuffer )
             
             if( ( GetTickCount() - qwLastReceivedTickCount ) > 30000 )
             {
-                Printf( " Time Out Occur......\n" );
+                Printf("[*]  Time Out Occur......\n" );
                 return ;
             }
         }
@@ -1935,18 +1940,18 @@ static void DownloadFile( const char* pcParameterBuffer )
             qwLastReceivedTickCount = GetTickCount();
         }
     }
-    Printf( "[%d] Byte\n", dwDataLength );
+    Printf("[*] [%d] Byte\n", dwDataLength );
 
     SendSerialData( "A", 1 );
 
     fp = fopen( vcFileName, "w" );
     if( fp == NULL )
     {
-        Printf( "%s File Open Fail\n", vcFileName );
+        Printf("[*] %s File Open Fail\n", vcFileName );
         return ;
     }
     
-    Printf( "Data Receive Start: " );
+    Printf("[*] Data Receive Start: " );
     dwReceivedSize = 0;
     qwLastReceivedTickCount = GetTickCount();
     
@@ -1962,12 +1967,12 @@ static void DownloadFile( const char* pcParameterBuffer )
                 ( ( dwReceivedSize == dwDataLength ) ) )
             {
                 SendSerialData( "A", 1 );
-                Printf( "#" );
+                Printf("[*] #" );
             }
             
             if( fwrite( vbDataBuffer, 1, dwTempSize, fp ) != dwTempSize )
             {
-                Printf( "[!] File Write Error Occur\n" );
+                Printf("[*] [!] File Write Error Occur\n" );
                 break;
             }
             
@@ -1979,7 +1984,7 @@ static void DownloadFile( const char* pcParameterBuffer )
             
             if( ( GetTickCount() - qwLastReceivedTickCount ) > 10000 )
             {
-                Printf( "Time Out Occur~!!\n" );
+                Printf("[*] Time Out Occur~!!\n" );
                 break;
             }
         }
@@ -1987,12 +1992,12 @@ static void DownloadFile( const char* pcParameterBuffer )
 
     if( dwReceivedSize != dwDataLength )
     {
-        Printf( "\nError Occur. Total Size [%d] Received Size [%d]\n", 
+        Printf("[*] \nError Occur. Total Size [%d] Received Size [%d]\n", 
                  dwReceivedSize, dwDataLength );
     }
     else
     {
-        Printf( "\nReceive Complete. Total Size [%d] Byte\n", dwReceivedSize );
+        Printf("[*] \nReceive Complete. Total Size [%d] Byte\n", dwReceivedSize );
     }
     
     fclose( fp );
@@ -2014,4 +2019,55 @@ static void StartApplicationProcessor( const char* pcParameterBuffer )
     Printf("\n[*] Application Processor Start Success.....\n" );
     
     Printf("[*] Bootstrap Processor [APIC ID: %d] Start Application Processor.....\n", GetAPICID() );
+}
+
+static void StartSymmetricIOMode( const char* pcParameterBuffer )
+{
+    MPCONFIGURATIONMANAGER* pstMPManager;
+    BOOL bInterruptFlag;
+
+    if( AnalysisMPConfigurationTable() == FALSE )
+    {
+        Printf("\n[!] Analyze MP Configuration Table Fail\n" );
+        return ;
+    }
+
+    pstMPManager = GetMPConfigurationManager();
+    
+    if( pstMPManager->bUsePICMode == TRUE )
+    {
+
+        OutPortByte( 0x22, 0x70 );
+        OutPortByte( 0x23, 0x01 );
+    }
+
+    Printf("\n[*] Mask All PIC Controller Interrupt\n" );
+    MaskPICInterrupt( 0xFFFF );
+
+    Printf("[*] Enable Global Local APIC\n" );
+    EnableGlobalLocalAPIC();
+    
+    Printf("[*] Enable Software Local APIC\n" );
+    EnableSoftwareLocalAPIC();
+
+    Printf("[*] Disable CPU Interrupt Flag\n" );
+    bInterruptFlag = SetInterruptFlag( FALSE );
+    
+    SetTaskPriority( 0 );
+
+    InitializeLocalVectorTable();
+    
+    Printf("[*] Initialize IO Redirection Table\n" );
+    InitializeIORedirectionTable();
+        
+    // 이전 인터럽트 플래그를 복원
+    Printf("[*] Restore CPU Interrupt Flag\n" );
+    SetInterruptFlag( bInterruptFlag );
+        
+    Printf("[*] Change Symmetric I/O Mode Complete\n" );
+}
+
+static void ShowIRQINTINMappingTable( const char* pcParameterBuffer )
+{
+    PrintIRQToINTINMap();
 }

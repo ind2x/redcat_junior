@@ -87,4 +87,7 @@ static void ShowMPConfigurationTable( const char* pcParameterBuffer );
 
 static void StartApplicationProcessor( const char* pcParameterBuffer );
 
+static void StartSymmetricIOMode( const char* pcParameterBuffer );
+static void ShowIRQINTINMappingTable( const char* pcParameterBuffer );
+
 #endif /*__CONSOLESHELL_H__*/

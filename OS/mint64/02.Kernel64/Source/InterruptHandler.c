@@ -7,6 +7,7 @@
 #include "Descriptor.h"
 #include "AssemblyUtility.h"
 #include "HardDisk.h"
+#include "LocalAPIC.h"
 
 
 void CommonExceptionHandler(int iVectorNumber, QWORD qwErrorCode)
@@ -38,15 +39,12 @@ void CommonInterruptHandler(int iVectorNumber)
     vcBuffer[8] = '0' + g_iCommonInterruptCount;
     g_iCommonInterruptCount = (g_iCommonInterruptCount + 1) % 10;
     PrintStringXY(70, 0, vcBuffer);
-    //=========================================================================
 
-    // EOI 전송
     SendEOIToPIC(iVectorNumber - PIC_IRQSTARTVECTOR);
+
+    SendEOIToLocalAPIC();
 }
 
-/**
- *  키보드 인터럽트의 핸들러
- */
 void KeyboardHandler(int iVectorNumber)
 {
     char vcBuffer[] = "[INT:  , ]";
@@ -69,6 +67,8 @@ void KeyboardHandler(int iVectorNumber)
 
     // EOI 전송
     SendEOIToPIC(iVectorNumber - PIC_IRQSTARTVECTOR);
+
+    SendEOIToLocalAPIC();
 }
 
 void TimerHandler(int iVectorNumber)
@@ -85,6 +85,8 @@ void TimerHandler(int iVectorNumber)
     PrintStringXY(70, 0, vcBuffer);
     
     SendEOIToPIC(iVectorNumber - PIC_IRQSTARTVECTOR);
+
+    SendEOIToLocalAPIC();
 
     g_qwTickCount++;
 
@@ -165,4 +167,6 @@ void HDDHandler(int iVectorNumber)
     }
 
     SendEOIToPIC(iVectorNumber - PIC_IRQSTARTVECTOR);
+
+    SendEOIToLocalAPIC();
 }

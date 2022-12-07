@@ -175,4 +175,6 @@ MPCONFIGURATIONMANAGER *GetMPConfigurationManager(void);
 void PrintMPConfigurationTable(void);
 int GetProcessorCount(void);
 
+IOAPICENTRY* FindIOAPICEntryForISA( void );
+
 #endif /*__MPCONFIGURATIONTABLE__*/
