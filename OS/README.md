@@ -8,7 +8,7 @@ MINT64 OS 홈페이지 : http://jsandroidapp.cafe24.com/xe/index
 
 환경 : win11 wsl2 Ubuntu 20.04 / qemu 4.x
 
-+ 1권
++ 1권 (1 ~ 31)
   + PART 1 (1 ~ 5)   OS 개발을 위한 첫 걸음
   + PART 2 (6 ~ 10)  64비트 세계로 점프
   + PART 3 (11 ~ 16) 키보드와 타이머, 인터럽트와 예외
@@ -18,7 +18,7 @@ MINT64 OS 홈페이지 : http://jsandroidapp.cafe24.com/xe/index
 
 <br>
 
-+ 2권
++ 2권 (32 ~ 58)
 
 
 <br>
