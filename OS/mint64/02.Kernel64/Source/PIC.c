@@ -20,9 +20,11 @@ void MaskPICInterrupt(WORD wIRQBitmask)
     OutPortByte(PIC_SLAVE_PORT2, (BYTE)(wIRQBitmask >> 8));
 }
 
+/**
+ * 인터럽트 처리 완료 후 PIC에 EOI를 전달
+*/
 void SendEOIToPIC(int iIRQNumber)
 {
-
     OutPortByte(PIC_MASTER_PORT1, 0x20);
 
     if (iIRQNumber >= 8)

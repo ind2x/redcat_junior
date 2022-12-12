@@ -44,10 +44,12 @@ void Main(void)
     }
     PrintString(51, 5, "Pass");
 
+    // 64GB 물리 주소 지원을 위한 페이지 초기화
     PrintString(0, 6, "[*] IA-32e Page Tables Initialize.................[    ]");
     InitializePageTables();
     PrintString(51, 6, "Pass");
     
+    // CPU 제조사를 읽어서 IA-32e 모드 지원 여부 확인
     ReadCPUID(0x00, &dwEAX, &dwEBX, &dwECX, &dwEDX);
     *(DWORD *) vcVendorString = dwEBX;
     *((DWORD *)vcVendorString + 1) = dwEDX;
@@ -68,12 +70,13 @@ void Main(void)
         while(1);
     }
 
+    // 2MB 영역으로 IA-32e 모드 커널 이미지를 복사
     PrintString(0, 9, "[*] Copy IA-32e Kernel To 2MB Address.............[    ]");
     CopyKernel64ImageTo2MB();
     PrintString(51, 9, "Pass");
 
+    // IA-32e 모드로 전환
     PrintString(0, 10, "[*] Switch To IA-32e Mode......");
-
     SwitchAndExecute64bitKernel();
 
     while (1);
@@ -91,6 +94,11 @@ void PrintString(int iX, int iY, const char *pcString)
     }
 }
 
+/**
+ * 1MB ~ 영역을 64비트용 커널 영역으로 사용
+ * 이미지만 1MB 이하 영역에 있고, 이미지에서는 0으로 초기화된 값만 사용하므로 
+ * 1MB ~ 영역 또한 모두 0으로 초기화해줘야 함  
+*/
 BOOL InitializeKernel64Area(void)
 {
     DWORD *pdwCurrentAddress = (DWORD *)0x100000; // 1MB
@@ -107,6 +115,11 @@ BOOL InitializeKernel64Area(void)
     return TRUE;
 }
 
+/**
+ * IA-32e 모드에서도 확인할 것이지만 보호모드에서는 4GB까지만 접근 가능
+ * 따라서 MINT64 OS를 실행하는데 충분한지만 검사 (64MB 필요하나 봄)
+ * 검사 방법은 1MB 단위로 확인, 각 MB의 첫 4바이트를 0x12345678로 설정 후 비교
+*/
 BOOL ISMemoryEnough(void)
 {
     DWORD *pdwCurrentAddress = (DWORD *)0x100000;
@@ -124,6 +137,9 @@ BOOL ISMemoryEnough(void)
     return TRUE;
 }
 
+/**
+ * IA-32e 모드 커널 이미지를 2MB 영역으로 복사
+*/
 void CopyKernel64ImageTo2MB(void)
 {
     WORD wKernel32SectorCount, wTotalKernelSectorCount;
@@ -133,8 +149,8 @@ void CopyKernel64ImageTo2MB(void)
     wTotalKernelSectorCount = *((WORD *)0x7C05);
     wKernel32SectorCount = *((WORD *)0x7C07);
 
-    pdwSourceAddress = (DWORD *)(0x10000 + (wKernel32SectorCount * 512));
-    pdwDestinationAddress = (DWORD *)0x200000;
+    pdwSourceAddress = (DWORD *)(0x10000 + (wKernel32SectorCount * 512));   // IA-32e 모드 커널 이미지의 주소 
+    pdwDestinationAddress = (DWORD *)0x200000;  // IA-32e 모드 커널이 위치할 주소 = 2MB
 
     for (i = 0; i < 512 * (wTotalKernelSectorCount - wKernel32SectorCount) / 4; i++)
     {

@@ -81,20 +81,16 @@
 #define IDT_TABLESIZE (IDT_MAXENTRYCOUNT * sizeof(IDTENTRY))
 
 // IST의 시작 어드레스
-#define IST_STARTADDRESS 0x700000
+#define IST_STARTADDRESS 0x700000 // 7MB ~ 8MB
 // IST의 크기
-#define IST_SIZE 0x100000
+#define IST_SIZE 0x100000   // 1MB
 
-////////////////////////////////////////////////////////////////////////////////
-//
-// 구조체
-//
-////////////////////////////////////////////////////////////////////////////////
+
 // 1바이트로 정렬
 #pragma pack(push, 1)
 
 // GDTR 및 IDTR 구조체
-typedef struct kGDTRStruct
+typedef struct GDTRStruct
 {
     WORD wLimit;
     QWORD qwBaseAddress;
@@ -104,7 +100,7 @@ typedef struct kGDTRStruct
 } GDTR, IDTR;
 
 // 8바이트 크기의 GDT 엔트리 구조
-typedef struct kGDTEntry8Struct
+typedef struct GDTEntry8Struct
 {
     WORD wLowerLimit;
     WORD wLowerBaseAddress;
@@ -117,7 +113,7 @@ typedef struct kGDTEntry8Struct
 } GDTENTRY8;
 
 // 16바이트 크기의 GDT 엔트리 구조
-typedef struct kGDTEntry16Struct
+typedef struct GDTEntry16Struct
 {
     WORD wLowerLimit;
     WORD wLowerBaseAddress;
@@ -132,7 +128,7 @@ typedef struct kGDTEntry16Struct
 } GDTENTRY16;
 
 // TSS Data 구조체
-typedef struct kTSSDataStruct
+typedef struct TSSDataStruct
 {
     DWORD dwReserved1;
     QWORD qwRsp[3];
@@ -144,7 +140,7 @@ typedef struct kTSSDataStruct
 } TSSSEGMENT;
 
 // IDT 게이트 디스크립터 구조체
-typedef struct kIDTEntryStruct
+typedef struct IDTEntryStruct
 {
     WORD wLowerBaseAddress;
     WORD wSegmentSelector;

@@ -3,6 +3,9 @@
 #include "ISR.h"
 #include "MultiProcessor.h"
 
+/**
+ * GDT, TSS 초기화 함수
+*/
 void InitializeGDTTableAndTSS(void)
 {
     GDTR *pstGDTR;
@@ -10,18 +13,19 @@ void InitializeGDTTableAndTSS(void)
     TSSSEGMENT *pstTSS;
     int i;
 
-    pstGDTR = (GDTR *)GDTR_STARTADDRESS;
+    pstGDTR = (GDTR *)GDTR_STARTADDRESS; // 0x142000
     pstEntry = (GDTENTRY8 *)(GDTR_STARTADDRESS + sizeof(GDTR));
     pstGDTR->wLimit = GDT_TABLESIZE - 1;
     pstGDTR->qwBaseAddress = (QWORD)pstEntry;
     
     pstTSS = (TSSSEGMENT *)((QWORD)pstEntry + GDT_TABLESIZE);
 
+    // NULL
     SetGDTEntry8(&(pstEntry[0]), 0, 0, 0, 0, 0);
-    SetGDTEntry8(&(pstEntry[1]), 0, 0xFFFFF, GDT_FLAGS_UPPER_CODE,
-                  GDT_FLAGS_LOWER_KERNELCODE, GDT_TYPE_CODE);
-    SetGDTEntry8(&(pstEntry[2]), 0, 0xFFFFF, GDT_FLAGS_UPPER_DATA,
-                  GDT_FLAGS_LOWER_KERNELDATA, GDT_TYPE_DATA);
+    // 64비트 Code Descriptor
+    SetGDTEntry8(&(pstEntry[1]), 0, 0xFFFFF, GDT_FLAGS_UPPER_CODE, GDT_FLAGS_LOWER_KERNELCODE, GDT_TYPE_CODE);
+    // 64비트 Data Descriptor
+    SetGDTEntry8(&(pstEntry[2]), 0, 0xFFFFF, GDT_FLAGS_UPPER_DATA, GDT_FLAGS_LOWER_KERNELDATA, GDT_TYPE_DATA);
     
     for( i = 0 ; i < MAXPROCESSORCOUNT ; i++ )
     {

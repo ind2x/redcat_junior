@@ -57,14 +57,16 @@
 
 #pragma pack(push, 1)
 
-typedef struct kKeyMappingEntryStruct
+// 스캔 코드 매핑 테이블 자료구조
+typedef struct KeyMappingEntryStruct
 {
-    BYTE bNormalCode;
+    BYTE bNormalCode;   // 조합되지 않는 일반적인 ASCII 값
 
-    BYTE bCombinedCode;
+    BYTE bCombinedCode; // Shift, Caps Lock 등과 조합된 ASCII 값
 } KEYMAPPINGENTRY;
 
-typedef struct kKeyboardManagerStruct
+// 키보드 키 상태 관리 자료구조
+typedef struct KeyboardManagerStruct
 {
     BOOL bShiftDown;
     BOOL bCapsLockOn;
@@ -75,7 +77,8 @@ typedef struct kKeyboardManagerStruct
     int iSkipCountForPause;
 } KEYBOARDMANAGER;
 
-typedef struct kKeyDataStruct
+// 키 큐에 삽입할 데이터 구조체
+typedef struct KeyDataStruct
 {
     BYTE bScanCode;
     BYTE bASCIICode;

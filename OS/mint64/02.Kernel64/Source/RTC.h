@@ -3,9 +3,11 @@
 
 #include "Types.h"
 
-#define RTC_CMOSADDRESS         0x70
-#define RTC_CMOSDATA            0x71
+// I/O 포트
+#define RTC_CMOSADDRESS         0x70 // 메모리 어드레스
+#define RTC_CMOSDATA            0x71 // 메모리 데이터
 
+// CMOS 메모리 어드레스 관련 레지스터
 #define RTC_ADDRESS_SECOND      0x00
 #define RTC_ADDRESS_MINUTE      0x02
 #define RTC_ADDRESS_HOUR        0x04

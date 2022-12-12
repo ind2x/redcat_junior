@@ -1,11 +1,11 @@
 #ifndef __TYPES_H__
 #define __TYPES_H__
 
-#define BYTE    unsigned char
-#define WORD    unsigned short
-#define DWORD   unsigned int
-#define QWORD   unsigned long
-#define BOOL    unsigned char
+#define BYTE    unsigned char   // 1 BYTE
+#define WORD    unsigned short  // 2 BYTE
+#define DWORD   unsigned int    // 4 BYTE
+#define QWORD   unsigned long   // 8 BYTE
+#define BOOL    unsigned char   // 1 BYTE
 
 #define TRUE    1
 #define FALSE   0

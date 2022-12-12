@@ -29,12 +29,15 @@ void Main(void)
     
     *((BYTE*) BOOTSTRAPPROCESSOR_FLAGADDRESS) = 0;
 
+    // 콘솔 초기화, (0,10) 좌표로 커서 업데이트
     InitializeConsole(0, 10);
 
-    Printf("[*] Switch To IA-32e Mode Success.................\n");
+    // 11번째 줄(0,10) 부터 출력
+    Printf("==============>> Switch To IA-32e Mode Success <<==============\n");
     Printf("[*] IA-32e C Language Kernel Start................[Pass]\n");
     Printf("[*] Initialize Console............................[Pass]\n");
     
+    // 현재 커서의 위치 저장
     GetCursor(&iCursorX, &iCursorY);
     Printf("[*] GDT Initialize And Switch For IA-32e Mode.....[    ]");
     InitializeGDTTableAndTSS();
@@ -66,6 +69,7 @@ void Main(void)
     iCursorY++;
     InitializeDynamicMemory();
 
+    // 1ms마다 주기적으로 인터럽트 설정
     InitializePIT(MSTOCOUNT(1), 1);
 
     Printf("[*] Keyboard Activate And Queue Initialize........[    ]");

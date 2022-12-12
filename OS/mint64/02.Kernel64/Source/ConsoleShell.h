@@ -6,10 +6,12 @@
 #define CONSOLESHELL_MAXCOMMANDBUFFERCOUNT 300
 #define CONSOLESHELL_PROMPTMESSAGE "\nredcat> "
 
+// 함수의 주소를 함수 포인터로 받아서 효율적으로 받게 끔 정의
 typedef void (*CommandFunction)(const char *pcParameter);
 
 #pragma pack(push, 1)
 
+// 셸 명령어와 도움말, 함수의 주소를 정의한 자료구조
 typedef struct ShellCommandEntryStruct
 {
     char *pcCommand;
@@ -19,9 +21,9 @@ typedef struct ShellCommandEntryStruct
 
 typedef struct ParameterListStruct
 {
-    const char *pcBuffer;
-    int iLength;
-    int iCurrentPosition;
+    const char *pcBuffer; // 파라미터 버퍼의 주소
+    int iLength;    // 파라미터 길이
+    int iCurrentPosition; // 현재 처리할 파라미터가 시작하는 위치
 } PARAMETERLIST;
 
 #pragma pack( pop )

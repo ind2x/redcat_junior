@@ -62,6 +62,9 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         {"showirqintinmap", "Show IRQ->INITIN Mapping Table", ShowIRQINTINMappingTable },
 };
 
+/**
+ * 셸의 메인 루프
+*/
 void StartConsoleShell(void)
 {
     char vcCommandBuffer[CONSOLESHELL_MAXCOMMANDBUFFERCOUNT];
@@ -70,12 +73,12 @@ void StartConsoleShell(void)
     int iCursorX, iCursorY;
 
     Printf("\n");
-    Printf(CONSOLESHELL_PROMPTMESSAGE);
+    Printf(CONSOLESHELL_PROMPTMESSAGE); // 셸 프롬프트 출력
 
     while(1)
     {
-        bKey = GetCh();
-        if(bKey == KEY_BACKSPACE)
+        bKey = GetCh(); // 키를 받을 때 까지 대기
+        if(bKey == KEY_BACKSPACE) // bacpspace 처리
         {
             if(iCommandBufferIndex > 0)
             {
@@ -86,7 +89,7 @@ void StartConsoleShell(void)
             }
         }
 
-        else if (bKey == KEY_ENTER)
+        else if (bKey == KEY_ENTER) // enter 처리
         {
             Printf("\n");
 
@@ -108,7 +111,7 @@ void StartConsoleShell(void)
 
         else
         {
-            if(bKey == KEY_TAB) 
+            if(bKey == KEY_TAB)  // TAB은 공백으로 치환
             {
                 bKey = ' ';
             }
@@ -122,12 +125,16 @@ void StartConsoleShell(void)
     }
 }
 
+/**
+ * 명령어 실행해주는 함수
+*/
 void ExecuteCommand(const char *pcCommandBuffer)
 {
     int i, iSpaceIndex;
     int iCommandBufferLength, iCommandLength;
     int iCount;
 
+    // 공백으로 구분된 커맨드를 추출
     iCommandBufferLength = Strlen(pcCommandBuffer);
     for (iSpaceIndex = 0; iSpaceIndex < iCommandBufferLength; iSpaceIndex++)
     {
@@ -136,13 +143,15 @@ void ExecuteCommand(const char *pcCommandBuffer)
             break;
         }
     }
-
+    
+    // 커맨드 명과 입력값이 일치하는 명령어 추출 및 검사
     iCount = sizeof(gs_vstCommandTable)/ sizeof(SHELLCOMMANDENTRY);
     for(i=0; i<iCount; i++)
     {
         iCommandLength = Strlen(gs_vstCommandTable[i].pcCommand);
         if((iCommandLength == iSpaceIndex) && (MemCmp(gs_vstCommandTable[i].pcCommand, pcCommandBuffer, iSpaceIndex) == 0))
         {
+            // 같으면 함수를 호출
             gs_vstCommandTable[i].pfFunction(pcCommandBuffer + iSpaceIndex + 1);
             break;
         }
@@ -154,6 +163,9 @@ void ExecuteCommand(const char *pcCommandBuffer)
     }
 }
 
+/**
+ * 파라미터 초기화 함수
+ */
 void InitializeParameter(PARAMETERLIST *pstList, const char *pcParameter)
 {
     pstList->pcBuffer = pcParameter;
@@ -162,6 +174,9 @@ void InitializeParameter(PARAMETERLIST *pstList, const char *pcParameter)
 
 }
 
+/**
+ * 공백으로 구분된 파라미터의 내용과 길이를 반환
+ */
 int GetNextParameter(PARAMETERLIST *pstList, char *pcParameter)
 {
     int i, iLength;
@@ -191,14 +206,16 @@ static void Help(const char *pcParameterBuffer)
     int i;
     int iCount;
     int iCursorX, iCursorY;
-    int iLength, iMaxCommandLength = 17; // = 0; -> 글자 짤림 추후에 확인해서 고칠 것
+    int iLength, iMaxCommandLength = 0;
 
     Printf("=========================================================\n");
     Printf("                           Help                          \n");
     Printf("=========================================================\n");
 
+    // 커맨드 개수 파악
     iCount = sizeof(gs_vstCommandTable) / sizeof(SHELLCOMMANDENTRY);
 
+    // 커맨드 중 가장 긴 커맨드명 길이 가져옴
     for (i = 0; i < iCount; i++)
     {
         iLength = Strlen(gs_vstCommandTable[i].pcCommand);
@@ -212,7 +229,8 @@ static void Help(const char *pcParameterBuffer)
     {
         Printf(" %s", gs_vstCommandTable[i].pcCommand);
         GetCursor(&iCursorX, &iCursorY);
-        SetCursor(iMaxCommandLength, iCursorY);
+        // 글자 짤려서 iMaxCommandLength + 1로 변경
+        SetCursor(iMaxCommandLength + 1, iCursorY);
         Printf("  - %s\n", gs_vstCommandTable[i].pcHelp);
 
         if((i != 0) && ((i % 20) == 0))
@@ -283,6 +301,9 @@ static void StringToDecimalHexTest(const char *pcParameterBuffer)
     }
 }
 
+/**
+ * 프로세스 리셋하는 함수
+*/
 static void ShutDownAndReboot(const char *pcParamegerBuffer)
 {
     Printf("[*] System Shutdown........\n");
@@ -291,6 +312,15 @@ static void ShutDownAndReboot(const char *pcParamegerBuffer)
     Reboot();
 }
 
+
+
+/////////////////////////////////////////////////////////////////////////////////
+// 시간 관련 함수들
+
+/**
+ * PIT 컨트롤러의 카운터 0을 설정하는 함수
+ * 물론 디폴트는 Main에서 10ms 1(periodic)으로 설정함
+*/
 static void SetTimer(const char *pcParameterBuffer)
 {
     char vcParameter[100];
@@ -318,6 +348,9 @@ static void SetTimer(const char *pcParameterBuffer)
     Printf("[*] Time = %d ms, Periodic = %d Change Complete..\n", lValue, bPeriodic);
 }
 
+/**
+ * PIT 컨트롤러를 직접 사용하여 ms 동안 대기
+*/
 static void WaitUsingPIT(const char *pcParameterBuffer)
 {
     char vcParameter[100];
@@ -337,25 +370,35 @@ static void WaitUsingPIT(const char *pcParameterBuffer)
     Printf("[*] %d ms Sleep Start....\n", lMillisecond);
 
     DisableInterrupt();
+    
     for(i=0; i<lMillisecond/30; i++)
     {
         WaitUsingDirectPIT(MSTOCOUNT(30));
     }
-    WaitUsingDirectPIT( MSTOCOUNT( lMillisecond % 30 ) );   
-    EnableInterrupt();
-    Printf("[*] [*] %d ms Sleep Complete...\n", lMillisecond );
     
-    InitializePIT( MSTOCOUNT( 1 ), TRUE );
+    WaitUsingDirectPIT( MSTOCOUNT( lMillisecond % 30 ) );   
+    
+    EnableInterrupt();
+    
+    Printf("[*] %d ms Sleep Complete...\n", lMillisecond );
+    
+    InitializePIT( MSTOCOUNT( 1 ), TRUE ); // 끝난 후 다시 재설정
 }
 
+/**
+ * TSC를 읽는 함수
+*/
 static void ReadTimeStampCounter(const char *pcParameterBuffer)
 {
     QWORD qwTSC;
     
     qwTSC = ReadTSC();
-    Printf("[*] [*] Time Stamp Counter = %q\n", qwTSC );
+    Printf("[*] Time Stamp Counter = %q\n", qwTSC );
 }
 
+/**
+ * 프로세서의 속도 측정
+*/
 static void MeasureProcessorSpeed(const char *pcParameterBuffer)
 {
     int i;
@@ -364,6 +407,7 @@ static void MeasureProcessorSpeed(const char *pcParameterBuffer)
     Printf("[*] Measuring speed of CPU");
     DisableInterrupt();
 
+    // 10초 동안 변화한 타임 스탬프 카운터를 이용하여 프로세서의 속도를 간접적으로 측정
     for(i=1; i<=200; i++)
     {
         qwLastTSC = ReadTSC();
@@ -379,6 +423,9 @@ static void MeasureProcessorSpeed(const char *pcParameterBuffer)
     Printf("\n[*] CPU Speed = %d MHz\n", qwTotalTSC / 10 / 1000 / 1000);
 }
 
+/**
+ * RTC를 읽어서 일자, 시간 정보를 표시하는 함수
+*/
 static void ShowDateAndTime(const char *pcParameterBuffer)
 {
     BYTE bSecond, bMinute, bHour;
@@ -388,13 +435,22 @@ static void ShowDateAndTime(const char *pcParameterBuffer)
     ReadRTCTime( &bHour, &bMinute, &bSecond );
     ReadRTCDate( &wYear, &bMonth, &bDayOfMonth, &bDayOfWeek );
     
-    Printf("[*] [*] Date: %d/%d/%d %s\n", wYear, bMonth, bDayOfMonth, ConvertDayOfWeekToString( bDayOfWeek ) );
-    Printf("[*] [*] Time: %d:%d:%d\n", bHour, bMinute, bSecond );
+    Printf("[*] Date: %d/%d/%d %s\n", wYear, bMonth, bDayOfMonth, ConvertDayOfWeekToString( bDayOfWeek ) );
+    Printf("[*] Time: %d:%d:%d\n", bHour, bMinute, bSecond );
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+// 멀티태스킹 부분 시작
 
 static TCB gs_vstTask[2] = {0, };
 static QWORD gs_vstStack[1024] = {0, };
 
+/**
+ * 태스크 1
+ * 화면 테두리를 돌면서 문자를 출력
+*/
 static void TestTask1(void)
 {
     BYTE bData;
@@ -454,6 +510,10 @@ static void TestTask1(void)
     ExitTask();
 }
 
+/**
+ * 태스크 2
+ * 자신의 ID를 참고하여 특정 위치에 회전하는 바람개비를 출력
+*/
 static void TestTask2(void)
 {
     int i = 0, iOffset;
@@ -461,6 +521,7 @@ static void TestTask2(void)
     TCB *pstRunningTask;
     char vcData[4] = {'-', '\\', '|', '/'};
 
+    // 자신의 ID를 얻어서 위치 계산
     pstRunningTask = GetRunningTask();
     iOffset = (pstRunningTask->stLink.qwID & 0xFFFFFFFF) * 2;
     iOffset = CONSOLE_WIDTH * CONSOLE_HEIGHT -
@@ -468,14 +529,16 @@ static void TestTask2(void)
 
     while (1)
     {
+        // 회전하는 바람개비 표시
         pstScreen[iOffset].bCharactor = vcData[i % 4];
         pstScreen[iOffset].bAttribute = (iOffset % 15) + 1;
         i++;
-
-        //Schedule();
     }
 }
 
+/**
+ * 태스크를 생성하여 멀티 태스킹 수행
+*/
 static void CreateTestTask(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
@@ -492,6 +555,7 @@ static void CreateTestTask(const char *pcParameterBuffer)
     case 1:
         for (i = 0; i < AToI(vcCount, 10); i++)
         {
+            // 낮은 우선순위의 화면 테두리를 돌면서 문자를 출력하는 태스크 생성
             if (CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD) TestTask1) == NULL)
             {
                 break;
@@ -505,6 +569,7 @@ static void CreateTestTask(const char *pcParameterBuffer)
     default:
         for (i = 0; i < AToI(vcCount, 10); i++)
         {
+            // 낮은 우선순위의 바람개비를 생성하는 태스크 생성
             if (CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD)TestTask2) == NULL)
             {
                 break;
@@ -516,6 +581,9 @@ static void CreateTestTask(const char *pcParameterBuffer)
     }
 }
 
+/**
+ * 태스크의 우선순위를 변경
+*/
 static void ChangeTaskPriority(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
@@ -528,6 +596,7 @@ static void ChangeTaskPriority(const char *pcParameterBuffer)
     GetNextParameter(&stList, vcID);
     GetNextParameter(&stList, vcPriority);
 
+    // 태스크의 ID를 계산
     if (MemCmp(vcID, "0x", 2) == 0)
     {
         qwID = AToI(vcID + 2, 16);
@@ -537,9 +606,12 @@ static void ChangeTaskPriority(const char *pcParameterBuffer)
         qwID = AToI(vcID, 10);
     }
 
+    // 변경하고자 하는 우선순위 설정
     bPriority = AToI(vcPriority, 10);
 
     Printf("[*] Change Task Priority ID [0x%q] Priority[%d]..... ", qwID, bPriority);
+    
+    // 인자로 받은 태스크 ID의 우선순위 변경 
     if (ChangePriority(qwID, bPriority) == TRUE)
     {
         Printf("Success\n");
@@ -550,6 +622,9 @@ static void ChangeTaskPriority(const char *pcParameterBuffer)
     }
 }
 
+/**
+ * 현재 생성된 모든 태스크의 정보를 출력 
+*/
 static void ShowTaskList(const char *pcParameterBuffer)
 {
     int i;
@@ -581,6 +656,9 @@ static void ShowTaskList(const char *pcParameterBuffer)
     }
 }
 
+/**
+ * 태스크를 종료시키는 함수
+*/
 static void KillTask(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
@@ -646,36 +724,56 @@ static void KillTask(const char *pcParameterBuffer)
     }
 }
 
+/**
+ * 프로세서 부하를 계산함
+*/
 static void CPULoad(const char *pcParameterBuffer)
 {
     Printf("Processor Load : %d%%\n", GetProcessorLoad());
 }
 
+
+
+///////////////////////////////////////////////////////////////////////
+// 뮤텍스 테스트 함수
+
 static MUTEX gs_stMutex;
 static volatile QWORD gs_qwAdder;
 
+/**
+ * 뮤텍스 테스트를 위한 테스트 함수
+ * 1 ~ 5까지의 숫자를 출력하는 함수
+*/
 static void PrintNumberTask(void)
 {
     int i;
     int j;
     QWORD qwTickCount;
 
+    // 50ms 정도 대기하면서 콘솔 셸과 곂치지 않도록 설정
     qwTickCount = GetTickCount();
     while ((GetTickCount() - qwTickCount) < 50)
     {
         Schedule();
     }
 
+    // 루프를 돌면서 숫자를 출력
     for (i = 0; i < 5; i++)
-    {
+    {   
+        // 뮤텍스를 해줘야 하는 이유는 공유되는 변수가 있으며, 이 값이 다른 태스크에 의해 변경되기 때문임
+        // 공유 변수는 gs_qwAdder와 Printf의 커서 위치 변수들임
+
+        // 현재 태스크로 뮤텍스 잠금 실행
+        // gs_qwAdder와 Printf가 뮤텍스 처리되어 다른 태스크가 접근할 수 없음
         Lock(&(gs_stMutex));
+
         Printf("[*] Task ID [0x%Q] Value[%d]\n", GetRunningTask()->stLink.qwID, gs_qwAdder);
 
         gs_qwAdder += 1;
+
         Unlock(&(gs_stMutex));
 
-        for (j = 0; j < 30000; j++)
-            ;
+        for (j = 0; j < 30000; j++);
     }
 
     qwTickCount = GetTickCount();
@@ -687,6 +785,11 @@ static void PrintNumberTask(void)
     ExitTask();
 }
 
+/**
+ * 뮤텍스를 테스트하는 태스크 생성
+ * 3개의 테스트 태스크를 생성하여 위의 PrintfNumber 함수를 실행시켜서 확인
+ * 뮤텍스가 없다면 숫자들이 순서대로 출력되지 않고 뒤죽박죽일 것임
+*/
 static void TestMutex(const char *pcParameterBuffer)
 {
     int i;
@@ -695,15 +798,26 @@ static void TestMutex(const char *pcParameterBuffer)
 
     InitializeMutex(&gs_stMutex);
 
+    // 3개의 태스크를 생성하여 PrintNumberTask 함수 실행
     for (i = 0; i < 3; i++)
     {
         CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD)PrintNumberTask);
     }
     
     Printf("[*] Wait Util %d Task End.......\n", i);
+    // 아무 키나 눌러서 함수 종료
     GetCh();
 }
 
+
+
+/////////////////////////////////////////////////////
+// 쓰레드 관련 기능
+
+/**
+ * 낮은 우선순위의 TestTask2 함수를 실행하는 3개의 쓰레드를 생성함
+ * TestTask2는 바람개비를 생성하는 태스크
+*/
 static void CreateThreadTask(void)
 {
     int i;
@@ -719,10 +833,14 @@ static void CreateThreadTask(void)
     }
 }
 
+/**
+ * 3개의 쓰레드를 테스트하는 태스크 생성
+*/
 static void TestThread(const char *pcParameterBuffer)
 {
     TCB *pstProcess;
 
+    // 프로세스 생성
     pstProcess = CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_PROCESS, (void *)0xEEEEEEEE, 0x1000, (QWORD)CreateThreadTask);
     
     if (pstProcess != NULL)
@@ -735,9 +853,12 @@ static void TestThread(const char *pcParameterBuffer)
     }
 }
 
+// 난수를 발생시키기 위한 변수
 static volatile QWORD gs_qwRandomValue = 0;
 
-
+/**
+ * 임의의 난수를 반환
+*/
 QWORD Random(void)
 {
     gs_qwRandomValue = (gs_qwRandomValue * 412153 + 5571031) >> 16;
@@ -745,6 +866,11 @@ QWORD Random(void)
     return gs_qwRandomValue;
 }
 
+/**
+ * 철자를 흘러내리게 하는 함수
+ * 난수를 이용해서 철자를 만드는 것
+ * 매트릭스 효과를 위한 함수
+*/
 static void DropCharactorThread(void)
 {
     int iX, iY;
@@ -778,6 +904,10 @@ static void DropCharactorThread(void)
     }
 }
 
+/**
+ * 쓰레드를 생성하여 매트릭스 화면처럼 보여주는 프로세스
+ * 300개의 위의 함수를 실행하는 쓰레드를 생성
+*/
 static void MatrixProcess(void)
 {
     int i;
@@ -794,19 +924,26 @@ static void MatrixProcess(void)
 
     Printf("[*] %d Thread is created\n", i);
 
+    // 키가 입력되면 프로세스 종료
     GetCh();
 }
 
+/**
+ * 
+*/
 static void ShowMatrix(const char *pcParameterBuffer)
 {
     TCB *pstProcess;
 
+    // 매트릭스 쓰레드들의 부모 프로세스 생성
     pstProcess = CreateTask(TASK_FLAGS_PROCESS | TASK_FLAGS_LOW, (void *)0xE00000, 0xE00000,(QWORD)MatrixProcess);
     
     if (pstProcess != NULL)
     {
         Printf("[*] Matrix Process [0x%Q] Create Success\n", pstProcess->stLink.qwID);
 
+        // 상위 32비트 값을 비교해 종료 태스크인지 검사
+        // 종료 태스크로 설정되면 종료
         while ((pstProcess->stLink.qwID >> 32) != 0)
         {
             Sleep(100);
@@ -818,6 +955,13 @@ static void ShowMatrix(const char *pcParameterBuffer)
     }
 }
 
+
+//////////////////////////////////////////////////////
+// 실수 연산을 위한 기능
+
+/**
+ * 
+*/
 static void FPUTestTask(void)
 {
     double dValue1;
@@ -872,6 +1016,10 @@ static void FPUTestTask(void)
     }
 }
 
+/**
+ * 파이 소수점 부분을 출력하도록 하는 함수
+ * FPUTestTask를 실행하는 쓰레드를 100개 생성
+*/
 static void TestPIE(const char *pcParameterBuffer)
 {
     double dResult;
@@ -889,6 +1037,17 @@ static void TestPIE(const char *pcParameterBuffer)
     }
 }
 
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// 동적 메모리 기능 함수들
+
+/**
+ * 동적메모리 관련 아래 정보들을 출력
+ * 동적 메모리 시작 주소, 전체 크기
+ * 비트맵과 할당된 블록 크기를 저장하는데 사용한 영역
+ * 사용된 메모리 영역 
+*/
 static void ShowDyanmicMemoryInformation(const char *pcParameterBuffer)
 {
     QWORD qwStartAddress, qwTotalSize, qwMetaSize, qwUsedSize;
@@ -906,6 +1065,9 @@ static void ShowDyanmicMemoryInformation(const char *pcParameterBuffer)
     Printf("[*] Used Size:        [ 0x%Q ] byte,   [ %d ] KB\n", qwUsedSize, qwUsedSize / 1024);
 }
 
+/**
+ * 블록을 크기순으로 순차적으로 할당하고 검사 후 해제하는 테스트를 수행
+*/
 static void TestSequentialAllocation(const char *pcParameterBuffer)
 {
     DYNAMICMEMORY *pstMemory;
@@ -962,6 +1124,9 @@ static void TestSequentialAllocation(const char *pcParameterBuffer)
     Printf("[*] Test Completed......!!!\n");
 }
 
+/**
+ * 임의의 메모리를 할당하고 해제하는 테스트를 10번 진행
+*/
 static void RandomAllocationTask(void)
 {
     TCB *pstTask;
@@ -1021,16 +1186,27 @@ static void RandomAllocationTask(void)
     ExitTask();
 }
 
+/**
+ * 위의 함수를 실행하는 쓰레드(태스크)를 100개 생성
+*/
 static void TestRandomAllocation(const char *pcParameterBuffer)
 {
     int i;
 
-    for (i = 0; i < 1000; i++)
+    for (i = 0; i < 100; i++)
     {
         CreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD, 0, 0, (QWORD)RandomAllocationTask);
     }
 }
 
+
+
+///////////////////////////////////////////////////////////////////////////
+// 파일 시스템 관련 기능들
+
+/**
+ * 하드 디스크의 정보를 출력
+*/
 static void ShowHDDInformation(const char *pcParameterBuffer)
 {
     HDDINFORMATION stHDD;
@@ -1060,6 +1236,9 @@ static void ShowHDDInformation(const char *pcParameterBuffer)
     Printf("[*] Total Sector:\t %d Sector, %dMB\n", stHDD.dwTotalSectors, stHDD.dwTotalSectors / 2 / 1024);
 }
 
+/**
+ * 인자로 넘어온 하드 디스크의 LBA 어드레스에서 섹터 수 만큼 읽음 
+*/
 static void ReadSector(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
@@ -1129,7 +1308,9 @@ static void ReadSector(const char *pcParameterBuffer)
     FreeMemory(pcBuffer);
 }
 
-
+/**
+ * 인자로 넘어온 하드디스크의 LBA 주소에 섹터 수 만큼 값을 씀 
+*/
 static void WriteSector(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
@@ -1215,6 +1396,9 @@ static void WriteSector(const char *pcParameterBuffer)
     FreeMemory(pcBuffer);
 }
 
+/**
+ * MINT 파일 시스템 인식하는 함수
+*/
 static void MountHDD(const char *pcParameterBuffer)
 {
     if (Mount() == FALSE)
@@ -1226,6 +1410,9 @@ static void MountHDD(const char *pcParameterBuffer)
     Printf("[*] HDD Mount Success.......\n");
 }
 
+/**
+ * MINT 파일 시스템 생성하는 함수
+*/
 static void FormatHDD(const char *pcParameterBuffer)
 {
     if (Format() == FALSE)
@@ -1237,6 +1424,9 @@ static void FormatHDD(const char *pcParameterBuffer)
     Printf("[*] HDD Format Success.......\n");
 }
 
+/**
+ * 파일 시스템 정보 출력
+*/
 static void ShowFileSystemInformation(const char *pcParameterBuffer)
 {
     FILESYSTEMMANAGER stManager;
@@ -1253,6 +1443,9 @@ static void ShowFileSystemInformation(const char *pcParameterBuffer)
     Printf("[*] Total Cluster Count:\t\t\t %d Cluster\n", stManager.dwTotalClusterCount);
 }
 
+/**
+ * 루트 디렉터리에 파일을 생성하는 함수
+*/
 static void CreateFileInRootDirectory(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
@@ -1273,6 +1466,7 @@ static void CreateFileInRootDirectory(const char *pcParameterBuffer)
         return;
     }
 
+    // 파일을 쓰기 모드로 생성
     pstFile = fopen(vcFileName, "w");
 
     if(pstFile == NULL)
@@ -1286,6 +1480,9 @@ static void CreateFileInRootDirectory(const char *pcParameterBuffer)
     
 }
 
+/**
+ * 파일 이름을 넘겨받아 파일을 삭제하는 함수
+*/
 static void DeleteFileInRootDirectory(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
@@ -1312,6 +1509,9 @@ static void DeleteFileInRootDirectory(const char *pcParameterBuffer)
     Printf("\n[*] File delete success..........\n");
 }
 
+/**
+ * 파일 목록 표시
+*/
 static void ShowRootDirectory(const char *pcParameterBuffer)
 {
     DIR *pstDirectory;
@@ -1407,6 +1607,10 @@ static void ShowRootDirectory(const char *pcParameterBuffer)
     closedir(pstDirectory);
 }
 
+/**
+ * 파일을 생성하여 내용을 입력
+ * 엔터 3번치면 종료
+*/
 static void WriteDataToFile(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
@@ -1461,7 +1665,9 @@ static void WriteDataToFile(const char *pcParameterBuffer)
     fclose(fp);
 }
 
-
+/**
+ * 파일을 열어서 데이터를 읽음
+*/
 static void ReadDataFromFile(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
@@ -1516,6 +1722,11 @@ static void ReadDataFromFile(const char *pcParameterBuffer)
     fclose(fp);
 }
 
+/**
+ * 파일 I/O 기능 테스트
+ * 하드디스크로 했을 때 매우 잘 안됨
+ * 램 디스크로 해야 잘 됨
+*/
 static void TestFileIO(const char *pcParameterBuffer)
 {
     FILE *pstFile;
@@ -1869,6 +2080,9 @@ static void TestPerformance(const char *pcParameterBuffer)
     FreeMemory(pbBuffer);
 }
 
+/**
+ * 캐시 버퍼를 비움
+*/
 static void FlushCache(const char *pcParameterBuffer)
 {
     QWORD qwTickCount;
@@ -1889,6 +2103,9 @@ static void FlushCache(const char *pcParameterBuffer)
     Printf("[*] Total Time = %d ms\n", GetTickCount() - qwTickCount);
 }
 
+/**
+ * 파일을 외부에서 다운로드함
+*/
 static void DownloadFile( const char* pcParameterBuffer )
 {
     PARAMETERLIST stList;
@@ -2004,11 +2221,17 @@ static void DownloadFile( const char* pcParameterBuffer )
     FlushFileSystemCache();
 }
 
+/**
+ * MP테이블 보여줌
+*/
 static void ShowMPConfigurationTable( const char* pcParameterBuffer )
 {
     PrintMPConfigurationTable();
 }
 
+/**
+ * AP 코어 활성화
+*/
 static void StartApplicationProcessor( const char* pcParameterBuffer )
 {
     if( StartUpApplicationProcessor() == FALSE )
@@ -2021,6 +2244,9 @@ static void StartApplicationProcessor( const char* pcParameterBuffer )
     Printf("[*] Bootstrap Processor [APIC ID: %d] Start Application Processor.....\n", GetAPICID() );
 }
 
+/**
+ * 대칭 I/O 모드 활성화
+*/
 static void StartSymmetricIOMode( const char* pcParameterBuffer )
 {
     MPCONFIGURATIONMANAGER* pstMPManager;

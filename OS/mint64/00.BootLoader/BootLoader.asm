@@ -7,7 +7,7 @@ jmp 0x07C0:START
 
 TOTALSECTORCOUNT: dw 0x02  ; 보호모드 커널 + C커널
 KERNEL32SECTORCOUNT: dw 0x02    ; 보호모드 커널 총 섹터 수
-BOOTSTRAPPROCESSOR: db 0x01     ; 0x7C09
+BOOTSTRAPPROCESSOR: db 0x01     ; 0x7C09, BSP = 1, AP = 0으로 구분
 
 START:
     mov ax, 0x07C0
@@ -23,12 +23,13 @@ START:
 
     mov si, 0
 
-.SCREENCLEARLOOP:
+.SCREENCLEARLOOP:                       ; 화면에서 문자만 0으로 초기화 해줌
+                                        ; 속성 값은 그대로 설정
     mov byte [ es: si ], 0
-    mov byte [ es: si + 1], 0x0A
+    mov byte [ es: si + 1], 0x0A        ; 속성 값 = 검정 배경에 초록색 글씨
 
     add si, 2
-    cmp si, 80*25*2
+    cmp si, 80*25*2                     ; 가로 80, 세로 25, 문자 당 2바이트
 
     jl .SCREENCLEARLOOP
 
@@ -48,7 +49,6 @@ START:
     add sp, 6
 
 
-
 RESETDISK:
     mov ax, 0
     mov dl, 0
@@ -62,6 +62,11 @@ RESETDISK:
     mov di, word [ TOTALSECTORCOUNT ]
 
 READDATA:
+    ; 플로피 디스크는 섹터 -> 헤더 -> 트랙 순으로 증가됨
+    ; 섹터는 현 버전 qemu에서는 1 ~ 36
+    ; 헤더는 0 ~ 1
+    ; 트랙은 0 ~ 79
+
     cmp di, 0
     je READEND
     sub di, 0x1
@@ -75,17 +80,16 @@ READDATA:
     int 0x13
     jc HANDLEDISKERROR
 
-    add si, 0x0020
-
-    mov es, si
+    add si, 0x0020                  ; 세그먼트에 넣을 것이므로 512바이트(0x200)만큼 넘어가려면
+    mov es, si                      ; 0x0020을 es 세그먼트 레지스터에 저장하면 0x200이 됨
 
     mov al, byte [ SECTORNUMBER ]
     add al, 0x01
     mov byte [ SECTORNUMBER ], al
-    cmp al, 37
-    jl READDATA
+    cmp al, 37                      ; qemu 최신버전은 섹터 개수가 18 -> 36개로 변경되었음
+    jl READDATA                     ; 따라서 37과 비교하는 것
 
-    xor byte [ HEADNUMBER ], 0x01
+    xor byte [ HEADNUMBER ], 0x01   ; 헤더는 0 -> 1, 1 -> 0 밖에 없어서 xor로 간단히 구현
     mov byte [ SECTORNUMBER ], 0x01
 
     cmp byte [ HEADNUMBER ], 0x00
@@ -101,7 +105,8 @@ READEND:
     call PRINTMESSAGE
     add sp, 6
 
-    jmp 0x1000:0x0000
+    jmp 0x1000:0x0000   ; 다 읽었으면 OS를 메모리에 로딩한 주소가 0x10000이므로 CS를 설정
+                        ; 기준 주소는 0x0000으로 설정
 
 HANDLEDISKERROR:
     push DISKERRORMESSAGE
@@ -169,7 +174,11 @@ SECTORNUMBER: db 0x02
 HEADNUMBER: db 0x00
 TRACKNUMBER: db 0x00
 
-times 510 - ( $ - $$ ) db 0x00
+times 510 - ( $ - $$ ) db 0x00  ; $ = 현재 라인의 주소
+                                ; $$ = 현재 섹션의 시작 주소
+                                ; $ - $$ = 현재 라인에서 시작 주소를 뺀 것이므로 오프셋을 구한 것
+                                ; 510 - ($ - $$)는 현재부터 510 라인까지 반복한다는 것
+                                ; 즉, 현재부터 510 라인까지 0으로 초기화
 
-db 0x55
+db 0x55                         ; 부트로더는 마지막 2바이트를 0x55 0xAA로 구분하므로 설정한 것 
 db 0xAA

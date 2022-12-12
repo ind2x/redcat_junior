@@ -5,25 +5,34 @@
 
 static HDDMANAGER gs_stHDDManager;
 
+/**
+ * 하드 디스크 디바이스 드라이버 초기화
+*/
 BOOL InitializeHDD(void)
 {
+    // 뮤텍스 초기화
     InitializeMutex(&(gs_stHDDManager.stMutex));
 
+    // 인터럽트 플래그 초기화
     gs_stHDDManager.bPrimaryInterruptOccur = FALSE;
     gs_stHDDManager.bSecondaryInterruptOccur = FALSE;
 
+    // 디지털 레지스터는 인터럽트를 활성화 하는 기능이 있음
+    // 비트 1이 0이면 인터럽트 활성화 
     OutPortByte(HDD_PORT_PRIMARYBASE + HDD_PORT_INDEX_DIGITALOUTPUT, 0);
     OutPortByte(HDD_PORT_SECONDARYBASE + HDD_PORT_INDEX_DIGITALOUTPUT, 0);
 
+    // 하드 디스크 정보 요청
     if (ReadHDDInformation(TRUE, TRUE, &(gs_stHDDManager.stHDDInformation)) == FALSE)
     {
+        // 정보를 읽을 수 없다면 종료
         gs_stHDDManager.bHDDDetected = FALSE;
         gs_stHDDManager.bCanWrite = FALSE;
         return FALSE;
     }
 
     gs_stHDDManager.bHDDDetected = TRUE;
-    
+    // 하드 디스크 검색 후 QEMU에서만 쓸 수 있도록 설정
     if (MemCmp(gs_stHDDManager.stHDDInformation.vwModelNumber, "QEMU", 4) == 0)
     {
         gs_stHDDManager.bCanWrite = TRUE;
@@ -35,8 +44,13 @@ BOOL InitializeHDD(void)
     return TRUE;
 }
 
+/**
+ * 하드 디스크의 상태를 반환
+ * 상태 레지스터를 읽음
+*/
 static BYTE ReadHDDStatus(BOOL bPrimary)
 {
+    // 첫 번째 PATA I/O 포트인 경우
     if (bPrimary == TRUE)
     {
         return InPortByte(HDD_PORT_PRIMARYBASE + HDD_PORT_INDEX_STATUS);
@@ -44,7 +58,10 @@ static BYTE ReadHDDStatus(BOOL bPrimary)
     return InPortByte(HDD_PORT_SECONDARYBASE + HDD_PORT_INDEX_STATUS);
 }
 
-
+/**
+ * 하드 디스크의 Busy가 해제될 때 까지 대기
+ * 즉, 하드디스크가 실행중인 커맨드가 끝날 때 까지 대기
+*/
 static BOOL WaitForHDDNoBusy(BOOL bPrimary)
 {
     QWORD qwStartTickCount;
@@ -119,6 +136,9 @@ static BOOL WaitForHDDInterrupt(BOOL bPrimary)
     return FALSE;
 }
 
+/**
+ * 하드 디스크의 정보를 반환
+*/
 BOOL ReadHDDInformation(BOOL bPrimary, BOOL bMaster, HDDINFORMATION *pstHDDInformation)
 {
     WORD wPortBase;
@@ -129,6 +149,7 @@ BOOL ReadHDDInformation(BOOL bPrimary, BOOL bMaster, HDDINFORMATION *pstHDDInfor
     WORD wTemp;
     BOOL bWaitResult;
 
+    // 어떤 PATA I/O 포트인지 확인
     if (bPrimary == TRUE)
     {
         wPortBase = HDD_PORT_PRIMARYBASE;
@@ -138,8 +159,10 @@ BOOL ReadHDDInformation(BOOL bPrimary, BOOL bMaster, HDDINFORMATION *pstHDDInfor
         wPortBase = HDD_PORT_SECONDARYBASE;
     }
 
+    // 뮤텍스 설정
     Lock(&(gs_stHDDManager.stMutex));
 
+    // 아직 수행 중인 커맨드가 있다면 대기
     if (WaitForHDDNoBusy(bPrimary) == FALSE)
     {
         Unlock(&(gs_stHDDManager.stMutex));

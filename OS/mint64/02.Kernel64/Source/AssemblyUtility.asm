@@ -11,6 +11,7 @@ global InitializeFPU, SaveFPUContext, LoadFPUContext, SetTS, ClearTS
 global EnableGlobalLocalAPIC
 
 InPortByte:
+    ; 출력포트의 값을 읽어와서 값을 읽어오는 함수
     push rdx
     mov rdx, rdi
     mov rax, 0
@@ -20,6 +21,7 @@ InPortByte:
     ret
 
 OutPortByte:
+    ; 입력포트에 값을 쓰는 함수
     push rdx
     push rax
 
@@ -33,6 +35,7 @@ OutPortByte:
     ret
 
 InPortWord:
+    ; 2바이트 씩 읽는 것임
     push rdx       
     
     mov rdx, rdi    
@@ -44,6 +47,7 @@ InPortWord:
     ret             
     
 OutPortWord:
+    ; 2바이트 씩 쓰는 것임
     push rdx        
     push rax        
     
@@ -56,15 +60,15 @@ OutPortWord:
     ret         
 
 LoadGDTR:
-    lgdt [rdi]
+    lgdt [rdi] ; GDTR에 GDT 정보 설정
     ret
 
 LoadTR:
-    ltr di
+    ltr di ; 프로세서에 TSS 정보 로드
     ret
 
 LoadIDTR:
-    lidt [rdi]
+    lidt [rdi] ; IDTR에 IDT 정보 로드
     ret
 
 EnableInterrupt:
@@ -76,11 +80,12 @@ DisableInterrupt:
     ret
 
 ReadRFLAGS:
-    pushfq
+    pushfq  ; RFLAGS 레지스터의 IF 비트를 통해 인터럽트를 활성화 비활성화 가능
     pop rax
     ret
 
 ReadTSC:
+    ; 타임 스탬프 카운터(TSC)를 읽는 함수
     push rdx
 
     rdtsc
@@ -90,6 +95,9 @@ ReadTSC:
 
     pop rdx
     ret
+
+;///////////////////////////////////////////////////////////////////////////////
+; 컨텍스트 저장, 복원, 전환 기능
 
 %macro KSAVECONTEXT 0       ; 파라미터를 전달받지 않는 KSAVECONTEXT 매크로 정의
     ; RBP 레지스터부터 GS 세그먼트 셀렉터까지 모두 스택에 삽입
@@ -186,12 +194,17 @@ SwitchContext:
     KLOADCONTEXT
     iretq
 
+;/////////////////////////////////////////////////////////////////////
+
 Hlt:
+    ; 프로세서를 대기 상태로 변경하는 명령어
+    ; 인터럽트나 예외가 발생하기 전까지 대기
     hlt
     hlt
     ret
 
 TestAndSet:
+    ; p.744 참고
     mov rax, rsi
 
     lock cmpxchg byte [rdi], dl
@@ -207,6 +220,9 @@ TestAndSet:
 
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; FPU 관련 명령어
+
 InitializeFPU:
     finit
     ret
@@ -220,6 +236,7 @@ LoadFPUContext:
     ret
 
 SetTS:
+    ; CR0의 TS 비트를 1로 설정
     push rax
     
     mov rax, cr0
@@ -230,8 +247,13 @@ SetTS:
     ret
 
 ClearTS:
+    ; CR0의 TS 비트를 0으로 설정
     clts
     ret
+
+
+;////////////////////////////////////////////////////////////////////////
+; 
 
 EnableGlobalLocalAPIC:
     push rax           

@@ -3,6 +3,10 @@
 
 #include "Types.h"
 
+/*
+MP 설정 테이블은 프로세서와 시스템 버스, I/O APIC에 대한 정보가 저장된 테이블
+*/
+
 #define MP_FLOATINGPOINTER_FEATUREBYTE1_USEMPTABLE  0x00
 #define MP_FLOATINGPOINTER_FEATUREBYTE2_PICMODE     0x80
 

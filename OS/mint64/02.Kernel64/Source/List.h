@@ -5,18 +5,20 @@
 
 #pragma pack(push, 1)
 
+// 리스트에 있는 데이터를 나타내는 자료구조
 typedef struct ListLinkStruct
 {
-    void *pvNext;
-    QWORD qwID;
+    void *pvNext;   // 다음 데이터의 위치
+    QWORD qwID;     // 리스트 속 데이터의 ID
 } LISTLINK;
 
+// 리스트를 관리하는 자료구조
 typedef struct ListManagerStruct
 {
-    int iItemCount;
+    int iItemCount;     // 리스트 내 데이터 개수
 
-    void *pvHeader;
-    void *pvTail;
+    void *pvHeader;     // 리스트의 처음
+    void *pvTail;       // 리스트의 끝
 } LIST;
 
 #pragma pack(pop)

@@ -93,6 +93,9 @@ int MemCmp(const void *pvDestination, const void *pvSource, int iSize)
     return 0;
 }
 
+/**
+ * 이전 인터럽트 상태 반환
+*/
 BOOL SetInterruptFlag(BOOL bEnableInterrupt)
 {
     QWORD qwRFLAGS;
@@ -161,6 +164,9 @@ QWORD GetTotalRAMSize(void)
     return gs_qwTotalRAMMBSize;
 }
 
+/**
+ * atoi --> 문자열을 숫자로 변환
+*/
 long AToI(const char *pcBuffer, int iRadix)
 {
     long lReturn;
@@ -178,6 +184,10 @@ long AToI(const char *pcBuffer, int iRadix)
     return lReturn;
 }
 
+/**
+ * 16진수 문자열을 정수로 바꾸는 함수
+ * FF -> 255
+*/
 QWORD HexStringToQword(const char *pcBuffer)
 {
     QWORD qwValue = 0;
@@ -203,6 +213,10 @@ QWORD HexStringToQword(const char *pcBuffer)
     return qwValue;
 }
 
+/**
+ * 10진수 문자열을 정수로 바꾸는 함수 (문자열 -> 숫자)
+ * 10 -> 10
+*/
 long DecimalStringToLong(const char *pcBuffer)
 {
     long lValue = 0;
@@ -230,6 +244,9 @@ long DecimalStringToLong(const char *pcBuffer)
     return lValue;
 }
 
+/**
+ * itoa -> 숫자를 문자열로
+*/
 int IToA(long lValue, char *pcBuffer, int iRadix)
 {
     int iReturn;
@@ -248,6 +265,9 @@ int IToA(long lValue, char *pcBuffer, int iRadix)
     return iReturn;
 }
 
+/**
+ * 16진수 숫자를 문자열 형태로 변환
+*/
 int HexToString(QWORD qwValue, char *pcBuffer)
 {
     QWORD i, qwCurrentValue;
@@ -279,6 +299,9 @@ int HexToString(QWORD qwValue, char *pcBuffer)
     return i;
 }
 
+/**
+ * 10진수 숫자를 문자열 형태로 변환
+*/
 int DecimalToString(long lValue, char *pcBuffer)
 {
     long i;
@@ -301,25 +324,28 @@ int DecimalToString(long lValue, char *pcBuffer)
         i = 0;
     }
 
-    for (; lValue > 0; i++)
+    for (; lValue > 0; i++) // 1 -> 10 -> 100 ... 자리 순으로 연산 후 삽입
     {
         pcBuffer[i] = '0' + lValue % 10;
         lValue = lValue / 10;
     }
     pcBuffer[i] = '\0';
 
-    if (pcBuffer[0] == '-')
+    if (pcBuffer[0] == '-') // 음수면 - 부호 빼고 뒤집어서 저장
     {
         ReverseString(&(pcBuffer[1]));
     }
     else
     {
-        ReverseString(pcBuffer);
+        ReverseString(pcBuffer); // 버퍼의 문자열을 뒤집어서 순서대로 저장함
     }
 
     return i;
 }
 
+/**
+ * 문자열의 순서를 뒤집는 함수
+*/
 void ReverseString(char *pcBuffer)
 {
     int iLength, i;
