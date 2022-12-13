@@ -10,6 +10,10 @@
 
 + Nand2Tetris II
 
+<br><hr style="border: 2px solid;"><br>
+
+## 자료
+
 <br>
 
 + Software : https://www.nand2tetris.org/software
