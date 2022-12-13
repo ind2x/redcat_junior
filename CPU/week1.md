@@ -66,9 +66,17 @@ OR는 더하기(+), AND는 곱하기(x) 라고 보면 된다.
 
 ```c
 CHIP Xor {
-     IN a, b
+  IN a, b;
+  OUT out;
+  
+  PARTS:
+  Not (in=a, out=nota);
+  Not (in=b, out=notb);
+  And (a=a, b=notb, out=aAndNotb);
+  And (a=nota, b=b, out=noaAndb);
+  Or  (a=aAndNotb, b=notaAndb, out=out);
+}
 ```
-
 
 <br>
 
