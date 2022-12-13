@@ -9,7 +9,6 @@
 <br>
 
 + Nand2Tetris II
-  + 
 
 <br>
 
