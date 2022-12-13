@@ -48,7 +48,9 @@ OR는 더하기(+), AND는 곱하기(x) 라고 보면 된다.
 
 <br>
 
-위의 사진처럼 Xor 
+위의 사진처럼 Xor 칩을 만들 때, HDL 언어를 이용해서 정밀하게 기술할 수 있다.
+
+
 
 <br><br>
 <hr style="border: 2px solid;">
