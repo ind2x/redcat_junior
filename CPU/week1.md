@@ -66,15 +66,15 @@ OR는 더하기(+), AND는 곱하기(x) 라고 보면 된다.
 
 ```c
 CHIP Xor {
-	IN a, b;
-	OUT out;
+		IN a, b;
+		OUT out;
 	
-	PARTS:
-	Not (in=a, out=nota);
-	Not (in=b, out=notb);
-	And (a=a, b=notb, out=aAndNotb);
-	And (a=nota, b=b, out=noaAndb);
-	Or  (a=aAndNotb, b=notaAndb, out=out);
+		PARTS:
+		Not (in=a, out=nota);
+		Not (in=b, out=notb);
+		And (a=a, b=notb, out=aAndNotb);
+		And (a=nota, b=b, out=noaAndb);
+		Or  (a=aAndNotb, b=notaAndb, out=out);
 }
 ```
 
@@ -94,6 +94,20 @@ set a 1, set b 0, eval, output;
 set a 1, set b 1, eval, output;
 ```
 
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
+
+## Basic Logic gate
+
+<br>
+
+논리 연산자에 대해 AND, OR, NOT 이외 연산자들을 더 살펴본다. 
+
+<br>
+
++ Mux (Multiple xor)
+	+ 
 
 <br><br>
 <hr style="border: 2px solid;">
