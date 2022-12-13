@@ -128,7 +128,35 @@ set a 1, set b 1, eval, output;
 
 <br>
 
+멀티비트는 배열처럼 사용하면 되는데, 예를 들어 16비트라면 ```a[16] == i=0 ... i=15, a 16-bit pin```
 
+멀티웨이는 input이 여러 개라는 뜻으로 예를 들어 OR 칩에 8개의 inputs이 들어온다고 하면 다음과 같다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/207277612-effa5b31-eb97-404e-91bf-0888daf9330a.png)
+
+<br>
+
+마찬가지로 4개의 인풋이 있는 Mux 칩이라면 다음과 같다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/207278112-1075669c-80f7-40dc-aa2d-6c69a4721fd6.png)
+
+<br>
+
+8 방향이라면 sel이 4개가 되며 인풋은 8개, sel=000 부터 sel=111까지 순차적으로 out=a ~ h가 된다.
+
+Dmux 또한 똑같이 생각하면 된다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/207278417-0a783d0d-137b-4eac-9584-320bfee03091.png)
+
+<br>
+
+프로젝트1은 기본 로직 칩셋을 설정하는 과제이다.
 
 <br><br>
 <hr style="border: 2px solid;">
