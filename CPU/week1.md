@@ -107,7 +107,22 @@ set a 1, set b 1, eval, output;
 <br>
 
 + Mux (Multiple xor)
-  + 
+  + 3개의 input (a, b, sel)가 있고 sel의 값에 따라 결과가 달라짐
+    + if sel=0, out = a else out = b
+  
+  ![image](https://user-images.githubusercontent.com/52172169/207272536-45af85cf-61f5-490a-8f96-396d3ccfd8d3.png)
+
+<br>
+
++ Dmux (Demultiple xor)
+  + 2개의 input (sel, in)이 있고 sel 값에 따라 a, b의 값이 달라짐
+    + if sel = 0, {a=in, b=0) else {a=0, b=in} 
+  
+  ![image](https://user-images.githubusercontent.com/52172169/207272373-5eba59df-5e0d-42b7-ba0c-c68e5d1c9f73.png)
+  
+<br>
+
++ 
 
 <br><br>
 <hr style="border: 2px solid;">
