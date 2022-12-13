@@ -158,7 +158,11 @@ Dmux 또한 똑같이 생각하면 된다.
 
 프로젝트1은 Nand 연산자가 tools에 정의되어 있고 이를 기반으로 다른 기본 로직 칩셋을 설정하는 과제이다.
 
-Nand는 기본적으로 들어있는 연산자이다.
+Nand는 기본적으로 들어있는 연산자로 Not과 And 연산자를 이용한 것이다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/207287874-87716fe5-0138-43ad-9113-3c35193a9e11.png)
 
 <br><br>
 <hr style="border: 2px solid;">
