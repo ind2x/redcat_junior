@@ -107,7 +107,7 @@ set a 1, set b 1, eval, output;
 <br>
 
 + Mux (Multiple xor)
-	+ 
+  + 
 
 <br><br>
 <hr style="border: 2px solid;">
