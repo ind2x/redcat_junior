@@ -123,3 +123,13 @@ set a 1, set b 1, eval, output;
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
+
+## Multi bit and Multi way
+
+<br>
+
+
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
