@@ -12,7 +12,7 @@
 
 <br><hr style="border: 2px solid;"><br>
 
-## 자료
+## 필수 자료
 
 <br>
 
