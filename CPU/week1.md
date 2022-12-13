@@ -50,6 +50,49 @@ OR는 더하기(+), AND는 곱하기(x) 라고 보면 된다.
 
 위의 사진처럼 Xor 칩을 만들 때, HDL 언어를 이용해서 정밀하게 기술할 수 있다.
 
+강의에서는 이제 Tool을 제공해주는데, 간단한 하드웨어 시뮬레이터이다.
+
+방법은 hdl 파일을 로드시켜주고, 테스트를 위한 tst 파일을 만들어서 로드시켜주면 세미콜론을 기준으로 구분해서 테스트를 진행한다.
+
+테스트 후 출력파일을 만들어주는데, 이 파일과 강의에서 제공해준 결과 파일이 있는데 둘을 비교해보면 되겠다.
+
+파일은 시뮬레이터에서 수정하지 못하므로 에디터를 이용해 사전에 코드를 작성하고 로드해줘야 한다.
+
+아래는 예시 파일이다.
+
+<br>
+
++ Xor.hdl
+
+```c
+CHIP Xor {
+	IN a, b;
+	OUT out;
+	
+	PARTS:
+	Not (in=a, out=nota);
+	Not (in=b, out=notb);
+	And (a=a, b=notb, out=aAndNotb);
+	And (a=nota, b=b, out=noaAndb);
+	Or  (a=aAndNotb, b=notaAndb, out=out);
+}
+```
+
+<br>
+
++ Xor.tst
+
+```c
+load Xor.hdl,            // hdl을 로드함
+output-file Xor.out,     // Xor.out에 출력 값 저장
+compare-to Xor.cmp,      // Xor.cmp 파일과 결과 비교
+output-list a b out;     // a, b, out 값의 결과를 저장
+
+set a 0, set b 0, eval, output;
+set a 0, set b 1, eval, output;
+set a 1, set b 0, eval, output;
+set a 1, set b 1, eval, output;
+```
 
 
 <br><br>
