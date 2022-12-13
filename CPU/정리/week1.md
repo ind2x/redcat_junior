@@ -164,6 +164,14 @@ Nand는 기본적으로 들어있는 연산자로 Not과 And 연산자를 이용
 
 ![image](https://user-images.githubusercontent.com/52172169/207287874-87716fe5-0138-43ad-9113-3c35193a9e11.png)
 
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/207303937-6a53679e-69ee-495d-bd30-f526befde690.png)
+
+<br>
+
+연산자들을 표현식으로 나타내면 위와 같다.
+
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
