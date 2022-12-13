@@ -120,10 +120,6 @@ set a 1, set b 1, eval, output;
   
   ![image](https://user-images.githubusercontent.com/52172169/207272373-5eba59df-5e0d-42b7-ba0c-c68e5d1c9f73.png)
   
-<br>
-
-+ 
-
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
