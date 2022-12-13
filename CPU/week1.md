@@ -64,6 +64,11 @@ OR는 더하기(+), AND는 곱하기(x) 라고 보면 된다.
 
 + Xor.hdl
 
+```c
+CHIP Xor {
+     IN a, b
+```
+
 
 <br>
 
