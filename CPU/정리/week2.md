@@ -44,3 +44,38 @@ ALU에는 16비트의 입력 값 2개와 컨트롤 비트 6개가 인풋으로 �
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
+
+## projects
+
+<br>
+
++ HalfAdder
+
+![image](https://user-images.githubusercontent.com/52172169/207512679-03ddc94e-f96a-42ed-963b-29d91bd94040.png)
+
+<br>
+
++ FullAdder
+
+![image](https://user-images.githubusercontent.com/52172169/207512847-7fe0dc91-92e9-435b-87c5-3b26bf8ceb38.png)
+
+<br>
+
++ Add16
+
+![image](https://user-images.githubusercontent.com/52172169/207512870-86689a21-b9e9-4de5-b0d1-ee7b6c7016df.png)
+
+<br>
+
++ inc16
+  + 너무 간단해서 패스. 플러스 일
+
+<br>
+
++ ALU
+
+![image](https://user-images.githubusercontent.com/52172169/207513684-137eb938-8243-41e9-a12a-884f98523f01.png)
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
