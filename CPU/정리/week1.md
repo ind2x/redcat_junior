@@ -1,3 +1,4 @@
+# Boolean Functions and Gate Logic
 ## Boolean Logic
 
 <br>
