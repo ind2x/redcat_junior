@@ -9,6 +9,10 @@
 + Nand2Tetris I
   + Week 1 : Boolean Functions and Gate Logic
   + Week 2 : Boolean Arithmetic and the ALU
+  + Week 3 : Memory
+  + Week 4 : Machine Language
+  + Week 5 : Computer Architecture
+  + Week 6 : Assembler
 
 <br>
 
