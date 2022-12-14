@@ -2,6 +2,10 @@
 
 <br>
 
+정리된 내용과 사진 등 모든 출처: Nand2Tetris 강좌와 강좌 PDF 자료, The Elemens Of Computing System 책 PDF 자료
+
+<br>
+
 + Nand2Tetris I
   + Week 1 : Boolean Functions and Gate Logic
   + Week 2 : Boolean Arithmetic and the ALU
