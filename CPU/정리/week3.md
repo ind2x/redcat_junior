@@ -23,7 +23,7 @@
 
 <br>
 
-load 값에 따라서 load가 1이라면 값을 불러온다고 생각하면 되는데, 즉 load=1이면 값이 새로 들어오면 tick-tock 후에 값이 변경이 된다. (loading)
+load 값에 따라서 load가 1이라면 값을 불러온다고 생각하면 되는데, 즉 load=1이면 값이 새로 들어오면 다음 타임(tick-tock)에서 값이 변경이 된다. (loading)
 
 load=0이면 값이 변경되지 않고 계속 저장되어 있다. (storing)
 
@@ -58,6 +58,19 @@ load=1로 설정 후 해주면 out 값이 in의 값으로 변경된다. (loading
 ![image](https://user-images.githubusercontent.com/52172169/207809349-ec6dad73-d294-4a5f-983e-04e8740e4bc8.png)
 
 <br>
+
+RAM의 개수에 따라 address 크기도 달라지며, n=8인 경우 address에는 0부터 7까지 들어갈 수 있다. (3비트)
+
+마찬가지로 load를 1로 설정 시 RAM에 값이 변경되어 저장되고 load가 0인 경우 값이 유지된다.
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
+
+## Counter
+
+<br>
+
 
 
 
