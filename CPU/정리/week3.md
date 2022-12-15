@@ -14,3 +14,41 @@
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
+
+## 1bit register
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/207806478-14745224-ee6a-4a96-a4da-f606619d9be7.png)
+
+<br>
+
+load 값에 따라서 load가 1이라면 값을 불러온다고 생각하면 되는데, 즉 load=1이면 값이 새로 들어오면 tick-tock 후에 값이 변경이 된다. (loading)
+
+load=0이면 값이 변경되지 않고 계속 저장되어 있다. (storing)
+
+<br>
+
+예를 들어, 시뮬레이터에서 load=0으로 하고 in 값을 넣어주고 확인해보면 바뀌지 않는다. (storing)
+
+load=1로 설정 후 해주면 out 값이 in의 값으로 변경된다. (loading)
+
+리셋하고 바로 확인해보면 이전에 저장된 out 값이 나타나는 것을 확인할 수 있다. (storing)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/207808483-27dce6bd-c586-41b3-8e59-c25f689ab103.png)
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
+
+## multi-bit register
+
+<br>
+
+
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
