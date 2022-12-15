@@ -82,3 +82,20 @@ inc는 알다시피 out 값을 +1 해주는 것이고, reset은 out 값을 0으�
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
+
+## Project3
+
+<br>
+
+주어지는 것은 DFF(Data Flip Flop)이 주어지며, 가장 기본적인 순차회로의 요소이다.
+
+아래는 구현해야 될 목록이다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/207835951-2591e99b-39d5-479f-a5ef-deffd831a261.png)
+
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
