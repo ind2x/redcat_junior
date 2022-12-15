@@ -37,3 +37,11 @@
   + Resource 부분에 있음, HDL 가이드와 칩셋 정의 시 인자 명을 정리한 API 문서 
 
 <br><hr style="border: 2px solid;"><br>
+
+## 참고 자료
+
+<br>
+
+Nand2tetris 정리 내용 : https://ccss17.netlify.app/computer/nand2tetris/
+
+<br><hr style="border: 2px solid;"><br>
