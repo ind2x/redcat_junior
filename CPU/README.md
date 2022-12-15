@@ -38,7 +38,7 @@
 
 <br><hr style="border: 2px solid;"><br>
 
-## 참고 자료
+## 내용 정리 (참고 자료)
 
 <br>
 
