@@ -205,14 +205,12 @@ CHIP ALU {
     Mux16(a=f0, b=f1, sel=f, out=fResult);
     // no
     Not16(in=fResult, out=Not16fResult);
-    Mux16(a=fResult, b=Not16fResult, sel=no, out=out, out[0..7]=out0to7, out[8..15]=out8to15, out[15]=MSB);
+    Mux16(a=fResult, b=Not16fResult, sel=no, out=out, out[0..7]=out0to7, out[8..15]=out8to15, out[15]=ng);
     // zr
     Or8Way(in=out0to7, out=zr1);
     Or8Way(in=out8to15, out=zr2);
     Or(a=zr1, b=zr2, out=zrResult);
     Not(in=zrResult, out=zr);
-    // ng
-    Or(a=MSB, b=false, out=ng);
 }
 ```
 
