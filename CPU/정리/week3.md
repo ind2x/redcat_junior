@@ -39,11 +39,19 @@ load=1로 설정 후 해주면 out 값이 in의 값으로 변경된다. (loading
 
 ![image](https://user-images.githubusercontent.com/52172169/207808483-27dce6bd-c586-41b3-8e59-c25f689ab103.png)
 
+<br>
+
+멀티 비트도 마찬가지다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/207808649-f29dd882-9984-4fc0-9a88-7307398d5065.png)
+
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
 
-## multi-bit register
+## RAM
 
 <br>
 
