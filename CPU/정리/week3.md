@@ -71,8 +71,13 @@ RAM의 개수에 따라 address 크기도 달라지며, n=8인 경우 address에
 
 <br>
 
+![image](https://user-images.githubusercontent.com/52172169/207814132-19bbefb0-5db9-41ca-b69f-faeae66305aa.png)
 
+<br>
 
+Counter에는 3가지 컨트롤 비트가 있는데, reset, load, inc가 있다.
+
+inc는 알다시피 out 값을 +1 해주는 것이고, reset은 out 값을 0으로 설정하는 것이다.
 
 <br><br>
 <hr style="border: 2px solid;">
