@@ -55,6 +55,10 @@ load=1로 설정 후 해주면 out 값이 in의 값으로 변경된다. (loading
 
 <br>
 
+![image](https://user-images.githubusercontent.com/52172169/207809349-ec6dad73-d294-4a5f-983e-04e8740e4bc8.png)
+
+<br>
+
 
 
 <br><br>
