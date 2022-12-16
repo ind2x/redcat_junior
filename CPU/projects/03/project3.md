@@ -118,11 +118,8 @@ CHIP PC {
     Mux16(a=preout, b=IncPreout, sel=inc, out=IncPreout1);
     // if load, do load else do inc
     Mux16(a=IncPreout1, b=in, sel=load, out=IncOrLoad);
-    // reset, out[t-1] = 0
-    Not(in=reset, out=NotReset);
-    And16(a=IncOrLoad, b[0]=NotReset, b[1]=NotReset, b[2]=NotReset, b[3]=NotReset, b[4]=NotReset, b[5]=NotReset, b[6]=NotReset, b[7]=NotReset, b[8]=NotReset, b[9]=NotReset, b[10]=NotReset, b[11]=NotReset, b[12]=NotReset, b[13]=NotReset, b[14]=NotReset, b[15]=NotReset, out=ResetPreout);
     // if reset, do reset else do load or inc
-    Mux16(a=IncOrLoad, b=ResetPreout, sel=reset, out=NextOut);
+    Mux16(a=IncOrLoad, b=false, sel=reset, out=NextOut);
     // out
     Register(in=NextOut, load=true, out=out, out=preout);
 }
