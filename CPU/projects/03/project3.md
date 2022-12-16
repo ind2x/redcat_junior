@@ -15,7 +15,25 @@ DFF를 기반으로 Register, 레지스터를 기반으로 RAM과 Counter를 제
 ![image](https://user-images.githubusercontent.com/52172169/207851852-945599c0-f80d-4cbd-8493-19babf3d3f7c.png)
 
 ```c
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/03/a/Bit.hdl
 
+/**
+ * 1-bit register:
+ * If load[t] == 1 then out[t+1] = in[t]
+ *                 else out does not change (out[t+1] = out[t])
+ */
+
+CHIP Bit {
+    IN in, load;
+    OUT out;
+
+    PARTS:
+    Mux(a=preout, b=in, sel=load, out=preout1);
+    DFF(in=preout1, out=preout, out=out);
+}
 ```
 
 <br><br>
