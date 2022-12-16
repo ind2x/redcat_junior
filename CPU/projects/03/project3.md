@@ -80,16 +80,6 @@ CHIP Register {
 
 <br><br>
 
-+ Ram8.hdl
-
-![image](https://user-images.githubusercontent.com/52172169/207852020-c4285f99-c8b3-4a16-92c7-4a3b235a7e4a.png)
-
-```c
-
-```
-
-<br><br>
-
 + PC.hdl
 
 ![image](https://user-images.githubusercontent.com/52172169/207851982-490513f9-5944-4986-b8dc-2f47ae713c76.png)
@@ -127,6 +117,76 @@ CHIP PC {
 ```
 
 <br><br>
+
++ Ram8.hdl
+
+![image](https://user-images.githubusercontent.com/52172169/207852020-c4285f99-c8b3-4a16-92c7-4a3b235a7e4a.png)
+
+```c
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/03/a/RAM8.hdl
+
+/**
+ * Memory of 8 registers, each 16 bit-wide. Out holds the value
+ * stored at the memory location specified by address. If load==1, then 
+ * the in value is loaded into the memory location specified by address 
+ * (the loaded value will be emitted to out from the next time step onward).
+ */
+
+CHIP RAM8 {
+    IN in[16], load, address[3];
+    OUT out[16];
+
+    PARTS:
+    // check address to select register
+    DMux8Way(in=load, sel=address, a=load0, b=load1, c=load2, d=load3, e=load4, f=load5, g=load6, h=load7);
+    // Register[0] ~ Register[7]
+    Register(in=in, load=load0, out=PreOut0);
+    Register(in=in, load=load1, out=PreOut1);
+    Register(in=in, load=load2, out=PreOut2);
+    Register(in=in, load=load3, out=PreOut3);
+    Register(in=in, load=load4, out=PreOut4);
+    Register(in=in, load=load5, out=PreOut5);
+    Register(in=in, load=load6, out=PreOut6);
+    Register(in=in, load=load7, out=PreOut7);
+    // return out from selected register
+    Mux8Way16(a=PreOut0, b=PreOut1, c=PreOut2, d=PreOut3, e=PreOut4, f=PreOut5, g=PreOut6, h=PreOut7, sel=address, out=out);
+}
+```
+
+<br><br>
+
++ RAM64.hdl
+
+```c
+
+```
+
+<br>
+
++ RAM512.hdl
+
+```c
+
+```
+
+<br>
+
++ RAM4K.hdl
+
+```c
+
+```
+
+<br>
+
++ RAM16K.hdl
+
+```c
+
+```
 
 <br><br>
 <hr style="border: 2px solid;">
