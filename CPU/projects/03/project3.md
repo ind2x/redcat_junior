@@ -161,7 +161,44 @@ CHIP RAM8 {
 + RAM64.hdl
 
 ```c
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/03/a/RAM64.hdl
 
+/**
+ * Memory of 64 registers, each 16 bit-wide. Out holds the value
+ * stored at the memory location specified by address. If load==1, then 
+ * the in value is loaded into the memory location specified by address 
+ * (the loaded value will be emitted to out from the next time step onward).
+ */
+
+CHIP RAM64 {
+    IN in[16], load, address[6];
+    OUT out[16];
+
+    PARTS:
+    // select register range
+    DMux8Way(in=load, sel=address[3..5], a=ram0to7, b=ram8to15, c=ram16to23, d=ram24to31, e=ram32to39, f=ram40to47, g=ram48to55, h=ram56to63);
+    // register 0 ~ 7
+    RAM8(in=in, load=ram0to7, address=address[0..2], out=PreOut0to7);
+    // register 8 ~ 15
+    RAM8(in=in, load=ram8to15, address=address[0..2], out=Preout8to15);
+    // register 16 ~ 23
+    RAM8(in=in, load=ram16to23, address=address[0..2], out=Preout16to23);
+    // register 24 ~ 31
+    RAM8(in=in, load=ram24to31, address=address[0..2], out=Preout24to31);
+    // register 32 ~ 39
+    RAM8(in=in, load=ram32to39, address=address[0..2], out=Preout32to39);
+    // register 40 ~ 47
+    RAM8(in=in, load=ram40to47, address=address[0..2], out=Preout40to47);
+    // register 48 ~ 55
+    RAM8(in=in, load=ram48to55, address=address[0..2], out=Preout48to55);
+    // register 56 ~ 63
+    RAM8(in=in, load=ram56to63, address=address[0..2], out=Preout56to63);
+    // return out from selected register
+    Mux8Way16(a=PreOut0to7, b=Preout8to15, c=Preout16to23, d=Preout24to31, e=Preout32to39, f=Preout40to47, g=Preout48to55, h=Preout56to63, sel=address[3..5], out=out); 
+}
 ```
 
 <br>
@@ -169,7 +206,37 @@ CHIP RAM8 {
 + RAM512.hdl
 
 ```c
+// This file is part of the materials accompanying the book 
+// "The Elements of Computing Systems" by Nisan and Schocken, 
+// MIT Press. Book site: www.idc.ac.il/tecs
+// File name: projects/03/b/RAM512.hdl
 
+/**
+ * Memory of 512 registers, each 16 bit-wide. Out holds the value
+ * stored at the memory location specified by address. If load==1, then 
+ * the in value is loaded into the memory location specified by address 
+ * (the loaded value will be emitted to out from the next time step onward).
+ */
+
+CHIP RAM512 {
+    IN in[16], load, address[9];
+    OUT out[16];
+
+    PARTS:
+    // select register
+    DMux8Way(in=load, sel=address[6..8], a=ram0, b=ram1, c=ram2, d=ram3, e=ram4, f=ram5, g=ram6, h=ram7);
+    // RAM 0 ~ 511, 64ram * 8
+    RAM64(in=in, load=ram0, address=address[0..5], out=PreOut0);
+    RAM64(in=in, load=ram1, address=address[0..5], out=PreOut1);
+    RAM64(in=in, load=ram2, address=address[0..5], out=PreOut2);
+    RAM64(in=in, load=ram3, address=address[0..5], out=PreOut3);
+    RAM64(in=in, load=ram4, address=address[0..5], out=PreOut4);
+    RAM64(in=in, load=ram5, address=address[0..5], out=PreOut5);
+    RAM64(in=in, load=ram6, address=address[0..5], out=PreOut6);
+    RAM64(in=in, load=ram7, address=address[0..5], out=PreOut7);
+    // return out from selected ram
+    Mux8Way16(a=PreOut0, b=PreOut1, c=PreOut2, d=PreOut3, e=PreOut4, f=PreOut5, g=PreOut6, h=PreOut7, sel=address[6..8], out=out);
+}
 ```
 
 <br>
@@ -177,7 +244,37 @@ CHIP RAM8 {
 + RAM4K.hdl
 
 ```c
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/03/b/RAM4K.hdl
 
+/**
+ * Memory of 4K registers, each 16 bit-wide. Out holds the value
+ * stored at the memory location specified by address. If load==1, then 
+ * the in value is loaded into the memory location specified by address 
+ * (the loaded value will be emitted to out from the next time step onward).
+ */
+
+CHIP RAM4K {
+    IN in[16], load, address[12];
+    OUT out[16];
+
+    PARTS:
+    // select register
+    DMux8Way(in=load, sel=address[9..11], a=ram0, b=ram1, c=ram2, d=ram3, e=ram4, f=ram5, g=ram6, h=ram7);
+    // RAM 0 ~ 4096, ram512 * 8
+    RAM512(in=in, load=ram0, address=address[0..8], out=PreOut0);
+    RAM512(in=in, load=ram1, address=address[0..8], out=PreOut1);
+    RAM512(in=in, load=ram2, address=address[0..8], out=PreOut2);
+    RAM512(in=in, load=ram3, address=address[0..8], out=PreOut3);
+    RAM512(in=in, load=ram4, address=address[0..8], out=PreOut4);
+    RAM512(in=in, load=ram5, address=address[0..8], out=PreOut5);
+    RAM512(in=in, load=ram6, address=address[0..8], out=PreOut6);
+    RAM512(in=in, load=ram7, address=address[0..8], out=PreOut7);
+    // return out from selected ram
+    Mux8Way16(a=PreOut0, b=PreOut1, c=PreOut2, d=PreOut3, e=PreOut4, f=PreOut5, g=PreOut6, h=PreOut7, sel=address[9..11], out=out);
+}
 ```
 
 <br>
@@ -185,7 +282,33 @@ CHIP RAM8 {
 + RAM16K.hdl
 
 ```c
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/03/b/RAM16K.hdl
 
+/**
+ * Memory of 16K registers, each 16 bit-wide. Out holds the value
+ * stored at the memory location specified by address. If load==1, then 
+ * the in value is loaded into the memory location specified by address 
+ * (the loaded value will be emitted to out from the next time step onward).
+ */
+
+CHIP RAM16K {
+    IN in[16], load, address[14];
+    OUT out[16];
+
+    PARTS:
+    // select register
+    DMux4Way(in=load, sel=address[12..13], a=ram0, b=ram1, c=ram2, d=ram3);
+    // RAM 0 ~ 16K
+    RAM4K(in=in, load=ram0, address=address[0..11], out=PreOut0);
+    RAM4K(in=in, load=ram1, address=address[0..11], out=PreOut1);
+    RAM4K(in=in, load=ram2, address=address[0..11], out=PreOut2);
+    RAM4K(in=in, load=ram3, address=address[0..11], out=PreOut3);
+    // return out from selected ram
+    Mux4Way16(a=PreOut0, b=PreOut1, c=PreOut2, d=PreOut3, sel=address[12..13], out=out);
+}
 ```
 
 <br><br>
