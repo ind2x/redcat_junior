@@ -115,6 +115,7 @@ CHIP PC {
     PARTS:
     // inc, out[t-1] + 1
     Inc16(in=preout, out=IncPreout);
+    // out[t-1] or out[t-1] + 1 if inc
     Mux16(a=preout, b=IncPreout, sel=inc, out=IncPreout1);
     // if load, do load else do inc
     Mux16(a=IncPreout1, b=in, sel=load, out=IncOrLoad);
