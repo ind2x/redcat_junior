@@ -36,6 +36,10 @@
 + Appendix 1,4 (HDL guide, Hack chip set) : https://www.nand2tetris.org/project01
   + Resource 부분에 있음, HDL 가이드와 칩셋 정의 시 인자 명을 정리한 API 문서 
 
+<br>
+
++ Bitmap : https://github.com/ErikUmble/JackBitmapEditor
+
 <br><hr style="border: 2px solid;"><br>
 
 ## 내용 정리 (참고 자료)
