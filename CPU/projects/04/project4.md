@@ -15,8 +15,49 @@ Hack Computer가 CPU 에뮬레이터가 되고 어셈블리 명령어를 이용�
 + Mul.asm
 
 ```asm
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/04/Mult.asm
 
+// Multiplies R0 and R1 and stores the result in R2.
+// (R0, R1, R2 refer to RAM[0], RAM[1], and RAM[2], respectively.)
+//
+// This program only needs to handle arguments that satisfy
+// R0 >= 0, R1 >= 0, and R0*R1 < 32768.
+
+@i
+M=0
+@sum
+M=0
+
+(LOOP)      // i=0; i<R1; i++ { sum += x; }
+    @i
+    D=M
+    @R1
+    D=D-M   // i-y = 0
+    @END
+    D;JEQ
+    @i
+    M=M+1
+
+    @R0
+    D=M
+    @sum
+    M=M+D
+    @LOOP
+    0;JMP
+
+(END)
+    @sum
+    D=M
+    @R2
+    M=D // R2 = sum
 ```
+
+<br>
+
+좀 더 효율적으로 하고 싶어서 삼항연산자처럼 더 큰 값을 더해주는 식으로 더 적게 반복되게끔 했는데 일정 시간안에 값을 출력되게 해야하는지 정상적인 값이 나오는데 첫 번째에서 PC가 20에 머물러서 실패가 뜬다. 
 
 <br>
 
