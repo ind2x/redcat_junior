@@ -132,6 +132,64 @@ M=D
     0;JMP
 ```
 
+<br>
+
+코드가 중복되는 부분이 너무 많아서 고쳐보았다.
+
+<br>
+
+```asm
+@SCREEN
+D=A
+@base   // base = 16384(SCREEN)
+M=D
+
+(MAIN)
+    @i
+    M=0
+    @LOOP
+    0;JMP
+
+(BLACKEN)
+    @addr
+    A=M
+    M=-1
+    @LOOP2
+    0;JMP
+
+(LOOP)   // 16384 ~ 24575
+    @8192
+    D=A
+    @i
+    D=D-M
+    @MAIN
+    D;JEQ
+
+    @base
+    D=M
+    @i
+    D=D+M  // RAM[16384+i]
+    A=D
+    M=0
+
+    @addr
+    M=D
+    @KBD
+    D=M
+    // blacken if KBD != 0, else clear
+    @BLACKEN
+    D;JNE
+
+    @LOOP2
+    0;JMP
+
+(LOOP2)
+    @i
+    M=M+1
+    @LOOP
+    0;JMP
+```
+
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
