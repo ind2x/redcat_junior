@@ -51,11 +51,8 @@ CHIP Memory {
 
     PARTS:
     // select address to load
-    DMux(in=true, sel=address[14], a=RAM, b=SCREEN);
+    DMux(in=true, sel=address[14], a=loadRAM, b=loadSCREEN);
     // if address is in RAM range, read or write in RAM, else SCREEN 
-    And(a=load, b=RAM, out=loadRAM);
-    And(a=load, b=SCREEN, out=loadSCREEN);
-    // read or write in selected area
     RAM16K(in=in, load=loadRAM, address=address[0..13], out=DataOut);
     Screen(in=in, load=loadSCREEN, address=address[0..12], out=ScreenOut);
     Keyboard(out=KeyboardOut);
