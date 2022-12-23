@@ -115,11 +115,11 @@ CHIP Memory {
 
 <br>
 
-한 가지 주의 사항은 위의 점프 로직이나 ALU 컨트롤 비트, Register load 비트 값 등등 C-instruction 일 때에만 instruction 비트를 이용해서 하는 것이고,
+한 가지 **주의 사항**은 위의 점프 로직이나 ALU 컨트롤 비트, Register load 비트 값 등등은 **C-instruction 일 때에만 instruction 비트를 이용해서 하는 것**이고, **A-instruction 일 때는 MSB 비트만 이용해주고 나머지 비트들은 사용해서는 안된다.** 
 
-A-instruction 일 때는 MSB 비트만 이용해주고 나머지 비트들은 사용해서는 안된다. 
+따라서 A-instruction일 때, Mux16 sel비트, Register load 비트에는 0으로 초기화해줘야 한다.
 
-따라서 A-instruction일 때, ALU 컨트롤 비트나 Mux16 sel비트, Register load 비트에는 0으로 초기화해줘야 한다.
+단, ALU 컨트롤 비트는 상관하지 않아도 되는데 이유는 ```outM```이 메모리의 in으로 들어가게 되지만, ```writeM```이 A-instruction 인 경우 0으로 설정해줬기 때문에 값이 쓰이지 않는다.
 
 <br>
 
@@ -175,15 +175,16 @@ CHIP CPU {
     // use ARegister output if a-bit is 0, else use inM to ALU input(y)
     Mux16(a=ARegisterOut, b=inM, sel=instruction[12], out=ALUIn);
     
-    // ALU control bit = c1 ~ c6
+    // if C-instruction, ALU control bit = c1 ~ c6
     ALU(x=DRegisterOut, y=ALUIn, zx=instruction[11], 
         nx=instruction[10], zy=instruction[9], 
         ny=instruction[8], f=instruction[7], 
         no=instruction[6], 
         out=ALUOut, zr=zr, ng=ng, out=outM);
         
-    // DRegister load = d2
-    DRegister(in=ALUOut, load=instruction[4], out=DRegisterOut);
+    // if C-instruction, DRegister load = d2 else 0
+    Mux(a=false, b=instruction[4], sel=instruction[15], out=DRegisterLoad);
+    DRegister(in=ALUOut, load=DRegisterLoad, out=DRegisterOut);
     // writeM = d3, only write if C-instruction
     And(a=instruction[15], b=instruction[3], out=writeM);
     
@@ -198,7 +199,7 @@ CHIP CPU {
     Or(a=w1, b=j3AndNotzrOrng, out=Jump);
     // if A-instruction, just PC++
     And(a=instruction[15], b=Jump, out=JUMP);
-    // inc is only 1
+    // inc bit is always 1
     PC(in=ARegisterOut, load=JUMP, inc=true, reset=reset, out[0..14]=pc);
 }
 ```
@@ -231,8 +232,8 @@ CHIP Computer {
     IN reset;
 
     PARTS:
-    CPU(inM=inM, instruction=instruction, reset=reset, outM=in, writeM=load, addressM=address, pc=pc);
     ROM32K(address=pc, out=instruction);
+    CPU(inM=inM, instruction=instruction, reset=reset, outM=in, writeM=load, addressM=address, pc=pc);
     Memory(in=in, load=load, address=address, out=inM);
 }
 ```
