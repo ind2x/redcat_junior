@@ -168,7 +168,12 @@ CHIP CPU {
     Mux16(a=ARegisterOut, b=inM, sel=instruction[12], out=ALUIn);
     
     // ALU control bit = c1 ~ c6
-    ALU(x=DRegisterOut, y=ALUIn, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=ALUOut, zr=zr, ng=ng, out=outM);
+    ALU(x=DRegisterOut, y=ALUIn, zx=instruction[11], 
+        nx=instruction[10], zy=instruction[9], 
+        ny=instruction[8], f=instruction[7], 
+        no=instruction[6], 
+        out=ALUOut, zr=zr, ng=ng, out=outM);
+        
     // DRegister load = d2
     DRegister(in=ALUOut, load=instruction[4], out=DRegisterOut);
     // writeM = d3, only write if C-instruction
