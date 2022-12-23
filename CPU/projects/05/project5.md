@@ -76,16 +76,6 @@ CHIP Memory {
 
 <br>
 
-+ ROM32K
-
-![image](https://user-images.githubusercontent.com/52172169/209098345-410a215b-4632-47f5-83a6-a2a02167139e.png)
-
-```c
-
-```
-
-<br>
-
 + Computer
 
 ![image](https://user-images.githubusercontent.com/52172169/209098412-02354efc-87bb-465c-bdda-30b7e5ee98ee.png)
