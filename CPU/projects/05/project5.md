@@ -190,8 +190,8 @@ CHIP CPU {
     Or(a=w1, b=j3AndNotzrOrng, out=Jump);
     // if A-instruction, just PC++
     And(a=instruction[15], b=Jump, out=JUMP);
-    Not(in=JUMP, out=INC);
-    PC(in=ARegisterOut, load=JUMP, inc=INC, reset=reset, out[0..14]=pc);
+    // inc is only 1
+    PC(in=ARegisterOut, load=JUMP, inc=true, reset=reset, out[0..14]=pc);
 }
 ```
 
