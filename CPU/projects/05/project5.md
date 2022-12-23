@@ -50,7 +50,7 @@ CHIP Memory {
     OUT out[16];
 
     PARTS:
-    // select address to load
+    // select address area to load
     DMux(in=load, sel=address[14], a=loadRAM, b=loadSCREEN);
     // if address is in RAM range, read or write in RAM, else SCREEN
     RAM16K(in=in, load=loadRAM, address=address[0..13], out=DataOut);
@@ -112,6 +112,14 @@ CHIP Memory {
 예를 들어, JGE를 살펴보자면 ```zr=1, ng=0```인 경우에는 ```(0 AND 0) OR (1 AND 1) OR (1 AND NOT(1 OR 0)) = 0 OR 1 OR 0 = 1```이 되어 조건이 맞으므로 1로 설정된다.
 
 그러나 조건이 ```zr=0, ng=1```이었다면 0이 나와야 되는데, 살펴보자면 ```(0 AND 1) OR (1 AND 0) OR (1 AND NOT(0 OR 1)) = 0 OR 0 OR 0 = 0```이 되어 정상적으로 0이 나온다. 
+
+<br>
+
+한 가지 주의 사항은 위의 점프 로직이나 ALU 컨트롤 비트, Register load 비트 값 등등 C-instruction 일 때에만 instruction 비트를 이용해서 하는 것이고,
+
+A-instruction 일 때는 MSB 비트만 이용해주고 나머지 비트들은 사용해서는 안된다. 
+
+따라서 A-instruction일 때, ALU 컨트롤 비트나 Mux16 sel비트, Register load 비트에는 0으로 초기화해줘야 한다.
 
 <br>
 
