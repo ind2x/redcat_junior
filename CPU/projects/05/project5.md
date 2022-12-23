@@ -52,10 +52,12 @@ CHIP Memory {
     PARTS:
     // select address area to load
     DMux(in=load, sel=address[14], a=loadRAM, b=loadSCREEN);
+    
     // if address is in RAM range, read or write in RAM, else SCREEN
     RAM16K(in=in, load=loadRAM, address=address[0..13], out=DataOut);
     Screen(in=in, load=loadSCREEN, address=address[0..12], out=ScreenOut);
     Keyboard(out=KeyboardOut);
+    
     // return out from selected address via address[13,14]
     // if address[13,14] == 00 or 01, return RAM output
     // else if 10, return SCREEN output
@@ -165,16 +167,17 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // check instruction if it's A or C
+    // if A-instruction, select instruction value 
     Mux16(a=instruction, b=ALUOut, sel=instruction[15], out=ARegisterIn);
-    // if A-instruction, store value to A Register -> set load=1
-    // if C-instruction, A Register load = d1
+    // if A-instruction, set load=1 to store value in A Regigster
+    // if C-instruction, A Register load = d1 (instruction[5])
     Mux(a=true, b=instruction[5], sel=instruction[15], out=ARegisterLoad);
+    
     // addressM = A Register Output
     ARegister(in=ARegisterIn, load=ARegisterLoad, out=ARegisterOut, out[0..14]=addressM);
+    
     // use ARegister output if a-bit is 0, else use inM to ALU input(y)
     Mux16(a=ARegisterOut, b=inM, sel=instruction[12], out=ALUIn);
-    
     // if C-instruction, ALU control bit = c1 ~ c6
     ALU(x=DRegisterOut, y=ALUIn, zx=instruction[11], 
         nx=instruction[10], zy=instruction[9], 
@@ -185,6 +188,7 @@ CHIP CPU {
     // if C-instruction, DRegister load = d2 else 0
     Mux(a=false, b=instruction[4], sel=instruction[15], out=DRegisterLoad);
     DRegister(in=ALUOut, load=DRegisterLoad, out=DRegisterOut);
+    
     // writeM = d3, only write if C-instruction
     And(a=instruction[15], b=instruction[3], out=writeM);
     
