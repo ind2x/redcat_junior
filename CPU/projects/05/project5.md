@@ -86,7 +86,7 @@ CHIP Memory {
 
 <br>
 
-| jump | j-bit |       condition       |
+| jump | j1 j2 j3 |       condition       |
 |:----:|:-----:|:---------------------:|
 | null |  000  |        no jump        |
 |  JGT |  001  |       zr=0, ng=0      |
