@@ -46,6 +46,6 @@
 
 <br>
 
-Nand2tetris 정리 내용 : https://ccss17.netlify.app/computer/nand2tetris/
+Nand2tetris 정리 내용(1 ~ 8) : https://ccss17.netlify.app/computer/nand2tetris/
 
 <br><hr style="border: 2px solid;"><br>
