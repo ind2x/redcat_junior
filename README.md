@@ -44,7 +44,7 @@
 
 <br><br>
 
-## CPU
+## CPU (nand2tetris)
 
 + course: <a href="https://www.coursera.org/learn/build-a-computer">coursera.org/learn/build-a-computer</a>
 
