@@ -25,7 +25,7 @@ with open(sys.argv[1], 'r') as f:
     with open('./'+sys.argv[1].replace('.vm', '.asm'), 'w') as res:
         MemorySegment = {'local':'LCL', "argument":"ARG", "this":"THIS", "that":"THAT", "static":16, "temp":5}
         Pointer = ["THIS","THAT"]
-        # count how many ['eq', 'gt', 'lt'] is used 
+        # count the number of ['eq', 'gt', 'lt'] is used 
         ElseExist = 0
 
         for line in lines:
