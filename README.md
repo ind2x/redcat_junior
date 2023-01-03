@@ -48,4 +48,4 @@
 
 + course: <a href="https://www.coursera.org/learn/build-a-computer">coursera.org/learn/build-a-computer</a>
 
-+ 진행상황: 5 / 12
++ 진행상황: 8 / 12
