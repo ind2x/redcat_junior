@@ -22,7 +22,17 @@
 
 <br>
 
-OS API는 프로젝트 9 폴더에 있다
+![image](https://user-images.githubusercontent.com/52172169/210956294-d6eaf687-7171-4f35-9106-622a89a36391.png)
+
+<br>
+
+클래스를 사용한 후 생성자처럼 마찬가지로 소멸자를 만들어줘야 한다.
+
+여기서는 dispose 메소드를 생성하여 진행하며, ```Memory.deAlloc(this);``` 코드를 통해 소멸시킨다.
+
+<br>
+
+OS API는 프로젝트 9 폴더에 있고, Math, Output 등등 필수 클래스들의 메소드를 정리한 것이다.
 
 
 
