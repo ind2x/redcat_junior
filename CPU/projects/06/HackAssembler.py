@@ -1,5 +1,6 @@
 import sys      # sys.argv
 import string   # isnumeric
+import os       # os.scandir
 
 '''
 Need to handle: 
@@ -7,6 +8,9 @@ Need to handle:
 2. Instruction == A or C
 3. Symbols == predefined symbols, Label, variables
 '''
+
+# Usage : python HackAssembler.py [SearchDirectory]
+# search asm file in SearchDirectory and translate it all
 
 # Computation Specification       
 def comp(comp):
@@ -41,6 +45,7 @@ def jump(jump):
     jump_field = ['JGT', 'JEQ', 'JGE', 'JLT', 'JNE', 'JLE', 'JMP']
     return '{0:03b}'.format(jump_field.index(jump)+1)
 
+
 # predefined symbols
 symbol_table = {
     'R0':0, 'R1':1, 'R2':2, 'R3':3, 'R4':4, 'R5':5, 'R6':6, 'R7':7, 'R8':8, 
@@ -54,59 +59,74 @@ label = 0
 # 변수는 instruction 16부터 시작
 variable = 16
 
-with open(sys.argv[1],'r') as f:
-    lines = f.readlines()
-    instructions=[]     # instructions
-    n=0     # program line
+def translate(file):
+    global label, variable, symbol_table, Output
 
-    # read the program lines, one by one focusing only on declarations
-    # add the found labels to the symbol table
-    for line in lines:
-        line = line.strip().split(' ')[0]
-        # if White Space -> ignore
-        if line[0:2] == "//" or line == '':   
-            continue
-        
-        # if variable, add on symbol table
-        if line[0] == '@':
-            if not line[1:].isnumeric() and line[1:].islower() and line[1:] not in symbol_table:
-                symbol_table[line[1:]] = variable
-                variable += 1
-        
-        # if lable, add on symbol table and not append in instructions
-        if line[0] == '(':
-            symbol_table[line[1:-1]] = n
-            continue
-        
-        n += 1
-        instructions.append(line)
-    
-    with open("./"+ sys.argv[1].replace('asm', 'hack'), 'w') as res:
-        # translate instructions to 16-bit binary code
-        for cmd in instructions:
-            # if A-instruction or symbol
-            bit='0'
-            if cmd[0] == '@':
-                # if A-instruction, translate it to 16-bit
-                if cmd[1:].isnumeric():
-                    bit += '{0:015b}'.format(int(cmd[1:]))
-                # if variable or label, find it in symbol table
-                else:
-                    bit += '{0:015b}'.format(symbol_table[cmd[1:]])
-                
-            # if C-instruction
-            else:
-                bit = '111'
-                # if ';' is omitted
-                if '=' in cmd:
-                    d = dest(cmd.split('=')[0])
-                    c = comp(cmd.split('=')[1])
-                    j = '000'
-                else :
-                    d = '000'
-                    c = comp(cmd.split(';')[0])
-                    j = jump(cmd.split(';')[1])
+    with open(sys.argv[1]+file,'r') as f:
+        lines = f.readlines()
+        instructions=[]     # instructions
+        n=0     # program line
 
-                bit += c + d + j
+        # read program lines, one by one, focusing only on declarations
+        # add found labels to the symbol table
+        for line in lines:
+            line = line.strip().split(' ')[0]
+            # if White Space -> ignore
+            if line[0:2] == "//" or line == '':   
+                continue
             
-            res.write(bit+'\n')
+            # if variable, add on symbol table
+            if line[0] == '@':
+                if not line[1:].isnumeric() and line[1:].islower() and line[1:] not in symbol_table:
+                    symbol_table[line[1:]] = variable
+                    variable += 1
+            
+            # if lable, add on symbol table and not append in instructions
+            if line[0] == '(':
+                symbol_table[line[1:-1]] = n
+                continue
+            
+            n += 1
+            instructions.append(line)
+        
+        # translate asm file to hack file
+        with open(Output, 'w') as res:
+            # translate instructions to 16-bit binary code
+            for cmd in instructions:
+                # if A-instruction or symbol
+                bit='0'
+                if cmd[0] == '@':
+                    # if A-instruction, translate it to 16-bit
+                    if cmd[1:].isnumeric():
+                        bit += '{0:015b}'.format(int(cmd[1:]))
+                    # if variable or label, find it in symbol table
+                    else:
+                        bit += '{0:015b}'.format(symbol_table[cmd[1:]])
+                    
+                # if C-instruction
+                else:
+                    bit = '111'
+                    # if ';' is omitted
+                    if '=' in cmd:
+                        d = dest(cmd.split('=')[0])
+                        c = comp(cmd.split('=')[1])
+                        j = '000'
+                    else :
+                        d = '000'
+                        c = comp(cmd.split(';')[0])
+                        j = jump(cmd.split(';')[1])
+
+                    bit += c + d + j
+                
+                res.write(bit+'\n')
+
+
+ASMFiles = []
+with os.scandir(sys.argv[1]) as files:
+    for file in files:
+        if file.is_file() and file.name[-4:] == ".asm":
+            ASMFiles.append(file.name)
+
+for File in ASMFiles:
+    Output = sys.argv[1] + File[:-4] + ".hack"
+    translate(File)
