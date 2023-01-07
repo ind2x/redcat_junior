@@ -34,14 +34,15 @@ Pointer = ["THIS","THAT"]
 ElseExist = 0
 # for label of function return address
 Return = 0
+Output = sys.argv[1] + sys.argv[2]
 
 # translate VM code in VM file to Machine Language
 def translate(File):
-    global MemorySegment, Pointer, ElseExist, Return
+    global MemorySegment, Pointer, ElseExist, Return, Output
     with open(sys.argv[1]+File, 'r') as f:
         lines = f.readlines()
         
-        with open(sys.argv[1]+sys.argv[2], 'a') as res:
+        with open(Output, 'a') as res:
             for line in lines:
                 instruction = line.strip().split(' ')
                 if instruction[0] == "//" or instruction[0] == '':
