@@ -38,6 +38,10 @@ OS API는 프로젝트 9 폴더에 있고, Math, Output 등등 필수 클래스�
 
 철권처럼 캐릭터가 스킬쓰는 걸 만들까했는데 너무 힘들것 같아서 고양이 마리오를 만들어보고자 한다.
 
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/211182494-17d19e05-0fbd-4b95-a31e-f1193ff304ca.png)
+
 <br><br>
 <hr style="border: 2px solid;">
 <br><br>
