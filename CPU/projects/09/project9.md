@@ -44,7 +44,11 @@ OS API는 프로젝트 9 폴더에 있고, Math, Output 등등 필수 클래스�
 
 <br>
 
-newline이 Enter 
+newline이 Enter다.
+
+캐릭터나 지형은 Bitmap Editor를 통해 만들면 되고, 점프는 https://jbmpa.tistory.com/82 를 참고하여 구현하였다.
+
+오브젝트 충돌도 https://jbmpa.tistory.com/76 를 통해 구현
 
 <br><br>
 <hr style="border: 2px solid;">
