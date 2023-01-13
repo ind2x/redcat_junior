@@ -1,0 +1,290 @@
+function Block.new 0
+push constant 7
+call Memory.alloc 1
+pop pointer 0
+push argument 2
+pop this 4
+push argument 0
+push constant 240
+lt
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push argument 0
+pop this 0
+goto IF_END0
+label IF_FALSE0
+push constant 239
+pop this 0
+label IF_END0
+push argument 1
+push constant 32
+lt
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push argument 1
+pop this 1
+goto IF_END1
+label IF_FALSE1
+push constant 31
+pop this 1
+push constant 1
+pop this 4
+label IF_END1
+push this 0
+push constant 16
+add
+pop this 2
+push this 1
+push this 4
+add
+push constant 32
+gt
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push constant 32
+push argument 1
+sub
+pop this 4
+label IF_FALSE2
+push this 1
+push this 4
+add
+pop this 3
+push constant 0
+pop this 6
+push pointer 0
+return
+function Block.draw 2
+push argument 0
+pop pointer 0
+push constant 0
+pop local 1
+label WHILE_EXP0
+push local 1
+push this 4
+lt
+not
+if-goto WHILE_END0
+push constant 16384
+push this 0
+push constant 32
+call Math.multiply 2
+add
+push this 1
+add
+push local 1
+add
+pop local 0
+push local 0
+push constant 1
+neg
+call Memory.poke 2
+pop temp 0
+push local 0
+push constant 32
+add
+push constant 1
+neg
+call Memory.poke 2
+pop temp 0
+push local 0
+push constant 64
+add
+push constant 2045
+neg
+call Memory.poke 2
+pop temp 0
+push local 0
+push constant 96
+add
+push constant 9213
+neg
+call Memory.poke 2
+pop temp 0
+push local 0
+push constant 128
+add
+push constant 9213
+neg
+call Memory.poke 2
+pop temp 0
+push local 0
+push constant 160
+add
+push constant 12797
+neg
+call Memory.poke 2
+pop temp 0
+push local 0
+push constant 192
+add
+push constant 14845
+neg
+call Memory.poke 2
+pop temp 0
+push local 0
+push constant 224
+add
+push constant 6653
+neg
+call Memory.poke 2
+pop temp 0
+push local 0
+push constant 256
+add
+push constant 241
+neg
+call Memory.poke 2
+pop temp 0
+push local 0
+push constant 288
+add
+push constant 193
+neg
+call Memory.poke 2
+pop temp 0
+push local 0
+push constant 320
+add
+push constant 15877
+neg
+call Memory.poke 2
+pop temp 0
+push local 0
+push constant 352
+add
+push constant 15901
+neg
+call Memory.poke 2
+pop temp 0
+push local 0
+push constant 384
+add
+push constant 15997
+neg
+call Memory.poke 2
+pop temp 0
+push local 0
+push constant 416
+add
+push constant 15997
+neg
+call Memory.poke 2
+pop temp 0
+push local 0
+push constant 448
+add
+push constant 1
+neg
+call Memory.poke 2
+pop temp 0
+push local 0
+push constant 480
+add
+push constant 1
+neg
+call Memory.poke 2
+pop temp 0
+push local 1
+push constant 1
+add
+pop local 1
+goto WHILE_EXP0
+label WHILE_END0
+push constant 0
+return
+function Block.IsCollision 0
+push argument 0
+pop pointer 0
+push this 6
+push constant 1
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push argument 2
+push constant 1
+add
+push this 1
+lt
+push argument 2
+push this 3
+gt
+or
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push constant 1
+pop this 5
+push constant 0
+pop this 6
+label IF_FALSE1
+push constant 1
+return
+label IF_FALSE0
+push argument 2
+push this 1
+lt
+not
+push argument 2
+push this 3
+gt
+not
+and
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push argument 1
+push constant 35
+add
+push this 0
+lt
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push constant 1
+pop this 6
+push constant 0
+pop this 5
+push constant 1
+return
+goto IF_END3
+label IF_FALSE3
+push constant 0
+pop this 6
+push constant 1
+neg
+pop this 5
+push constant 1
+return
+label IF_END3
+goto IF_END2
+label IF_FALSE2
+push constant 0
+pop this 6
+push constant 0
+pop this 5
+push constant 0
+return
+label IF_END2
+function Block.getX1 0
+push argument 0
+pop pointer 0
+push this 0
+return
+function Block.isFall 0
+push argument 0
+pop pointer 0
+push this 5
+return
+function Block.dispose 0
+push argument 0
+pop pointer 0
+push pointer 0
+call Memory.deAlloc 1
+pop temp 0
+push constant 0
+return

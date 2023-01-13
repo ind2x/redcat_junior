@@ -1,0 +1,125 @@
+class Block
+{
+    field int x1, y1, x2, y2, size;
+    field int fall, iscollision;//, isBumped;
+
+    constructor Block new(int raw, int col, int pSize)
+    {
+        let size = pSize;
+
+        if(raw < 240) { let x1 = raw; }
+        else { let x1 = 239; }
+
+        if(col < 32) { let y1 = col; }
+        else { let y1 = 31; let size = 1; }
+
+        let x2 = x1 + 16;
+        if((y1 + size) > 32 ) { let size = 32 - col; }
+        let y2 = y1 + size;
+
+        let iscollision = 0; // 블록에 접근됬는지 유무
+        //let isBumped = 0;    // 블록에 부딪혔는지 유무
+
+        return this;
+    }
+
+    // 가로로 size 만큼의 블록을 만들어줌
+    // 한 행에 최대 32개의 블록을 만들 수 있음
+    method void draw() {
+        // 0 <= raw <= 239
+        // 0 <= col <= 31
+        // 1 <= size <= 30
+		var int memAddress, i;
+        let i = 0;
+		
+		// 박스 크기는 16 x 16
+        while(i < size)
+        {
+            let memAddress = 16384+(x1*32)+y1+i;
+            do Memory.poke(memAddress, -1);
+            do Memory.poke(memAddress +32, -1);
+            do Memory.poke(memAddress +64, -2045);
+            do Memory.poke(memAddress +96, -9213);
+            do Memory.poke(memAddress +128, -9213);
+            do Memory.poke(memAddress +160, -12797);
+            do Memory.poke(memAddress +192, -14845);
+            do Memory.poke(memAddress +224, -6653);
+            do Memory.poke(memAddress +256, -241);
+            do Memory.poke(memAddress +288, -193);
+            do Memory.poke(memAddress +320, -15877);
+            do Memory.poke(memAddress +352, -15901);
+            do Memory.poke(memAddress +384, -15997);
+            do Memory.poke(memAddress +416, -15997);
+            do Memory.poke(memAddress +448, -1);
+            do Memory.poke(memAddress +480, -1);
+
+            let i = i + 1;
+        }
+			
+		return;
+	}
+
+    method int IsCollision(int CatMarioRaw, int CatMarioCol)
+    {
+        //let isBumped = 0;
+        // 블록 위에 있다가 떨어지는 경우
+        if(iscollision = 1)
+        {
+            if( ((CatMarioCol+1) < y1) | (CatMarioCol > y2) ) 
+            { 
+                let fall = 1; 
+                let iscollision = 0; 
+            }
+            return 1;
+        }
+        
+        // 블록에 부딪히는 경우
+        /*
+        if( (~(CatMarioRaw > x1) & ~(CatMarioRaw > x2) & ~((CatMarioRaw+35) < x1) & ~((CatMarioRaw+35) < x2))
+            | ( (CatMarioRaw > x1) & (CatMarioRaw < x2) ) | ( (CatMarioRaw+35) < x1) )
+        {
+            if((CatMarioCol+1)=y1) { let isBumped = 1; return 1;}    // 블록 왼쪽에 부딪힌 경우
+            if((CatMarioCol)=y2) { let isBumped = 2; return 1; }      // 블록 오른쪽에 부딪힌 경우
+        }
+        */
+
+        // 만약 캐릭터가 블록 밑 또는 위에 있는 경우
+        if(( ~(CatMarioCol < y1) ) & ( ~(CatMarioCol > y2) ))
+        {
+            // 블록 위에 있는 경우
+            if(((CatMarioRaw + 35) < x1)) 
+            { 
+                let iscollision = 1;
+                let fall = 0;
+                return 1; 
+            }
+            // 블록 밑에 있는 경우, 점프하면 부딪혀야 함
+            else 
+            { 
+                let iscollision = 0; 
+                let fall = -1; 
+                return 1; 
+            }
+        }
+        else
+        {
+            // 캐릭이 블록에서 떨어져 있는 경우 -> 상관없으니 무시
+            let iscollision = 0; 
+            let fall = 0; 
+            return 0;
+        }
+    }
+
+    method int getX1() { return x1; }
+    
+    method int isFall() { return fall; } // 오브젝트 구별 용도
+
+    //method int isBumped() { return isBumped; }
+
+    method void dispose()
+    {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+}

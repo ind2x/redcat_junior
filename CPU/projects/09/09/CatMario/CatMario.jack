@@ -1,0 +1,325 @@
+class CatMario
+{
+    field int memAddress, raw, col;
+	field int jump, velocity, mass;
+	field int floor, onBlock, limit; // limit = 천장
+	field int left, right;
+
+    constructor CatMario new()
+    {
+		let jump = 0;	// if jump, jump=1
+		let velocity = -2;	// 최초 속도를 음수로 설정하여 0,0에서 내려오도록 함
+		let mass = 2;
+		let floor = 255;
+		let limit = 1;		// 천장
+		let left = 0;
+		let right = 30;
+        return this;
+    }
+
+    method void drawCatMario(int praw, int pcol) 
+    {
+		// 최초 위치는 우선은 마지막 행, 1열
+		// 고양이가 가로로 32비트
+		// 0 <= raw <= 255 - 35 = 220
+		// 0 <= col <= 31
+		let raw = praw;
+		let col = pcol;
+        let memAddress = 16384+(raw*32)+col;	// 16384 ~ 24575
+
+		do Memory.poke(memAddress, 32);
+		do Memory.poke(memAddress +32, 80);
+		do Memory.poke(memAddress +64, 80);
+		do Memory.poke(memAddress +96, -32632);
+		do Memory.poke(memAddress +128, -32632);
+		do Memory.poke(memAddress +160, 16644);
+		do Memory.poke(memAddress +192, 15972);
+		do Memory.poke(memAddress +224, 52);
+		do Memory.poke(memAddress +256, 900);
+		do Memory.poke(memAddress +288, 900);
+		do Memory.poke(memAddress +320, 900);
+		do Memory.poke(memAddress +352, 16388);
+		do Memory.poke(memAddress +384, 18436);
+		do Memory.poke(memAddress +416, 9220);
+		do Memory.poke(memAddress +448, 9224);
+		do Memory.poke(memAddress +480, -10224);
+		do Memory.poke(memAddress +512, 16);
+		do Memory.poke(memAddress +544, 8);
+		do Memory.poke(memAddress +576, 4);
+		do Memory.poke(memAddress +608, 2);
+		do Memory.poke(memAddress +640, 34);
+		do Memory.poke(memAddress +672, 81);
+		do Memory.poke(memAddress +704, 73);
+		do Memory.poke(memAddress +736, 69);
+		do Memory.poke(memAddress +768, 66);
+		do Memory.poke(memAddress +800, 64);
+		do Memory.poke(memAddress +832, 64);
+		do Memory.poke(memAddress +864, 64);
+		do Memory.poke(memAddress +896, 32);
+		do Memory.poke(memAddress +928, 6176);
+		do Memory.poke(memAddress +960, 26128);
+		do Memory.poke(memAddress +992, -32496);
+		do Memory.poke(memAddress +1024, 136);
+		do Memory.poke(memAddress +1056, 68);
+		do Memory.poke(memAddress +1088, 68);
+		do Memory.poke(memAddress +1120, 56);
+		// column 1
+		do Memory.poke(memAddress +1, 2);
+		do Memory.poke(memAddress +33, 5);
+		do Memory.poke(memAddress +65, 5);
+		do Memory.poke(memAddress +97, 8);
+		do Memory.poke(memAddress +129, 8);
+		do Memory.poke(memAddress +161, 16);
+		do Memory.poke(memAddress +193, 44);
+		do Memory.poke(memAddress +225, 56);
+		do Memory.poke(memAddress +257, 39);
+		do Memory.poke(memAddress +289, 39);
+		do Memory.poke(memAddress +321, 39);
+		do Memory.poke(memAddress +353, 32);
+		do Memory.poke(memAddress +385, 32);
+		do Memory.poke(memAddress +417, 33);
+		do Memory.poke(memAddress +449, 17);
+		do Memory.poke(memAddress +481, 8);
+		do Memory.poke(memAddress +513, 8);
+		do Memory.poke(memAddress +545, 16);
+		do Memory.poke(memAddress +577, 32);
+		do Memory.poke(memAddress +609, 64);
+		do Memory.poke(memAddress +641, 68);
+		do Memory.poke(memAddress +673, 138);
+		do Memory.poke(memAddress +705, 146);
+		do Memory.poke(memAddress +737, 162);
+		do Memory.poke(memAddress +769, 66);
+		do Memory.poke(memAddress +801, 2);
+		do Memory.poke(memAddress +833, 2);
+		do Memory.poke(memAddress +865, 2);
+		do Memory.poke(memAddress +897, 2);
+		do Memory.poke(memAddress +929, 4);
+		do Memory.poke(memAddress +961, 4);
+		do Memory.poke(memAddress +993, 8);
+		do Memory.poke(memAddress +1025, 17);
+		do Memory.poke(memAddress +1057, 34);
+		do Memory.poke(memAddress +1089, 34);
+		do Memory.poke(memAddress +1121, 28);
+	    return;
+    }
+
+    method void dispose()
+    {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+	method void erase(int raw, int col)
+	{
+		let memAddress = 16384+(raw*32)+col;	// 16384 ~ 24575
+
+		do Memory.poke(memAddress, 0);
+		do Memory.poke(memAddress +32, 0);
+		do Memory.poke(memAddress +64, 0);
+		do Memory.poke(memAddress +96, 0);
+		do Memory.poke(memAddress +128, 0);
+		do Memory.poke(memAddress +160, 0);
+		do Memory.poke(memAddress +192, 0);
+		do Memory.poke(memAddress +224, 0);
+		do Memory.poke(memAddress +256, 0);
+		do Memory.poke(memAddress +288, 0);
+		do Memory.poke(memAddress +320, 0);
+		do Memory.poke(memAddress +352, 0);
+		do Memory.poke(memAddress +384, 0);
+		do Memory.poke(memAddress +416, 0);
+		do Memory.poke(memAddress +448, 0);
+		do Memory.poke(memAddress +480, 0);
+		do Memory.poke(memAddress +512, 0);
+		do Memory.poke(memAddress +544, 0);
+		do Memory.poke(memAddress +576, 0);
+		do Memory.poke(memAddress +608, 0);
+		do Memory.poke(memAddress +640, 0);
+		do Memory.poke(memAddress +672, 0);
+		do Memory.poke(memAddress +704, 0);
+		do Memory.poke(memAddress +736, 0);
+		do Memory.poke(memAddress +768, 0);
+		do Memory.poke(memAddress +800, 0);
+		do Memory.poke(memAddress +832, 0);
+		do Memory.poke(memAddress +864, 0);
+		do Memory.poke(memAddress +896, 0);
+		do Memory.poke(memAddress +928, 0);
+		do Memory.poke(memAddress +960, 0);
+		do Memory.poke(memAddress +992, 0);
+		do Memory.poke(memAddress +1024, 0);
+		do Memory.poke(memAddress +1056, 0);
+		do Memory.poke(memAddress +1088, 0);
+		do Memory.poke(memAddress +1120, 0);
+		// column 1
+		do Memory.poke(memAddress +1, 0);
+		do Memory.poke(memAddress +33, 0);
+		do Memory.poke(memAddress +65, 0);
+		do Memory.poke(memAddress +97, 0);
+		do Memory.poke(memAddress +129, 0);
+		do Memory.poke(memAddress +161, 0);
+		do Memory.poke(memAddress +193, 0);
+		do Memory.poke(memAddress +225, 0);
+		do Memory.poke(memAddress +257, 0);
+		do Memory.poke(memAddress +289, 0);
+		do Memory.poke(memAddress +321, 0);
+		do Memory.poke(memAddress +353, 0);
+		do Memory.poke(memAddress +385, 0);
+		do Memory.poke(memAddress +417, 0);
+		do Memory.poke(memAddress +449, 0);
+		do Memory.poke(memAddress +481, 0);
+		do Memory.poke(memAddress +513, 0);
+		do Memory.poke(memAddress +545, 0);
+		do Memory.poke(memAddress +577, 0);
+		do Memory.poke(memAddress +609, 0);
+		do Memory.poke(memAddress +641, 0);
+		do Memory.poke(memAddress +673, 0);
+		do Memory.poke(memAddress +705, 0);
+		do Memory.poke(memAddress +737, 0);
+		do Memory.poke(memAddress +769, 0);
+		do Memory.poke(memAddress +801, 0);
+		do Memory.poke(memAddress +833, 0);
+		do Memory.poke(memAddress +865, 0);
+		do Memory.poke(memAddress +897, 0);
+		do Memory.poke(memAddress +929, 0);
+		do Memory.poke(memAddress +961, 0);
+		do Memory.poke(memAddress +993, 0);
+		do Memory.poke(memAddress +1025, 0);
+		do Memory.poke(memAddress +1057, 0);
+		do Memory.poke(memAddress +1089, 0);
+		do Memory.poke(memAddress +1121, 0);
+	    return;
+	}
+	
+	method int IsDie()
+	{
+		// 바닥에 발이 닿으면 사망
+		if(raw = 219) 
+		{
+			return 1;
+		}
+		else { return 0; }
+	}
+	
+	
+	method void IsOnBlock(int _floor, int fall) //, int isBumped) 
+	{
+		/*
+		if(~(isBumped=0))
+		{
+			if(isBumped=1) { let right = col; }
+			else { let left = col; }
+			return;
+		}
+		else 
+		{ 
+			let left = 0; 
+			let right = 30; 
+		}
+		*/
+
+		if(fall = 1) 
+		{  
+			let floor = 255;
+			if(jump=0) 
+			{ 
+				let velocity = -6;
+				let jump = 1;
+			}
+			return; 
+		}
+		
+		if(fall = -1)
+		{
+			let limit = _floor + 16;
+			//do Output.printInt(limit);
+			return;
+		}
+		else
+		{
+			if(floor > _floor) 
+			{ 
+				let floor = _floor;
+				return; 
+			}
+		}
+		
+		return; 
+	}
+
+	method void IsJump()
+	{
+		// raw > 37이면 점프 -> 캐릭터 키가 35
+		var int F;	// F = 0.5*mass*velocity^2
+		if(jump = 1)
+		{
+			// 속도가 0보다 클 때 위로 
+			if((velocity > 0))//&(onBlock=1))
+			{
+				let F = (mass*(velocity*velocity))/2;
+			}
+			// 속도가 0보다 작을 때 아래로
+			else
+			{
+				let F = -(mass*(velocity*velocity))/2;
+			}
+
+			do erase(raw, col);
+
+			let raw = raw - F;
+			let velocity = velocity - 1;
+
+			if(raw < limit)	// 천장을 못넘어가게 설정
+			{
+				let raw = limit+1;
+				let limit = 0;
+				let velocity = -2;
+			}
+			
+			// 현재 위치에서 캐릭터 키(35)만큼 더했을 때 블록 위거나 바닥에 닿으면 착지 혹은 사망
+			if ((raw+35) > floor) 
+			{
+				let raw = floor-1-35; // 바닥에서 한 줄 위로 떨어지게 설정
+				let jump = 0;
+				let velocity = 6;
+				let limit = 1;
+			}
+
+			do drawCatMario(raw, col);
+			do Sys.wait(40);
+		}
+		return;
+	}
+	
+	method void SetJump()
+	{
+		let jump = 1;
+		return;
+	}
+
+	method void	MoveLeft()
+	{
+		if(col > left)
+		{
+			do erase(raw, col);
+			let col = col - 1;
+			do drawCatMario(raw, col);
+			//do Sys.wait(50);
+		}
+		return;
+	}
+
+	method void MoveRight()
+	{
+		if(col < right)
+		{
+			do erase(raw, col);
+			let col = col + 1;
+			do drawCatMario(raw, col);
+			//do Sys.wait(50);
+		}
+		return;
+	}
+
+	method int getRaw() { return raw;}
+	method int getCol() { return col; }
+
+}

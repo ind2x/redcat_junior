@@ -1,0 +1,164 @@
+class CatMarioGame
+{
+    field CatMario syobon;
+    field int direction, CatRaw, CatCol;
+    field char key; // the key currently pressed by the user
+    field Block block1, block2, block3, floor1, floor2, floor3;
+
+    constructor CatMarioGame new()
+    {
+        let syobon = CatMario.new();
+        let block1 = Block.new(170,6,4);
+        let block2 = Block.new(130,10,5);
+        let block3 = Block.new(150,18,8);
+
+        let floor1 = Block.new(239,0,32);
+        let floor2 = Block.new(239,0,13);
+        let floor3 = Block.new(239,17,16);
+        do MainPage();
+
+        return this;
+    }
+
+    // 메인 페이지 -> "고양이 마리오" 문구 출력과 Enter를 누르면 게임 시작 표시
+    method void MainPage()
+    {
+        var boolean start;
+
+        do Output.moveCursor(5,24); // 23 raw, 64 col
+		do Output.printString("Cat Mario Demo");
+        do Output.moveCursor(15,26);
+		do Output.printString("Press Enter");
+
+        do syobon.drawCatMario(203, 0);
+		do floor1.draw();
+
+        let start = false;
+
+		while(~start)
+		{
+			let key = Keyboard.keyPressed();
+
+			if(key=128) // if enter is pressed, start
+			{ 
+				let start = true;
+				do Screen.clearScreen();
+			}
+		}
+        return; 
+    }
+
+    method void Die(int die)
+    {
+        do Output.moveCursor(5,26);
+        do Output.printString("Game Over");
+        do Output.moveCursor(8,20);
+		do Output.printString("Restart? Press any key");
+
+        while(die=0) {let die = Keyboard.keyPressed();}
+        
+        return;
+    }
+
+    method void dispose()
+    {
+        do syobon.dispose();
+        do block1.dispose();
+        do block2.dispose();
+        do block3.dispose();
+        do floor1.dispose();
+        do floor2.dispose();
+        do floor3.dispose();
+
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method void handle_block(Block block)
+    {
+        do syobon.IsOnBlock(block.getX1(), block.isFall()); //, block.isBumped());
+        return; 
+    }
+
+    /** Moves the CatMario in the current direction. */
+    method void MoveCatMario() 
+    {
+        if (direction = 1) { do syobon.SetJump(); }
+        if (direction = 2) { do syobon.MoveLeft(); }
+        if (direction = 3) { do syobon.MoveRight(); }
+        if (~(direction = 0)) { do Sys.wait(60); }  // delays the next movement
+        return;
+   }
+
+    /** Runs the game: handles the user's inputs and moves the CatMario accordingly */
+    method void run() 
+    {
+        var boolean exit, reset;
+        var int collision;
+        let exit = false;
+        let reset = false;
+        
+
+        // 처음 시작 시 위에서 내려오도록 설정
+        do syobon.drawCatMario(0,1);
+        do syobon.SetJump();
+
+        do floor2.draw();
+        do floor3.draw();
+        do block1.draw();
+        do block2.draw();
+        do block3.draw();
+
+        while (~exit) 
+        {
+            let direction = 0;
+            let key = Keyboard.keyPressed();
+            let collision = 0;
+
+            if (key = 81)  { let exit = true; }     // q key
+            if (key = 82)  { let reset = true; }    // r key -> reset
+            if (key = 131) { let direction = 1; }   // up arrow
+            if (key = 130) { let direction = 2; }   // left arrow
+            if (key = 132) { let direction = 3; }   // right arrow
+
+            
+            if(reset) 
+            {
+                do Screen.clearScreen();
+                let syobon = CatMario.new();
+                let reset = false;
+                do run();
+            }
+
+            if (~(key = 0))
+            {
+                do MoveCatMario();
+            }
+            
+            
+            if (syobon.IsDie()) 
+            { 
+                do Die(0);
+                let reset = 1;
+            }
+
+            let CatRaw = syobon.getRaw();
+            let CatCol = syobon.getCol();
+            if(floor2.IsCollision(CatRaw, CatCol)) { do handle_block(floor2); }
+            if(floor3.IsCollision(CatRaw, CatCol)) { do handle_block(floor3); }
+            if(block1.IsCollision(CatRaw, CatCol)) { do handle_block(block1); }
+            if(block2.IsCollision(CatRaw, CatCol)) { do handle_block(block2); }            
+            if(block3.IsCollision(CatRaw, CatCol)) { do handle_block(block3); }
+
+            do syobon.IsJump();
+
+        }
+        return;
+    }
+}
+
+/*
+문제점
+2. 블록에서 다시 안내려가짐
+3. 걍 좆같음
+*/

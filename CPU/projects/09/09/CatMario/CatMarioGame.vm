@@ -1,0 +1,521 @@
+function CatMarioGame.new 0
+push constant 11
+call Memory.alloc 1
+pop pointer 0
+call CatMario.new 0
+pop this 0
+push constant 170
+push constant 6
+push constant 4
+call Block.new 3
+pop this 5
+push constant 130
+push constant 10
+push constant 5
+call Block.new 3
+pop this 6
+push constant 150
+push constant 18
+push constant 8
+call Block.new 3
+pop this 7
+push constant 239
+push constant 0
+push constant 32
+call Block.new 3
+pop this 8
+push constant 239
+push constant 0
+push constant 13
+call Block.new 3
+pop this 9
+push constant 239
+push constant 17
+push constant 16
+call Block.new 3
+pop this 10
+push pointer 0
+call CatMarioGame.MainPage 1
+pop temp 0
+push pointer 0
+return
+function CatMarioGame.MainPage 1
+push argument 0
+pop pointer 0
+push constant 5
+push constant 24
+call Output.moveCursor 2
+pop temp 0
+push constant 14
+call String.new 1
+push constant 67
+call String.appendChar 2
+push constant 97
+call String.appendChar 2
+push constant 116
+call String.appendChar 2
+push constant 32
+call String.appendChar 2
+push constant 77
+call String.appendChar 2
+push constant 97
+call String.appendChar 2
+push constant 114
+call String.appendChar 2
+push constant 105
+call String.appendChar 2
+push constant 111
+call String.appendChar 2
+push constant 32
+call String.appendChar 2
+push constant 68
+call String.appendChar 2
+push constant 101
+call String.appendChar 2
+push constant 109
+call String.appendChar 2
+push constant 111
+call String.appendChar 2
+call Output.printString 1
+pop temp 0
+push constant 15
+push constant 26
+call Output.moveCursor 2
+pop temp 0
+push constant 11
+call String.new 1
+push constant 80
+call String.appendChar 2
+push constant 114
+call String.appendChar 2
+push constant 101
+call String.appendChar 2
+push constant 115
+call String.appendChar 2
+push constant 115
+call String.appendChar 2
+push constant 32
+call String.appendChar 2
+push constant 69
+call String.appendChar 2
+push constant 110
+call String.appendChar 2
+push constant 116
+call String.appendChar 2
+push constant 101
+call String.appendChar 2
+push constant 114
+call String.appendChar 2
+call Output.printString 1
+pop temp 0
+push this 0
+push constant 203
+push constant 0
+call CatMario.drawCatMario 3
+pop temp 0
+push this 8
+call Block.draw 1
+pop temp 0
+push constant 0
+pop local 0
+label WHILE_EXP0
+push local 0
+not
+not
+if-goto WHILE_END0
+call Keyboard.keyPressed 0
+pop this 4
+push this 4
+push constant 128
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 0
+not
+pop local 0
+call Screen.clearScreen 0
+pop temp 0
+label IF_FALSE0
+goto WHILE_EXP0
+label WHILE_END0
+push constant 0
+return
+function CatMarioGame.Die 0
+push argument 0
+pop pointer 0
+push constant 5
+push constant 26
+call Output.moveCursor 2
+pop temp 0
+push constant 9
+call String.new 1
+push constant 71
+call String.appendChar 2
+push constant 97
+call String.appendChar 2
+push constant 109
+call String.appendChar 2
+push constant 101
+call String.appendChar 2
+push constant 32
+call String.appendChar 2
+push constant 79
+call String.appendChar 2
+push constant 118
+call String.appendChar 2
+push constant 101
+call String.appendChar 2
+push constant 114
+call String.appendChar 2
+call Output.printString 1
+pop temp 0
+push constant 8
+push constant 20
+call Output.moveCursor 2
+pop temp 0
+push constant 22
+call String.new 1
+push constant 82
+call String.appendChar 2
+push constant 101
+call String.appendChar 2
+push constant 115
+call String.appendChar 2
+push constant 116
+call String.appendChar 2
+push constant 97
+call String.appendChar 2
+push constant 114
+call String.appendChar 2
+push constant 116
+call String.appendChar 2
+push constant 63
+call String.appendChar 2
+push constant 32
+call String.appendChar 2
+push constant 80
+call String.appendChar 2
+push constant 114
+call String.appendChar 2
+push constant 101
+call String.appendChar 2
+push constant 115
+call String.appendChar 2
+push constant 115
+call String.appendChar 2
+push constant 32
+call String.appendChar 2
+push constant 97
+call String.appendChar 2
+push constant 110
+call String.appendChar 2
+push constant 121
+call String.appendChar 2
+push constant 32
+call String.appendChar 2
+push constant 107
+call String.appendChar 2
+push constant 101
+call String.appendChar 2
+push constant 121
+call String.appendChar 2
+call Output.printString 1
+pop temp 0
+label WHILE_EXP0
+push argument 1
+push constant 0
+eq
+not
+if-goto WHILE_END0
+call Keyboard.keyPressed 0
+pop argument 1
+goto WHILE_EXP0
+label WHILE_END0
+push constant 0
+return
+function CatMarioGame.dispose 0
+push argument 0
+pop pointer 0
+push this 0
+call CatMario.dispose 1
+pop temp 0
+push this 5
+call Block.dispose 1
+pop temp 0
+push this 6
+call Block.dispose 1
+pop temp 0
+push this 7
+call Block.dispose 1
+pop temp 0
+push this 8
+call Block.dispose 1
+pop temp 0
+push this 9
+call Block.dispose 1
+pop temp 0
+push this 10
+call Block.dispose 1
+pop temp 0
+push pointer 0
+call Memory.deAlloc 1
+pop temp 0
+push constant 0
+return
+function CatMarioGame.handle_block 0
+push argument 0
+pop pointer 0
+push this 0
+push argument 1
+call Block.getX1 1
+push argument 1
+call Block.isFall 1
+call CatMario.IsOnBlock 3
+pop temp 0
+push constant 0
+return
+function CatMarioGame.MoveCatMario 0
+push argument 0
+pop pointer 0
+push this 1
+push constant 1
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push this 0
+call CatMario.SetJump 1
+pop temp 0
+label IF_FALSE0
+push this 1
+push constant 2
+eq
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push this 0
+call CatMario.MoveLeft 1
+pop temp 0
+label IF_FALSE1
+push this 1
+push constant 3
+eq
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push this 0
+call CatMario.MoveRight 1
+pop temp 0
+label IF_FALSE2
+push this 1
+push constant 0
+eq
+not
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push constant 60
+call Sys.wait 1
+pop temp 0
+label IF_FALSE3
+push constant 0
+return
+function CatMarioGame.run 3
+push argument 0
+pop pointer 0
+push constant 0
+pop local 0
+push constant 0
+pop local 1
+push this 0
+push constant 0
+push constant 1
+call CatMario.drawCatMario 3
+pop temp 0
+push this 0
+call CatMario.SetJump 1
+pop temp 0
+push this 9
+call Block.draw 1
+pop temp 0
+push this 10
+call Block.draw 1
+pop temp 0
+push this 5
+call Block.draw 1
+pop temp 0
+push this 6
+call Block.draw 1
+pop temp 0
+push this 7
+call Block.draw 1
+pop temp 0
+label WHILE_EXP0
+push local 0
+not
+not
+if-goto WHILE_END0
+push constant 0
+pop this 1
+call Keyboard.keyPressed 0
+pop this 4
+push constant 0
+pop local 2
+push this 4
+push constant 81
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 0
+not
+pop local 0
+label IF_FALSE0
+push this 4
+push constant 82
+eq
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push constant 0
+not
+pop local 1
+label IF_FALSE1
+push this 4
+push constant 131
+eq
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push constant 1
+pop this 1
+label IF_FALSE2
+push this 4
+push constant 130
+eq
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push constant 2
+pop this 1
+label IF_FALSE3
+push this 4
+push constant 132
+eq
+if-goto IF_TRUE4
+goto IF_FALSE4
+label IF_TRUE4
+push constant 3
+pop this 1
+label IF_FALSE4
+push local 1
+if-goto IF_TRUE5
+goto IF_FALSE5
+label IF_TRUE5
+call Screen.clearScreen 0
+pop temp 0
+call CatMario.new 0
+pop this 0
+push constant 0
+pop local 1
+push pointer 0
+call CatMarioGame.run 1
+pop temp 0
+label IF_FALSE5
+push this 4
+push constant 0
+eq
+not
+if-goto IF_TRUE6
+goto IF_FALSE6
+label IF_TRUE6
+push pointer 0
+call CatMarioGame.MoveCatMario 1
+pop temp 0
+label IF_FALSE6
+push this 0
+call CatMario.IsDie 1
+if-goto IF_TRUE7
+goto IF_FALSE7
+label IF_TRUE7
+push pointer 0
+push constant 0
+call CatMarioGame.Die 2
+pop temp 0
+push constant 1
+pop local 1
+label IF_FALSE7
+push this 0
+call CatMario.getRaw 1
+pop this 2
+push this 0
+call CatMario.getCol 1
+pop this 3
+push this 9
+push this 2
+push this 3
+call Block.IsCollision 3
+if-goto IF_TRUE8
+goto IF_FALSE8
+label IF_TRUE8
+push pointer 0
+push this 9
+call CatMarioGame.handle_block 2
+pop temp 0
+label IF_FALSE8
+push this 10
+push this 2
+push this 3
+call Block.IsCollision 3
+if-goto IF_TRUE9
+goto IF_FALSE9
+label IF_TRUE9
+push pointer 0
+push this 10
+call CatMarioGame.handle_block 2
+pop temp 0
+label IF_FALSE9
+push this 5
+push this 2
+push this 3
+call Block.IsCollision 3
+if-goto IF_TRUE10
+goto IF_FALSE10
+label IF_TRUE10
+push pointer 0
+push this 5
+call CatMarioGame.handle_block 2
+pop temp 0
+label IF_FALSE10
+push this 6
+push this 2
+push this 3
+call Block.IsCollision 3
+if-goto IF_TRUE11
+goto IF_FALSE11
+label IF_TRUE11
+push pointer 0
+push this 6
+call CatMarioGame.handle_block 2
+pop temp 0
+label IF_FALSE11
+push this 7
+push this 2
+push this 3
+call Block.IsCollision 3
+if-goto IF_TRUE12
+goto IF_FALSE12
+label IF_TRUE12
+push pointer 0
+push this 7
+call CatMarioGame.handle_block 2
+pop temp 0
+label IF_FALSE12
+push this 0
+call CatMario.IsJump 1
+pop temp 0
+goto WHILE_EXP0
+label WHILE_END0
+push constant 0
+return
