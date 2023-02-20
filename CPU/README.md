@@ -27,7 +27,7 @@
 
 <br><hr style="border: 2px solid;"><br>
 
-## 필수 자료
+## 자료
 
 <br>
 
@@ -47,12 +47,8 @@
 
 + Bitmap : https://github.com/ErikUmble/JackBitmapEditor
 
-<br><hr style="border: 2px solid;"><br>
-
-## 내용 정리 (참고 자료)
-
 <br>
 
-Nand2tetris 정리 내용(1 ~ 8) : https://ccss17.netlify.app/computer/nand2tetris/
++ Nand2tetris 정리 내용(1 ~ 8) : https://ccss17.netlify.app/computer/nand2tetris/
 
 <br><hr style="border: 2px solid;"><br>
