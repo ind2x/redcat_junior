@@ -71,8 +71,15 @@
 
 <br>
 
++ terminals
 
+![image](https://user-images.githubusercontent.com/52172169/220276662-74c1cb65-414d-49e5-aad8-335268cc4e3f.png)
 
+<br>
+
++ nonterminals
+
+![image](https://user-images.githubusercontent.com/52172169/220276757-9e1b7556-ee31-4a4d-bd19-de6ce7522b24.png)
 
 <br><br>
 <hr style="border: 2px solid;">
