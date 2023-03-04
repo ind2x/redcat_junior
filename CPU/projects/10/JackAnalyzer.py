@@ -26,12 +26,12 @@ def analyze(jackFile):
         lines = f.readlines()
 
         for line in lines:
-            code = line.strip().split(' ')
+            code = line.strip().split('\n')
             if "/" in code[0] or code[0] == '' :
                 continue
             
             print(code)
-            
+            """
             for parse in code:
                 # tokenizer
                 # keyword
@@ -72,7 +72,7 @@ def analyze(jackFile):
                     elif parse.isnumeric() == True:
                         parsed_code = replace(parsed_code, "\t<integerConstant> " + parse + " </integerConstant>\n" + "{}")
                 
-
+"""
     # make file "fileName_res.xml" and copy parsed code to result file
     with open(jackFile[:-5]+'_res.xml', 'w') as res:
         res.write(parsed_code)       
