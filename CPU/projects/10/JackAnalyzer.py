@@ -36,7 +36,7 @@ def tokenizer(parsed_code, code):
             return replace(parsed_code, "<identifier> {} </identifier>\n$$".format(code))
 
 # compile expressions
-def expression(parsed_code, code):
+#def expression(parsed_code, code):
     # expression == term (op term)*
 
 
@@ -66,29 +66,36 @@ def analyze(jackFile):
             elif code[0].find('constructor') == 0 or code[0].find('function') == 0 or code[0].find('method') == 0:
                 parsed_code = replace(parsed_code, "<subroutineDec>\n$$</subroutineDec>")
 
-                # extract type, subroutineName
-                code = ''.join(code).split('(')
-                for token in ''.join(code[0]).split():
-                    parsed_code = tokenizer(parsed_code, token)
+                # extract keyword, type
+                code = re.search('(.+?)\s(.+?)\s(.+?)\s({)', code[0])
+                parsed_code = tokenizer(parsed_code, code.group(1))
+                parsed_code = tokenizer(parsed_code, code.group(2))
+
+                # subroutineName, par
+                etc = re.search('(.+?)\(|(.+?)\)', code.group(3))
+                
+                subroutineName = etc.group(1)
                 parsed_code = tokenizer(parsed_code, '(')
+                parsed_code = tokenizer(parsed_code, subroutineName)
 
                 # add <parameterList>
                 parsed_code = replace(parsed_code, "<parameterList>\n$$")
+                par = etc.group(2)
 
-                # extract parameterList if parameters exist
-                code = ''.join(code[1]).split(')')
-                # if no parameter, pass
-                if code[0] == '':
-                    parsed_code = replace(parsed_code, '$$')
-                else:
-                    par = ''.join(''.join(code[0]).split(',')).split(' ')
+                # if multiple parameters
+                # if no any par
+                if par == None:
+                    pass
+                elif ',' in par:
+                    par = par.strip().split(',')
                     for idx, token in enumerate(par):
                         parsed_code = tokenizer(parsed_code, token)
-                        # 마지막 요소라면 ','는 추가 x
                         if idx == len(par)-1:
                             continue
-                        if idx % 2 == 1:
-                            parsed_code = tokenizer(parsed_code, ',')
+                        parsed_code = tokenizer(parsed_code, ',')
+                else:
+                    parsed_code = tokenizer(parsed_code, par)
+                
                 parsed_code = replace(parsed_code, "</parameterList>\n$$")
                 parsed_code = tokenizer(parsed_code, ')')
 
@@ -106,48 +113,51 @@ def analyze(jackFile):
                 else:
                     parsed_code = replace(parsed_code, "<varDec>\n$$")
                     varOn = 1
-                # if there is multiple variables
-                if ',' in code[0]:
-                    code = ''.join(''.join(code[0]).split(',')).split(' ')
+                
+                # extract keyword, type
+                code = re.search('(.+?)\s(.+?)\s(.+?)(;)', code[0])
+                parsed_code = tokenizer(parsed_code, code.group(1))
+                parsed_code = tokenizer(parsed_code, code.group(2))
 
-                    # tokenizer var, type first
-                    parsed_code = tokenizer(parsed_code, code[0])
-                    parsed_code = tokenizer(parsed_code, code[1])
-                    for token in code[2:]:
-                        if ';' in token:
-                            parsed_code = tokenizer(parsed_code, token[:-1])
-                            parsed_code = tokenizer(parsed_code, token[-1])
-                        else:
-                            parsed_code = tokenizer(parsed_code, token)
-                            parsed_code = tokenizer(parsed_code, ',')
+                # if there is multiple varNames
+                if ',' in code.group(3):
+                    par = code.group(3).strip().split(',')
+                    for idx, token in enumerate(par):
+                        parsed_code = tokenizer(parsed_code, token)
+                        if idx == len(par)-1:
+                            continue
+                        parsed_code = tokenizer(parsed_code, ',')
                 else:
-                    code = ''.join(code[0]).split()
-                    for idx, token in enumerate(code):
-                        if idx == 2:
-                            parsed_code = tokenizer(parsed_code, token[:-1])
-                            parsed_code = tokenizer(parsed_code, token[-1])
-                        else: 
-                            parsed_code = tokenizer(parsed_code, token)
+                    parsed_code = tokenizer(parsed_code, code.group(3))
+
+                parsed_code = tokenizer(parsed_code, code.group(4))
 
                 if varOn == 1:
                     parsed_code = replace(parsed_code, "</varDec>\n$$")
                 else:
                     parsed_code = replace(parsed_code, "</classVarDec>\n$$")
-                
+            
+            # compile statements
+            if code[0].find('let') == 0 or code[0].find('if') == 0 or code[0].find('while') == 0 or code[0].find('do') == 0 or code[0].find('return') == 0 :
+                parsed_code = replace(parsed_code, "<statements>\n$$")
 
-                # compile statements
-                if code[0].find('let') == 0 or code[0].find('if') == 0 or code[0].find('while') == 0 or code[0].find('do') == 0 or code[0].find('return') == 0 :
-                    parsed_code = replace(parsed_code, "<statements>\n$$")
+                # compile let statement
+                if code[0].find('let') == 0:
+                    code = re.search('(.+?)\s(.+?|\[.+?\])\s(=)\s(.+?)(;)', code[0])
+                    
+                    # parse keyword, varName
+                    parsed_code = tokenizer(parsed_code, code.group(1))
+                    if '[' in code.group(2):
+                        parsed_code  = tokenizer(parsed_code, '[')
+                        indexName = re.search('\[(.+?)\]', code.group(2))
+                        parsed_code = tokenizer(parsed_code, indexName)
+                        parsed_code  = tokenizer(parsed_code, ']')
+                    
+                    # parse '='
+                    parsed_code = tokenizer(parsed_code, code.group(3))
 
-                    # compile let statement
-                    if code[0].find('let') == 0:
-                        code = ''.join(code).split('=')
-                        varName = ''.join(code[0]).split(' ')[1]
-                        parsed_code = replace(parsed_code, "<letStatement>\n$$")
-
-                        if '[' in varName:
-                            parsed_code = expression(parsed_code, varName)
-
+                    # parse expression
+                    #parsed_code = expression()
 
     # make file "fileName_res.xml" and copy parsed code to result file
     with open(jackFile[:-5]+'_res.xml', 'w') as res:
