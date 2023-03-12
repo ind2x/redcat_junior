@@ -89,7 +89,6 @@ def subroutineCall(parsed_code, code, type):
 
 # compile expressions
 def expression(parsed_code, code):
-    
     # integerConstant
     if code.isnumeric():
         parsed_code = replace(parsed_code, "<term>\n<integerConstant> {} </integerConstant>\n</term>\n$$".format(code))
@@ -113,18 +112,19 @@ def expression(parsed_code, code):
         parsed_code = replace(parsed_code, "</expression>\n$$")
         
         parsed_code = tokenizer(parsed_code, ')')
-
+        
+    # subroutineCall - (className|varName)'.'subroutineName '(' expressionList ')'
+    elif re.search('(.+)(\.)(.+)\((.?|.+)\)', code):
+        # add <term>
+        #print(code)
+        parsed_code = replace(parsed_code, "<term>\n$$")
+        parsed_code = subroutineCall(parsed_code, code, 2)
+        parsed_code = replace(parsed_code, "</term>\n$$")
+    
     # subroutineCall - subroutineName '(' expressionList ')'
     elif re.search('(.+)\((.?|.+)\)', code):
         parsed_code = replace(parsed_code, "<term>\n$$")
         parsed_code = subroutineCall(parsed_code, code, 1)
-        parsed_code = replace(parsed_code, "</term>\n$$")
-        
-    # subroutineCall - (className|varName)'.'subroutineName '(' expressionList ')'
-    elif re.search('(.+)\.(.+)\((.?|.+)\)', code):
-        # add <term>
-        parsed_code = replace(parsed_code, "<term>\n$$")
-        parsed_code = subroutineCall(parsed_code, code, 2)
         parsed_code = replace(parsed_code, "</term>\n$$")
     
     # varName'[' expression ']'
@@ -227,7 +227,9 @@ def analyze(jackFile):
 
                 # add <subroutineBody>
                 parsed_code = replace(parsed_code, "<subroutineBody>\n$$</subroutineBody>\n$$")
-
+                
+                parsed_code = replace(parsed_code, "<statements>\n$$")
+                
                 # '{'
                 parsed_code = tokenizer(parsed_code, code.group(5))
 
@@ -266,13 +268,11 @@ def analyze(jackFile):
             
             # compile statements
             if code[0].find('let') == 0 or code[0].find('if') == 0 or code[0].find('while') == 0 or code[0].find('do') == 0 or code[0].find('return') == 0 :
-                parsed_code = replace(parsed_code, "<statements>\n$$")
-
                 # compile let statement
                 if code[0].find('let') == 0:
                     parsed_code = replace(parsed_code, "<letStatement>\n$$")
                     code = re.search('(.+)\s(.+)\s(=)\s(.+?)(;)', code[0])
-                    
+
                     # parse keyword, varName
                     parsed_code = tokenizer(parsed_code, code.group(1))
                     
@@ -323,8 +323,6 @@ def analyze(jackFile):
                     parsed_code = tokenizer(parsed_code, code.group(1))
                     parsed_code = expression
 '''
-
-                parsed_code = replace(parsed_code, "</statements>\n$$")
 
     # make file "fileName_res.xml" and copy parsed code to result file
     with open(jackFile[:-5]+'_res.xml', 'w') as res:
