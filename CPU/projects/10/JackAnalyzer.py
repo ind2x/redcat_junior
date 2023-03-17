@@ -16,6 +16,9 @@ symbol = ['{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*', '/',
 classOn = subroutineBodyOn = 0
 IfElseWhile = []
 
+# if '(' expression ')', use
+parentheses = []
+
 def replace(parsed_code, code):
     return parsed_code.replace('$$', code, 1)
 
@@ -119,9 +122,10 @@ def subroutineCall(parsed_code, code, type):
 
 # compile expressions
 def expression(parsed_code, code):
-
+    global parentheses
+    
     # '(' expression ')'
-    if code[0] == '(':
+    if '(' in code:
         code = re.search('\((.+)\)', code)
 
         parsed_code = replace(parsed_code, "<term>\n$$")
@@ -135,8 +139,8 @@ def expression(parsed_code, code):
         parsed_code = tokenizer(parsed_code, ')')
         parsed_code = replace(parsed_code, "</term>\n$$")
     
-    # if op exists
-    elif '+' in code or '-' in code or '*' in code or '/' in code or '&' in code or '|' in code or '<' in code or '>' in code or '=' in code:
+    # if op exists --> 틀린 코드임, 수정해야 함
+    elif '+' in code or '-' in code or '*' in code or '/' in code or '&' in code or '|' in code or '<' in code or '>' in code or '=' in code :
         # if unaryOp term
         if code[0] == '-' or code[0] == '~':
             code = re.search('(-|~)(.+)', code)
@@ -153,7 +157,7 @@ def expression(parsed_code, code):
 
             parsed_code = replace(parsed_code, "</term>\n$$")
         else: 
-            # split to "term (op term)"
+            # split to "term (op term)*"
             expr = re.search('(.+)\s(.?)\s(.+)', code)
             
             # expression term1
@@ -162,7 +166,6 @@ def expression(parsed_code, code):
             parsed_code = tokenizer(parsed_code, expr.group(2))
             # expression term2
             parsed_code = expression(parsed_code, expr.group(3))
-
     
     # integerConstant
     elif code.isnumeric():
@@ -258,6 +261,7 @@ def analyze(jackFile):
             if '//' in code[0]:
                 code = code[0].split('//')[0].strip().split('\n')
             
+            print(code)
             # if '}'
             if code[0] == '}':
                 parsed_code = tokenizer(parsed_code, code[0])
