@@ -286,6 +286,7 @@ def classVarDecOrvarDec(parsed_code, code):
 
     return parsed_code
 
+# fails to parse SquareGame.jack file -> need to change analyze code
 def analyze(jackFile):
     global keyword, symbol
     global classOn, subroutineBodyOn
