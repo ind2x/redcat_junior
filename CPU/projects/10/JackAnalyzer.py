@@ -33,6 +33,8 @@ def tokenizer(parsed_code, code):
             return replace(parsed_code, "<symbol> {} </symbol>\n$$".format("&lt;"))
         elif code == '>':
             return replace(parsed_code, "<symbol> {} </symbol>\n$$".format("&gt;"))
+        elif code == '&':
+            return replace(parsed_code, "<symbol> {} </symbol>\n$$".format("&amp;"))
         # if symbol is ';' or '}', then line or code ends
         elif code == '}':
             if len(IfElseWhile) != 0:
@@ -99,7 +101,7 @@ def expressionList(parsed_code, code):
 def subroutineCall(parsed_code, code, type):
     # subroutineCall - subroutineName '(' expressionList ')'
     if type == 1:
-        code = re.search('(.+)\((.?|.+)\)', code)
+        code = re.search('(.+?)\({1}(.?|.+)\){1}$', code)
         
         parsed_code = tokenizer(parsed_code, code.group(1))
         parsed_code = tokenizer(parsed_code, '(')
@@ -108,7 +110,7 @@ def subroutineCall(parsed_code, code, type):
     
     # subroutineCall - (className|varName)'.'subroutineName '(' expressionList ')'
     if type == 2:
-        code = re.search('(.+)\.(.+)\((.?|.+)\)', code)
+        code = re.search('(.+?)\.(.+?)\({1}(.?|.+)\){1}$', code)
 
         parsed_code = tokenizer(parsed_code, code.group(1))
         parsed_code = tokenizer(parsed_code, '.')
@@ -120,27 +122,29 @@ def subroutineCall(parsed_code, code, type):
     
     return parsed_code
 
+# parse '(' expression ')'
+def parentheses(parsed_code, code):
+    code = re.search('\((.+)\)', code)
+
+    parsed_code = replace(parsed_code, "<term>\n$$")
+    parsed_code = tokenizer(parsed_code, '(')
+        
+    # expression
+    parsed_code = replace(parsed_code, "<expression>\n$$")
+    parsed_code = expression(parsed_code, code.group(1))
+    parsed_code = replace(parsed_code, "</expression>\n$$")
+    
+    parsed_code = tokenizer(parsed_code, ')')
+    parsed_code = replace(parsed_code, "</term>\n$$")
+
+    return parsed_code
+
 # compile expressions
 def expression(parsed_code, code):
     global parentheses
-    
-    # '(' expression ')'
-    if '(' in code:
-        code = re.search('\((.+)\)', code)
 
-        parsed_code = replace(parsed_code, "<term>\n$$")
-        parsed_code = tokenizer(parsed_code, '(')
-        
-        # expression
-        parsed_code = replace(parsed_code, "<expression>\n$$")
-        parsed_code = expression(parsed_code, code.group(1))
-        parsed_code = replace(parsed_code, "</expression>\n$$")
-        
-        parsed_code = tokenizer(parsed_code, ')')
-        parsed_code = replace(parsed_code, "</term>\n$$")
-    
-    # if op exists --> 틀린 코드임, 수정해야 함
-    elif '+' in code or '-' in code or '*' in code or '/' in code or '&' in code or '|' in code or '<' in code or '>' in code or '=' in code :
+    # if op exists
+    if '+' in code or '-' in code or '*' in code or '/' in code or '&' in code or '|' in code or '<' in code or '>' in code or '=' in code :
         # if unaryOp term
         if code[0] == '-' or code[0] == '~':
             code = re.search('(-|~)(.+)', code)
@@ -157,15 +161,53 @@ def expression(parsed_code, code):
 
             parsed_code = replace(parsed_code, "</term>\n$$")
         else: 
-            # split to "term (op term)*"
-            expr = re.search('(.+)\s(.?)\s(.+)', code)
-            
-            # expression term1
-            parsed_code = expression(parsed_code, expr.group(1))
-            # parse op
-            parsed_code = tokenizer(parsed_code, expr.group(2))
-            # expression term2
-            parsed_code = expression(parsed_code, expr.group(3))
+            # read code and split to 'term op term*'
+            count = 0    # count '(' to match correct ')'
+            term = ''
+
+            for idx, i in enumerate(code):
+                
+                # if '(' expression ')'
+                if i == '(':
+                    # if count > 1, then parenthesis in parenthesis
+                    count += 1
+                    term += i
+                
+                elif i == ')':
+                    if count == 1:
+                        term += i
+                        count = 0
+                        parsed_code = parentheses(parsed_code, term)
+                        term = ''
+                    else:
+                        count -= 1
+                        term += i
+                
+                elif i == ' ':
+                    if count > 0:
+                        term += i
+                    
+                    elif count == 0 and term != '':
+                        parsed_code = expression(parsed_code, term)
+                        term = ''
+
+                elif '+' == i or '-' == i or '*' == i or '/' == i or '&' == i or '|' == i or '<' == i or '>' == i or '=' == i :
+                    if count == 0:
+                        parsed_code = tokenizer(parsed_code, i)
+                    else:
+                        term += i
+
+                # if code ends
+                elif idx == len(code)-1:
+                    term += i
+                    parsed_code = expression(parsed_code, term)
+                
+                else:
+                    term += i
+
+    # '(' expression ')'
+    elif code[0] == '(':
+        parsed_code = parentheses(parsed_code, code)
     
     # integerConstant
     elif code.isnumeric():
@@ -176,14 +218,14 @@ def expression(parsed_code, code):
         parsed_code = replace(parsed_code, "<term>\n<stringConstant> {} </stringConstant>\n</term>\n$$".format(code[1:-1]))
         
     # subroutineCall - (className|varName)'.'subroutineName '(' expressionList ')'
-    elif re.search('(.+)(\.)(.+)\((.?|.+)\)', code):
+    elif re.search('(.+?)(\.)(.+?)\({1}(.?|.+)\){1}$', code):
         # add <term>
         parsed_code = replace(parsed_code, "<term>\n$$")
         parsed_code = subroutineCall(parsed_code, code, 2)
         parsed_code = replace(parsed_code, "</term>\n$$")
     
     # subroutineCall - subroutineName '(' expressionList ')'
-    elif re.search('(.+)\((.?|.+)\)', code):
+    elif re.search('(.+?)\({1}(.?|.+)\){1}$', code):
         parsed_code = replace(parsed_code, "<term>\n$$")
         parsed_code = subroutineCall(parsed_code, code, 1)
         parsed_code = replace(parsed_code, "</term>\n$$")
@@ -442,7 +484,7 @@ def analyze(jackFile):
                 # parse 'do'
                 parsed_code = tokenizer(parsed_code, "do")
                 # subroutineCall - (className|varName)'.'subroutineName '(' expressionList ')'
-                if re.search('(.+)(\.)(.+)\((.?|.+)\)', code.group(1)):
+                if re.search('(.+?)(\.)(.+?)\({1}(.?|.+)\){1}$', code.group(1)):
                     parsed_code = subroutineCall(parsed_code, code.group(1), 2)
                 else:
                     parsed_code = subroutineCall(parsed_code, code.group(1), 1)
@@ -462,7 +504,9 @@ def analyze(jackFile):
                 # if not return;
                 if ' ' in code[0]:
                     code = re.search('return\s(.+?);', code[0])
+                    parsed_code = replace(parsed_code, '<expression>\n$$')
                     parsed_code = expression(parsed_code, code.group(1))
+                    parsed_code = replace(parsed_code, '</expression>\n$$')
                 
                 # parse ';'
                 parsed_code = tokenizer(parsed_code, ';')
