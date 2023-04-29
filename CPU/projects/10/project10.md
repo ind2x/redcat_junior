@@ -61,7 +61,7 @@
 <hr style="border: 2px solid;">
 <br><br>
 
-## Jack Analyzer
+## Jack Analyzer API
 
 <br>
 
@@ -71,15 +71,45 @@
 
 <br>
 
-+ terminals
-
-![image](https://user-images.githubusercontent.com/52172169/220276662-74c1cb65-414d-49e5-aad8-335268cc4e3f.png)
+![image](https://user-images.githubusercontent.com/52172169/235303417-7781c763-77b4-4d16-9484-7865648d8e51.png)
 
 <br>
 
-+ nonterminals
++ JackTokenizer
 
-![image](https://user-images.githubusercontent.com/52172169/220276757-9e1b7556-ee31-4a4d-bd19-de6ce7522b24.png)
+![image](https://user-images.githubusercontent.com/52172169/235303431-6997bf0e-2472-47ee-b6e5-8a0130f4a977.png)
+
+<br>
+
++ CompilationEngine
+
+![image](https://user-images.githubusercontent.com/52172169/235303456-05776cea-54ae-4616-b2a5-38bb3c611a78.png)
+
+![image](https://user-images.githubusercontent.com/52172169/235303464-8e9cdcbb-b076-4a60-9221-4786a73456b0.png)
+
+![image](https://user-images.githubusercontent.com/52172169/235303471-fd25bcad-475b-4c09-b948-439afc651436.png)
+
+<br>
+
+CompilationEngine 작성 시 Expression은 제외한 나머지 부분 먼저 작성해준 다음 Expression 부분 작성하라고 함
+
+<br>
+
++ JackAnalyzer
+
+![image](https://user-images.githubusercontent.com/52172169/235303497-0888bdf9-4717-416f-a4b8-8704adde9107.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/235303621-92b739c2-b6ea-4fd6-bf1c-d43a7946faee.png)
+
+<br>
+
++ Handling Expressions
+
+![image](https://user-images.githubusercontent.com/52172169/235303632-4c6bf114-c042-4908-bad7-b84102c3055d.png)
+
+![image](https://user-images.githubusercontent.com/52172169/235303641-69c54016-e8cc-41ca-acfd-269dd18d4e52.png)
 
 <br><br>
 <hr style="border: 2px solid;">
