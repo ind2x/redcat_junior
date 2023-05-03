@@ -134,6 +134,22 @@ Jack Compiler는 operator 간에 우선순위가 없어서 ```5+3*2```가 16이 
 
 <br>
 
+![image](https://user-images.githubusercontent.com/52172169/235957047-7be9e250-8ebd-4e52-bc70-79b8e45d46ba.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/235959702-f1618422-2d87-4745-8018-f89639fd7a13.png)
+
+<br>
+
+따라서 컴파일 시 Memory.alloc을 이용해서 constructor나 method 등등을 처리해주는 모습을 볼 수 있음.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/235960928-8ee523c4-2785-4d01-bd5c-c0933d5f6b62.png)
+
+<br>
+
 
 
 <br><br>
