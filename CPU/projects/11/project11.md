@@ -118,6 +118,22 @@ Jack Compiler는 operator 간에 우선순위가 없어서 ```5+3*2```가 16이 
 
 <br>
 
+오브젝트 생성 시 ```Memory.alloc(n)```을 이용해서 만들어주는 듯함. 해서 그에 따른 vm 코드는 다음과 같이 생성해주면 된다고 함.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/235955147-201fd67f-8376-409e-8412-a1ddc64e20b7.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/235955238-ad80e8bc-54cd-44d6-aaa2-a109dd855715.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/235956581-3c772101-8d12-493a-bfbb-642ca753501f.png)
+
+<br>
+
 
 
 <br><br>
