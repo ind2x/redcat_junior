@@ -42,7 +42,31 @@
 
 <br>
 
+![image](https://user-images.githubusercontent.com/52172169/235934421-9595d304-de2a-4809-86e7-a4a19cbd0f8e.png)
 
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/235934462-9e8d1c75-bb59-4553-9cc8-96ddaf93f733.png)
+
+<br>
+
+그래서 expression과 term 컴파일 함수에서 infix 형태를 postfix 형태로 출력해주게끔 코드를 다시 짜주라는 듯함.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/235935209-e7f55aa2-269a-424e-8a02-ffe03d972555.png)
+
+<br>
+
+Jack Compiler는 operator 간에 우선순위가 없어서 ```5+3*2```가 16이 나옴. 그래도 괄호 안에 있는 연산자는 먼저 처리하긴 함
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/235937123-91c5b99e-b9ae-45b9-ae67-73f77c004c9d.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/235937321-9a745505-2bf1-40a3-92e6-9d4fd5908ba5.png)
 
 <br><br>
 
