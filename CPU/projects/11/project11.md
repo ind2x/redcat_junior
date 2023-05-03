@@ -75,6 +75,34 @@ Jack Compiler는 operator 간에 우선순위가 없어서 ```5+3*2```가 16이 
 
 <br>
 
+![image](https://user-images.githubusercontent.com/52172169/235937463-9b20afbd-f0b5-4a38-836b-0e3eb3bf582f.png)
+
+<br>
+
++ let
+
+![image](https://user-images.githubusercontent.com/52172169/235937997-d9420c13-0ec3-4b9a-80ce-2ae8bd6417e9.png)
+
+<br>
+
++ return
+
+![image](https://user-images.githubusercontent.com/52172169/235938607-6cd2a20c-074f-4b42-9971-f1b752b9b992.png)
+
+<br>
+
++ do
+
+![image](https://user-images.githubusercontent.com/52172169/235938871-49b51766-7b38-4cc4-92c5-c1f26f0a97f3.png)
+
+<br>
+
++ if
+
+
+<br>
+
++ while
 
 
 <br><br>
@@ -137,28 +165,6 @@ Jack Compiler는 operator 간에 우선순위가 없어서 ```5+3*2```가 16이 
 ---
 
 <br>
-
-
-
-<br><br>
-
-###
----
-
-<br>
-
-
-
-<br><br>
-
-###
----
-
-<br>
-
-
-
-<br><br>
 
 
 
