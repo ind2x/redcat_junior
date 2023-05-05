@@ -167,7 +167,29 @@ Jack Compiler는 operator 간에 우선순위가 없어서 ```5+3*2```가 16이 
 
 <br>
 
+![image](https://user-images.githubusercontent.com/52172169/236447060-c69af45d-7eae-4c08-9c9d-6bef364fa765.png)
 
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/236448093-99724177-30e1-44a7-ad02-265dbe27fea5.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/236451175-6d58f034-2f06-490b-97c7-4417e60ca727.png)
+
+<br>
+
+그러나 문제가 있는데 바로 위의 일반식대로 작성하면 만약 두 개의 array가 있다면 pop pointer 1 부분에서 에러가 발생할 것이다. 
+
+따라서 아래처럼 컴파일 코드를 짜줘야한다.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/236451368-44664ed8-7a3e-4f87-8a4a-2f63accc025d.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/236451810-c6c9a5a1-3b91-4de6-a1a9-c1e776777657.png)
 
 <br><br>
 
