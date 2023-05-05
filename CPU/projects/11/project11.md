@@ -1,5 +1,5 @@
-## Project 11
-### Program Compilation
+# Project 11
+## Program Compilation
 ---
 
 <br>
@@ -192,49 +192,152 @@ Jack Compiler는 operator 간에 우선순위가 없어서 ```5+3*2```가 16이 
 ![image](https://user-images.githubusercontent.com/52172169/236451810-c6c9a5a1-3b91-4de6-a1a9-c1e776777657.png)
 
 <br><br>
+<hr style="border: 2px solid;">
+<br><br>
 
-### 
+## Generate code
+### big picture
 ---
 
 <br>
 
-
+![image](https://user-images.githubusercontent.com/52172169/236458443-94d2da89-451d-4f53-88dd-484200447dfe.png)
 
 <br><br>
 
-###
+### Subroutines
 ---
 
 <br>
 
-
+![image](https://user-images.githubusercontent.com/52172169/236458479-e8193baf-a497-48ab-b1a6-31c36eb284cc.png)
 
 <br><br>
 
-###
+### Constants
 ---
 
 <br>
 
-
+![image](https://user-images.githubusercontent.com/52172169/236458675-1388b1b1-d528-4b08-83d8-2d565bd9a058.png)
 
 <br><br>
 
-###
+### Variables
 ---
 
 <br>
 
-
+![image](https://user-images.githubusercontent.com/52172169/236458711-589fb51f-676e-46eb-b25f-4167b99c2c50.png)
 
 <br><br>
 
-###
+### Arrays
 ---
 
 <br>
 
+![image](https://user-images.githubusercontent.com/52172169/236458802-21357157-79fc-4ffa-8f44-2db0e3c9ed68.png)
 
+<br><br>
+
+### Subroutine Calls
+---
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/236458901-67b4cd3d-30bb-4120-83ed-44f48048fc6d.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/236460001-c7bfd5e8-ae16-4f77-b25f-4a2409eff905.png)
+
+<br><br>
+
+### OS Functions
+---
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/236460251-1d4335f9-439b-44ff-a719-deee1dab57b4.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/236460332-bb2ca93d-9c79-4489-b5e7-2667b69186bd.png)
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
+
+## Design
+### Jack Compiler
+---
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/236460781-0d4ad1cc-8086-4aa7-8ede-e615e237be99.png)
+
+<br><br>
+
+### Symbol Table
+---
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/236460909-4153a268-f36b-49ff-8023-d6d9cbd32dbc.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/236460966-4f49ddb5-a66c-4c4c-82b5-1738b91f20ba.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/236461071-c1d07547-6b67-49ab-b9b1-4b0b318e4df4.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/236461125-f5c902c2-2b68-4ee8-93be-fbf1aaba4fc5.png)
+
+<br><br>
+
+### VMWriter
+---
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/236461207-6b2c4e3b-cdc9-433c-b704-9ed45f333b33.png)
+
+<br><br>
+
+### CompilationEngine
+---
+
+<br>
+
+이제는 xml코드에서 vm코드로 바꿔줘야 함.
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/236461385-0aad740a-9539-4300-a1ee-8d1b92ba460a.png)
+
+<br><br>
+<hr style="border: 2px solid;">
+<br><br>
+
+## Develop-Step
+---
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/236463722-fec0814c-5fd4-4df9-9977-c94525ac2d73.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/236463546-9504a80c-87a3-40ca-986f-457dc3e0ce1c.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/236463789-b5977c30-07d5-4c84-90f5-25c482625058.png)
 
 <br><br>
 <hr style="border: 2px solid;">
