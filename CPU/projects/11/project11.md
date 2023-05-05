@@ -150,7 +150,15 @@ Jack Compiler는 operator 간에 우선순위가 없어서 ```5+3*2```가 16이 
 
 <br>
 
+![image](https://user-images.githubusercontent.com/52172169/236438837-caaa1fd0-1924-4328-aa74-96d13ef39502.png)
 
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/236445872-cfad0baf-e4ce-44e1-8bd4-81a9aa70b55e.png)
+
+<br>
+
+![image](https://user-images.githubusercontent.com/52172169/236446108-3644d33b-9223-4964-812d-ab859771651e.png)
 
 <br><br>
 
