@@ -2,7 +2,8 @@ import re
 
 COMMENT = "(//.*)|(/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/)"
 
-KEYWORD_PATTERN = re.compile('^\s*(class|constructor|function|method|field|static|var|int|char|boolean|void|true|false|null|this|let|do|if|else|while|return)\s*')
+KEYWORD_SPACE_PATTERN = re.compile('^\s*(class|constructor|function|method|field|static|var|int|char|boolean|void|true|false|null|this|let|do|if|else|while|return)\s+')
+KEYWORD_NONSPACE_PATTERN = re.compile('^\s*(true|false|null|this|return)\s*')
 SYMBOL_PATTERN = re.compile('^\s*([{}()[\].,;+\-*/&|<>=~])\s*')
 INT_PATTERN = re.compile('^\s*(\d+)\s*')
 STR_PATTERN = re.compile('^s*\"(.*)\"\s*')
@@ -56,35 +57,41 @@ class JackTokenizer:
     
     def advance(self):
         if self.hasMoreTokens() == True:
-            currentToken = KEYWORD_PATTERN.match(self._code)
+            currentToken = KEYWORD_SPACE_PATTERN.match(self._code)
             if currentToken != None:
                 self._currentToken = currentToken.group(1)
-                self._code = re.sub(KEYWORD_PATTERN, '', self._code)
+                self._code = re.sub(KEYWORD_SPACE_PATTERN, '', self._code)
                 self._tokenType = self.TYPE_KEYWORD
             else:
-                currentToken = SYMBOL_PATTERN.match(self._code)
+                currentToken = KEYWORD_NONSPACE_PATTERN.match(self._code)
                 if currentToken != None:
                     self._currentToken = currentToken.group(1)
-                    self._code = re.sub(SYMBOL_PATTERN, '', self._code)
-                    self._tokenType = self.TYPE_SYMBOL
+                    self._code = re.sub(KEYWORD_NONSPACE_PATTERN, '', self._code)
+                    self._tokenType = self.TYPE_KEYWORD
                 else:
-                    currentToken = INT_PATTERN.match(self._code)
+                    currentToken = SYMBOL_PATTERN.match(self._code)
                     if currentToken != None:
                         self._currentToken = currentToken.group(1)
-                        self._code = re.sub(INT_PATTERN, '', self._code)
-                        self._tokenType = self.TYPE_INT
+                        self._code = re.sub(SYMBOL_PATTERN, '', self._code)
+                        self._tokenType = self.TYPE_SYMBOL
                     else:
-                        currentToken = STR_PATTERN.match(self._code)
+                        currentToken = INT_PATTERN.match(self._code)
                         if currentToken != None:
                             self._currentToken = currentToken.group(1)
-                            self._code = re.sub(STR_PATTERN, '', self._code)
-                            self._tokenType = self.TYPE_STR
+                            self._code = re.sub(INT_PATTERN, '', self._code)
+                            self._tokenType = self.TYPE_INT
                         else:
-                            currentToken = IDENTIFIER_PATTERN.match(self._code)
+                            currentToken = STR_PATTERN.match(self._code)
                             if currentToken != None:
                                 self._currentToken = currentToken.group(1)
-                                self._code = re.sub(IDENTIFIER_PATTERN, '', self._code)
-                                self._tokenType = self.TYPE_IDENT
+                                self._code = re.sub(STR_PATTERN, '', self._code)
+                                self._tokenType = self.TYPE_STR
+                            else:
+                                currentToken = IDENTIFIER_PATTERN.match(self._code)
+                                if currentToken != None:
+                                    self._currentToken = currentToken.group(1)
+                                    self._code = re.sub(IDENTIFIER_PATTERN, '', self._code)
+                                    self._tokenType = self.TYPE_IDENT
 
 '''
 a = JackTokenizer('./ArrayTest/Main.jack')
