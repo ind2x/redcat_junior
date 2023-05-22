@@ -246,6 +246,14 @@ Jack Compiler는 operator 간에 우선순위가 없어서 ```5+3*2```가 16이 
 
 <br>
 
+9장에 있는 자료와 같이 봐야함.
+
+<br>
+
+![image](https://github.com/ind2x/redcat_junior/assets/52172169/49d92732-f2be-414d-be08-6a8742e5b46e)
+
+<br>
+
 ![image](https://user-images.githubusercontent.com/52172169/236458901-67b4cd3d-30bb-4120-83ed-44f48048fc6d.png)
 
 <br>
