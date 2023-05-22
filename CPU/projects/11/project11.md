@@ -246,7 +246,11 @@ Jack Compiler는 operator 간에 우선순위가 없어서 ```5+3*2```가 16이 
 
 <br>
 
-9장에 있는 자료와 같이 봐야함.
+9장에 있는 자료와 같이 봐야함. 또한 내용도 자세히 살펴봐야 함.
+
+예를 들면, method call을 처리할 때, ```push obj``` 부분은 ```push pointer 0```를 하라는 뜻임.
+
+왜냐하면, method call 할 때, ```push argument 0``` 후 ```pop pointer 0``` 코드가 작성되기 때문임. (추후에 vm코드 디버깅할 때 알게됨)
 
 <br>
 
