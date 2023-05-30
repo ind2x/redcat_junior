@@ -28,7 +28,8 @@
 
 + Compile : <a href="https://bradbury.tistory.com/226">bradbury.tistory.com/226</a>
 
-+ tutorial: <a href="https://llvm.org/docs/tutorial/index.html">llvm.org/docs/tutorial/index.html</a>
++ tutorial: <a href="https://releases.llvm.org/14.0.0/docs/tutorial/index.html">releases.llvm.org/14.0.0/docs/tutorial/index.html</a>
+  + clang 버전에 맞춰서 document를 봐야 함. <a href="https://releases.llvm.org/" target="_blank">releases.llvm.org/</a> 
 
 + llvm version : 14.0.0 -> https://github.com/llvm/llvm-project/tree/llvmorg-14.0.0/llvm/examples/Kaleidoscope 
 
