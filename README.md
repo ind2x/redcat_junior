@@ -33,7 +33,7 @@
 
 + llvm version : 14.0.0 -> https://github.com/llvm/llvm-project/tree/llvmorg-14.0.0/llvm/examples/Kaleidoscope 
 
-+ 진행상황 : 7 / 14
++ LLVM Obfuscator : https://jeha.tistory.com/entry/LLVM
 
 <br><br>
 
