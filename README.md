@@ -14,7 +14,7 @@
 
 <br><br>
 
-## ASM (complete)
+## ASM
 
 + intel syntax : https://www.cs.virginia.edu/~evans/cs216/guides/x86.html, https://rito15.github.io/posts/intel-assembly-memo/
 
@@ -41,12 +41,8 @@
 
 + Book: 64비트 멀티코어 OS 원리와 구조 1, 2
 
-+ 진행상황: 31 / 31 -> 31 / 58
-
 <br><br>
 
 ## CPU (nand2tetris)
 
 + course: <a href="https://www.coursera.org/learn/build-a-computer">coursera.org/learn/build-a-computer</a>
-
-+ 진행상황: 8 / 12
