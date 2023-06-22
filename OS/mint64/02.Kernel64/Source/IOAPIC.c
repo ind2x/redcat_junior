@@ -165,7 +165,6 @@ void InitializeIORedirectionTable( void )
     }  
 }
 
-
 void PrintIRQToINTINMap( void )
 {
     int i;
@@ -176,4 +175,21 @@ void PrintIRQToINTINMap( void )
     {
         Printf( "[*] IRQ[%d] -> INTIN [%d]\n", i, gs_stIOAPICManager.vbIRQToINTINMap[ i ] );
     }
+}
+
+void RoutingIRQToAPICID(int iIRQ, BYTE bAPICID)
+{
+    int i;
+    IOREDIRECTIONTABLE stEntry;
+
+    // 범위 검사
+    if (iIRQ > IOAPIC_MAXIRQTOINTINMAPCOUNT)
+    {
+        return;
+    }
+
+    // 설정된 I/O 리다이렉션 테이블을 읽어서 목적지(Destination) 필드만 수정
+    ReadIOAPICRedirectionTable(gs_stIOAPICManager.vbIRQToINTINMap[iIRQ], &stEntry);
+    stEntry.bDestination = bAPICID;
+    WriteIOAPICRedirectionTable(gs_stIOAPICManager.vbIRQToINTINMap[iIRQ], &stEntry);
 }

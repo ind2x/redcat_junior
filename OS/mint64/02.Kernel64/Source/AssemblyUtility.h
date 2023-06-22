@@ -30,4 +30,6 @@ void ClearTS(void);
 
 void EnableGlobalLocalAPIC(void);
 
+void Pause(void);
+
 #endif /* __ASSEMBLMYUTILITY_H__ */

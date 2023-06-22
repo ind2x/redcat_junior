@@ -3,6 +3,7 @@
 
 #include "Types.h"
 #include "List.h"
+#include "Synchronization.h"
 
 #define TASK_REGISTERCOUNT (5+19)
 #define TASK_REGISTERSIZE   8
@@ -163,6 +164,8 @@ typedef struct TCBPoolManagerStruct
 // 스케줄러 자료구조
 typedef struct SchedulerStruct
 {
+    SPINLOCK stSpinLock;
+    
     // 현재 실행중인 태스크
     TCB *pstRunningTask;
 

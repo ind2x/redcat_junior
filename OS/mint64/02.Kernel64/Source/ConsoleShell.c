@@ -16,6 +16,7 @@
 #include "LocalAPIC.h"
 #include "MultiProcessor.h"
 #include "IOAPIC.h"
+#include "InterruptHandler.h"
 
 SHELLCOMMANDENTRY gs_vstCommandTable[] =
     {
@@ -55,11 +56,13 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         {"testfileio", "Test File I/O Function", TestFileIO},
         {"testperformance", "Test File Read/Write Performance", TestPerformance},
         {"flush", "Flush File System Cache", FlushCache},
-        {"download", "Download Data From Serial, ex) download a.txt", DownloadFile },
-        {"showmpinfo", "Show MP Configuration Table Information", ShowMPConfigurationTable },
+        {"download", "Download Data From Serial, ex) download a.txt", DownloadFile},
+        {"showmpinfo", "Show MP Configuration Table Information", ShowMPConfigurationTable},
         {"startap", "Start Application Processor", StartApplicationProcessor},
-        {"startsymmetricio", "Start Symmetric I/O Mode", StartSymmetricIOMode },
-        {"showirqintinmap", "Show IRQ->INITIN Mapping Table", ShowIRQINTINMappingTable },
+        {"startsymmetricio", "Start Symmetric I/O Mode", StartSymmetricIOMode},
+        {"showirqintinmap", "Show IRQ->INITIN Mapping Table", ShowIRQINTINMappingTable},
+        {"showintproccount", "Show Interrupt Processing Count", ShowInterruptProcessingCount},
+        {"startintloadbal", "Start Interrupt Load Balancing", StartInterruptLoadBalancing},
 };
 
 /**
@@ -135,7 +138,7 @@ void ExecuteCommand(const char *pcCommandBuffer)
     int iCount;
 
     // 공백으로 구분된 커맨드를 추출
-    iCommandBufferLength = Strlen(pcCommandBuffer);
+    iCommandBufferLength = StrLen(pcCommandBuffer);
     for (iSpaceIndex = 0; iSpaceIndex < iCommandBufferLength; iSpaceIndex++)
     {
         if (pcCommandBuffer[iSpaceIndex] == ' ')
@@ -148,7 +151,7 @@ void ExecuteCommand(const char *pcCommandBuffer)
     iCount = sizeof(gs_vstCommandTable)/ sizeof(SHELLCOMMANDENTRY);
     for(i=0; i<iCount; i++)
     {
-        iCommandLength = Strlen(gs_vstCommandTable[i].pcCommand);
+        iCommandLength = StrLen(gs_vstCommandTable[i].pcCommand);
         if((iCommandLength == iSpaceIndex) && (MemCmp(gs_vstCommandTable[i].pcCommand, pcCommandBuffer, iSpaceIndex) == 0))
         {
             // 같으면 함수를 호출
@@ -169,7 +172,7 @@ void ExecuteCommand(const char *pcCommandBuffer)
 void InitializeParameter(PARAMETERLIST *pstList, const char *pcParameter)
 {
     pstList->pcBuffer = pcParameter;
-    pstList->iLength = Strlen(pcParameter);
+    pstList->iLength = StrLen(pcParameter);
     pstList->iCurrentPosition = 0;
 
 }
@@ -218,7 +221,7 @@ static void Help(const char *pcParameterBuffer)
     // 커맨드 중 가장 긴 커맨드명 길이 가져옴
     for (i = 0; i < iCount; i++)
     {
-        iLength = Strlen(gs_vstCommandTable[i].pcCommand);
+        iLength = StrLen(gs_vstCommandTable[i].pcCommand);
         if (iLength > iMaxCommandLength)
         {
             iMaxCommandLength = iLength;
@@ -1577,13 +1580,13 @@ static void ShowRootDirectory(const char *pcParameterBuffer)
         vcBuffer[sizeof(vcBuffer) - 1] = '\0';
 
         MemCpy(vcBuffer, pstEntry->d_name,
-                Strlen(pstEntry->d_name));
+                StrLen(pstEntry->d_name));
 
         SPrintf(vcTempValue, "%d Byte", pstEntry->dwFileSize);
-        MemCpy(vcBuffer + 30, vcTempValue, Strlen(vcTempValue));
+        MemCpy(vcBuffer + 30, vcTempValue, StrLen(vcTempValue));
 
         SPrintf(vcTempValue, "0x%X Cluster", pstEntry->dwStartClusterIndex);
-        MemCpy(vcBuffer + 55, vcTempValue, Strlen(vcTempValue) + 1);
+        MemCpy(vcBuffer + 55, vcTempValue, StrLen(vcTempValue) + 1);
         Printf("    %s\n", vcBuffer);
 
         if ((iCount != 0) && ((iCount % 20) == 0))
@@ -2282,6 +2285,9 @@ static void StartSymmetricIOMode( const char* pcParameterBuffer )
     SetTaskPriority( 0 );
 
     InitializeLocalVectorTable();
+
+    // 대칭 I/O 모드로 변경되었음을 설정
+    SetSymmetricIOMode(TRUE);
     
     Printf("[*] Initialize IO Redirection Table\n" );
     InitializeIORedirectionTable();
@@ -2296,4 +2302,104 @@ static void StartSymmetricIOMode( const char* pcParameterBuffer )
 static void ShowIRQINTINMappingTable( const char* pcParameterBuffer )
 {
     PrintIRQToINTINMap();
+}
+
+/**
+ *  코어 별로 인터럽트를 처리한 횟수를 출력
+ */
+static void ShowInterruptProcessingCount(const char *pcParameterBuffer)
+{
+    INTERRUPTMANAGER *pstInterruptManager;
+    int i;
+    int j;
+    int iProcessCount;
+    char vcBuffer[20];
+    int iRemainLength;
+    int iLineCount;
+
+    Printf("========================== Interrupt Count ==========================\n");
+
+    // MP 설정 테이블에 저장된 코어의 개수를 읽음
+    iProcessCount = GetProcessorCount();
+
+    //==========================================================================
+    //  Column 출력
+    //==========================================================================
+    // 프로세서의 수만큼 Column을 출력
+    // 한 줄에 코어 4개씩 출력하고 한 Column당 15칸을 할당함
+    for (i = 0; i < iProcessCount; i++)
+    {
+        if (i == 0)
+        {
+            Printf("IRQ Num\t\t");
+        }
+        else if ((i % 4) == 0)
+        {
+            Printf("\n       \t\t");
+        }
+        SPrintf(vcBuffer, "Core %d", i);
+        Printf(vcBuffer);
+
+        // 출력하고 남은 공간을 모두 스페이스로 채움
+        iRemainLength = 15 - StrLen(vcBuffer);
+        MemSet(vcBuffer, ' ', iRemainLength);
+        vcBuffer[iRemainLength] = '\0';
+        Printf(vcBuffer);
+    }
+    Printf("\n");
+
+    //==========================================================================
+    //  Row와 인터럽트 처리 횟수 출력
+    //==========================================================================
+    // 총 인터럽트 횟수와 코어 별 인터럽트 처리 횟수를 출력
+    iLineCount = 0;
+    pstInterruptManager = GetInterruptManager();
+    for (i = 0; i < INTERRUPT_MAXVECTORCOUNT; i++)
+    {
+        for (j = 0; j < iProcessCount; j++)
+        {
+            // Row를 출력, 한 줄에 코어 4개씩 출력하고 한 Column당 15칸을 할당
+            if (j == 0)
+            {
+                // 20 라인마다 화면 정지
+                if ((iLineCount != 0) && (iLineCount > 10))
+                {
+                    Printf("\nPress any key to continue... ('q' is exit) : ");
+                    if (GetCh() == 'q')
+                    {
+                        Printf("\n");
+                        return;
+                    }
+                    iLineCount = 0;
+                    Printf("\n");
+                }
+                Printf("---------------------------------------------------------------------\n");
+                Printf("IRQ %d\t\t", i);
+                iLineCount += 2;
+            }
+            else if ((j % 4) == 0)
+            {
+                Printf("\n      \t\t");
+                iLineCount++;
+            }
+
+            SPrintf(vcBuffer, "0x%Q", pstInterruptManager->vvqwCoreInterruptCount[j][i]);
+            // 출력하고 남은 영역을 모두 스페이스로 채움
+            Printf(vcBuffer);
+            iRemainLength = 15 - StrLen(vcBuffer);
+            MemSet(vcBuffer, ' ', iRemainLength);
+            vcBuffer[iRemainLength] = '\0';
+            Printf(vcBuffer);
+        }
+        Printf("\n");
+    }
+}
+
+/**
+ *  인터럽트 부하 분산 기능을 시작
+ */
+static void StartInterruptLoadBalancing(const char *pcParameterBuffer)
+{
+    Printf("Start Interrupt Load Balancing\n");
+    SetInterruptLoadBalancing(TRUE);
 }

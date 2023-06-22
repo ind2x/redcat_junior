@@ -115,7 +115,7 @@ BOOL AnalysisMPConfigurationTable(void)
         case MP_ENTRYTYPE_BUS:
             pstBusEntry = ( BUSENTRY* ) qwEntryAddress;
             
-            if( MemCmp( pstBusEntry->vcBusTypeString, MP_BUS_TYPESTRING_ISA,Strlen( MP_BUS_TYPESTRING_ISA ) ) == 0 )
+            if( MemCmp( pstBusEntry->vcBusTypeString, MP_BUS_TYPESTRING_ISA,StrLen( MP_BUS_TYPESTRING_ISA ) ) == 0 )
             {
                 gs_stMPConfigurationManager.bISABusID = pstBusEntry->bBusID;
             }

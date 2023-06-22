@@ -6,7 +6,7 @@ global InPortByte, OutPortByte, InPortWord, OutPortWord,
 global LoadGDTR, LoadTR, LoadIDTR
 global EnableInterrupt, DisableInterrupt, ReadRFLAGS
 global ReadTSC
-global SwitchContext, Hlt, TestAndSet
+global SwitchContext, Hlt, TestAndSet, Pause
 global InitializeFPU, SaveFPUContext, LoadFPUContext, SetTS, ClearTS
 global EnableGlobalLocalAPIC
 
@@ -218,7 +218,9 @@ TestAndSet:
     mov rax, 0x01
     ret
 
-
+Pause:
+    pause
+    ret
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; FPU 관련 명령어

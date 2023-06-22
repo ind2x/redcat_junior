@@ -77,7 +77,7 @@ int ConsolePrintString(const char *pcBuffer)
 
     iPrintOffset = gs_stConsoleManager.iCurrentPrintOffset;
 
-    iLength = Strlen(pcBuffer);
+    iLength = StrLen(pcBuffer);
     for(i=0; i<iLength; i++)    // 문자열 길이만큼 화면에 출력
     {
         if(pcBuffer[i] == '\n')

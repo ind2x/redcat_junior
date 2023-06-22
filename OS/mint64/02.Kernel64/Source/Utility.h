@@ -12,7 +12,7 @@ int MemCpy(void *pvDestination, const void *pvSource, int iSize);
 int MemCmp(const void *pvDestination, const void *pvSource, int iSize);
 BOOL SetInterruptFlag(BOOL bEnableInterrupt);
 
-int Strlen(const char *pcBuffer);
+int StrLen(const char *pcBuffer);
 void CheckTotalRAMSize(void);
 QWORD GetTotalRAMSize(void);
 void ReverseString(char *pcBuffer);

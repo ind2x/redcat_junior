@@ -727,7 +727,7 @@ static int FindDirectoryEntry(const char *pcFileName, DIRECTORYENTRY *pstEntry)
         return -1;
     }
     // 파일 길이 확인
-    iLength = Strlen(pcFileName);
+    iLength = StrLen(pcFileName);
     
     pstRootEntry = (DIRECTORYENTRY *)gs_vbTempBuffer;
     // 전체 디렉터리 엔트리에서 파일 명 검색
@@ -813,7 +813,7 @@ static BOOL CreateFile(const char *pcFileName, DIRECTORYENTRY *pstEntry, int *pi
 
     // 디렉터리 엔트리 설정
     // 파일 명, 파일 크기, 시작 클러스터 위치
-    MemCpy(pstEntry->vcFileName, pcFileName, Strlen(pcFileName) + 1);
+    MemCpy(pstEntry->vcFileName, pcFileName, StrLen(pcFileName) + 1);
     pstEntry->dwStartClusterIndex = dwCluster;
     pstEntry->dwFileSize = 0;
 
@@ -872,7 +872,7 @@ FILE *OpenFile(const char *pcFileName, const char *pcMode)
     FILE *pstFile;
 
     // 파일 길이 확인
-    iFileNameLength = Strlen(pcFileName);
+    iFileNameLength = StrLen(pcFileName);
     if( (iFileNameLength > (sizeof(stEntry.vcFileName) -1) ) || (iFileNameLength == 0))
     {
         return NULL;
@@ -1347,7 +1347,7 @@ int RemoveFile(const char *pcFileName)
     int iDirectoryEntryOffset;
     int iFileNameLength;
 
-    iFileNameLength = Strlen(pcFileName);
+    iFileNameLength = StrLen(pcFileName);
     
     if ((iFileNameLength > (sizeof(stEntry.vcFileName) - 1)) || (iFileNameLength == 0))
     {

@@ -118,7 +118,7 @@ BOOL SetInterruptFlag(BOOL bEnableInterrupt)
     return FALSE;
 }
 
-int Strlen(const char *pcBuffer)
+int StrLen(const char *pcBuffer)
 {   
     int i;
 
@@ -351,7 +351,7 @@ void ReverseString(char *pcBuffer)
     int iLength, i;
     char cTemp;
 
-    iLength = Strlen(pcBuffer);
+    iLength = StrLen(pcBuffer);
     for(i=0; i<iLength/2; i++)
     {
         cTemp = pcBuffer[i];
@@ -382,7 +382,7 @@ int VSPrintf(char *pcBuffer, const char *pcFormatString, va_list ap)
     int iValue;
     double dValue;
 
-    iFormatLength = Strlen(pcFormatString);
+    iFormatLength = StrLen(pcFormatString);
 
     for (i = 0; i < iFormatLength; i++)
     {
@@ -397,7 +397,7 @@ int VSPrintf(char *pcBuffer, const char *pcFormatString, va_list ap)
             case 's':
                 // 가변 인자에 들어있는 파라미터를 문자열 타입으로 변환
                 pcCopyString = (char *)(va_arg(ap, char *));
-                iCopyLength = Strlen(pcCopyString);
+                iCopyLength = StrLen(pcCopyString);
                 // 문자열의 길이만큼을 출력 버퍼로 복사하고 출력한 길이만큼
                 // 버퍼의 인덱스를 이동
                 MemCpy(pcBuffer + iBufferIndex, pcCopyString, iCopyLength);

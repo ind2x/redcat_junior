@@ -72,4 +72,6 @@ void MaskAllInterruptInIOAPIC(void);
 void InitializeIORedirectionTable(void);
 void PrintIRQToINTINMap(void);
 
+void RoutingIRQToAPICID(int iIRQ, BYTE bAPICID);
+
 #endif /*__IOAPIC_H__*/

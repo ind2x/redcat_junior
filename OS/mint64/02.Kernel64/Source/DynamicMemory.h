@@ -3,6 +3,7 @@
 
 #include "Types.h"
 #include "Task.h"
+#include "Synchronization.h"
 
 // 동적메모리 관리 영역은 17M ~ 
 #define DYNAMICMEMORY_START_ADDRESS ((TASK_STACKPOOLADDRESS + (TASK_STACKSIZE * TASK_MAXCOUNT) + 0xfffff) & 0xfffffffffff00000)
@@ -20,6 +21,8 @@ typedef struct BitmapStruct
 
 typedef struct DynamicMemoryManagerStruct
 {
+    SPINLOCK stSpinLock;
+    
     int iMaxLevelCount;
     int iBlockCountOfSmallestBlock;
     QWORD qwUsedSize;

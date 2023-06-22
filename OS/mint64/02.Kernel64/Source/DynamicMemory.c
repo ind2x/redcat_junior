@@ -65,6 +65,8 @@ void InitializeDynamicMemory(void)
     gs_stDynamicMemory.qwEndAddress = CalculateDynamicMemorySize() + DYNAMICMEMORY_START_ADDRESS;
     
     gs_stDynamicMemory.qwUsedSize = 0;
+
+    InitializeSpinLock( &(gs_stDynamicMemory.stSpinLock) );
 }
 
 static QWORD CalculateDynamicMemorySize(void)
@@ -169,7 +171,7 @@ static int AllocationBuddyBlock(QWORD qwAlignedSize)
         return -1;
     }
 
-    bPreviousInterruptFlag = LockForSystemData();
+    LockForSpinLock( &(gs_stDynamicMemory.stSpinLock) );
 
     for (i = iBlockListIndex; i < gs_stDynamicMemory.iMaxLevelCount; i++)
     {
@@ -182,7 +184,7 @@ static int AllocationBuddyBlock(QWORD qwAlignedSize)
 
     if (iFreeOffset == -1)
     {
-        UnlockForSystemData(bPreviousInterruptFlag);
+        UnlockForSpinLock(&(gs_stDynamicMemory.stSpinLock));
         return -1;
     }
 
@@ -199,7 +201,7 @@ static int AllocationBuddyBlock(QWORD qwAlignedSize)
             iFreeOffset = iFreeOffset * 2;
         }
     }
-    UnlockForSystemData(bPreviousInterruptFlag);
+    UnlockForSpinLock(&(gs_stDynamicMemory.stSpinLock));
 
     return iFreeOffset;
 }
@@ -322,7 +324,7 @@ static BOOL FreeBuddyBlock(int iBlockListIndex, int iBlockOffset)
     BOOL bFlag;
     BOOL bPreviousInterruptFlag;
 
-    bPreviousInterruptFlag = LockForSystemData();
+    LockForSpinLock(&(gs_stDynamicMemory.stSpinLock));
 
     for (i = iBlockListIndex; i < gs_stDynamicMemory.iMaxLevelCount; i++)
     {
@@ -350,7 +352,7 @@ static BOOL FreeBuddyBlock(int iBlockListIndex, int iBlockOffset)
         iBlockOffset = iBlockOffset / 2;
     }
 
-    UnlockForSystemData(bPreviousInterruptFlag);
+    UnlockForSpinLock(&(gs_stDynamicMemory.stSpinLock));
     return TRUE;
 }
 

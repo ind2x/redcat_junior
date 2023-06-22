@@ -525,6 +525,7 @@ BOOL InitializeKeyboard(void)
 {
     InitializeQueue(&gs_stKeyQueue, gs_vstKeyQueueBuffer, KEY_MAXQUEUECOUNT, sizeof(KEYDATA));
 
+    InitializeSpinLock( &(gs_stKeyboardManager.stSpinLock) );
     return ActivateKeyboard();
 }
 
@@ -542,12 +543,11 @@ BOOL ConvertScanCodeAndPutQueue(BYTE bScanCode)
 
     if (ConvertScanCodeToASCIICode(bScanCode, &(stData.bASCIICode), &(stData.bFlags)) == TRUE) // 변환에 성공했으면 큐에 삽입
     {
-        bPreviousInterrupt = LockForSystemData();
-        
-        // 큐에 stData에 저장된 값을 삽입
-        bResult = PutQueue(&gs_stKeyQueue, &stData); 
+        LockForSpinLock( &(gs_stKeyboardManager.stSpinLock) );
 
-        UnlockForSystemData(bPreviousInterrupt);
+        bResult = PutQueue(&gs_stKeyQueue, &stData);
+
+        UnlockForSpinLock( &(gs_stKeyboardManager.stSpinLock) );
     }
 
     return bResult;
@@ -560,18 +560,12 @@ BOOL ConvertScanCodeAndPutQueue(BYTE bScanCode)
 BOOL GetKeyFromKeyQueue(KEYDATA *pstData)
 {
     BOOL bResult;
-    BOOL bPreviousInterrupt;
 
-    if (IsQueueEmpty(&gs_stKeyQueue) == TRUE)
-    {
-        return FALSE;
-    }
-
-    bPreviousInterrupt = LockForSystemData();
+    LockForSpinLock(&(gs_stKeyboardManager.stSpinLock));
 
     bResult = GetQueue(&gs_stKeyQueue, pstData);
 
-    UnlockForSystemData(bPreviousInterrupt);
-    
+    UnlockForSpinLock(&(gs_stKeyboardManager.stSpinLock));
+
     return bResult;
 }

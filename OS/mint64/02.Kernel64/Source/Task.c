@@ -105,17 +105,16 @@ TCB *CreateTask(QWORD qwFlags, void *pvMemoryAddress, QWORD qwMemorySize, QWORD 
 {
     TCB *pstTask, *pstProcess;
     void *pvStackAddress;
-    BOOL bPreviousFlag;
 
     // 임계 영역이므로 잠금
-    bPreviousFlag = LockForSystemData();
+    LockForSpinLock(&(gs_stScheduler.stSpinLock));
     // TCB 할당
     pstTask = AllocateTCB();
     
     // 할당에 실패하면 리턴
     if (pstTask == NULL)
     {
-        UnlockForSystemData(bPreviousFlag);
+        UnlockForSpinLock(&(gs_stScheduler.stSpinLock));
         return NULL;
     }
 
@@ -126,7 +125,7 @@ TCB *CreateTask(QWORD qwFlags, void *pvMemoryAddress, QWORD qwMemorySize, QWORD 
     if(pstProcess == NULL)
     {
         FreeTCB(pstTask->stLink.qwID);
-        UnlockForSystemData(bPreviousFlag);
+        UnlockForSpinLock(&(gs_stScheduler.stSpinLock));
         return NULL;
     }
 
@@ -153,7 +152,7 @@ TCB *CreateTask(QWORD qwFlags, void *pvMemoryAddress, QWORD qwMemorySize, QWORD 
     // 생성한 태스크의 쓰레드 ID를 자신의 ID로 설정
     pstTask->stThreadLink.qwID = pstTask->stLink.qwID;
 
-    UnlockForSystemData(bPreviousFlag);
+    UnlockForSpinLock(&(gs_stScheduler.stSpinLock));
 
     // 태스크의 스택 주소 설정
     pvStackAddress = (void *)(TASK_STACKPOOLADDRESS + (TASK_STACKSIZE * GETTCBOFFSET(pstTask->stLink.qwID)));
@@ -169,9 +168,9 @@ TCB *CreateTask(QWORD qwFlags, void *pvMemoryAddress, QWORD qwMemorySize, QWORD 
 
     // 삽입 전 후로 인터럽트 제어
     // 우선순위에 맞는 준비 리스트에 삽입
-    bPreviousFlag = LockForSystemData();
+    LockForSpinLock(&(gs_stScheduler.stSpinLock));
     AddTaskToReadyList(pstTask);
-    UnlockForSystemData(bPreviousFlag);
+    UnlockForSpinLock(&(gs_stScheduler.stSpinLock));
 
     return pstTask;
 }
@@ -259,6 +258,8 @@ void InitializeScheduler(void)
 
     // FPU 사용 태스크가 아직 없으므로 유효하지 않은 태스크로 초기화
     gs_stScheduler.qwLastFPUUsedTaskID = TASK_INVALIDID;
+
+    InitializeSpinLock(&(gs_stScheduler.stSpinLock));
 }
 
 /**
@@ -266,13 +267,11 @@ void InitializeScheduler(void)
 */
 void SetRunningTask(TCB *pstTask)
 {
-    BOOL bPreviousFlag;
+    LockForSpinLock(&(gs_stScheduler.stSpinLock));
 
-    bPreviousFlag = LockForSystemData();
-    
     gs_stScheduler.pstRunningTask = pstTask;
 
-    UnlockForSystemData(bPreviousFlag);
+    UnlockForSpinLock(&(gs_stScheduler.stSpinLock));
 }
 
 /**
@@ -280,14 +279,13 @@ void SetRunningTask(TCB *pstTask)
 */
 TCB *GetRunningTask(void)
 {
-    BOOL bPreviousFlag;
     TCB *pstRunningTask;
 
-    bPreviousFlag = LockForSystemData();
+    LockForSpinLock(&(gs_stScheduler.stSpinLock));
 
     pstRunningTask = gs_stScheduler.pstRunningTask;
 
-    UnlockForSystemData(bPreviousFlag);
+    UnlockForSpinLock(&(gs_stScheduler.stSpinLock));
 
     return pstRunningTask;
 }
@@ -393,14 +391,13 @@ static TCB* RemoveTaskFromReadyList(QWORD qwTaskID)
 BOOL ChangePriority(QWORD qwTaskID, BYTE bPriority)
 {
     TCB *pstTarget;
-    BOOL bPreviousFlag;
     
     if (bPriority > TASK_MAXREADYLISTCOUNT)
     {
         return FALSE;
     }
 
-    bPreviousFlag = LockForSystemData();
+    LockForSpinLock(&(gs_stScheduler.stSpinLock));
 
     // 현재 수행중인 태스크의 우선순위를 변경하는 경우
     // 우선순위만 변경해주면 됨
@@ -437,7 +434,7 @@ BOOL ChangePriority(QWORD qwTaskID, BYTE bPriority)
         }
     }
 
-    UnlockForSystemData(bPreviousFlag);
+    UnlockForSpinLock(&(gs_stScheduler.stSpinLock));
     return TRUE;
 }
 
@@ -447,7 +444,7 @@ BOOL ChangePriority(QWORD qwTaskID, BYTE bPriority)
 void Schedule(void)
 {
     TCB *pstRunningTask, *pstNextTask;
-    BOOL bPreviousFlag;
+    BOOL bPreviousInterrupt;
 
     // 전환할 태스크가 있는지 검색
     if(GetReadyTaskCount() < 1)
@@ -456,13 +453,15 @@ void Schedule(void)
     }
 
     // 인터럽트 비활성화
-    bPreviousFlag = LockForSystemData();
-    
+    bPreviousInterrupt = SetInterruptFlag(FALSE);
+    LockForSpinLock(&(gs_stScheduler.stSpinLock));
+
     // 전환할 다음 태스크 검색
     pstNextTask = GetNextTaskToRun();
     if (pstNextTask == NULL)
     {
-        UnlockForSystemData(bPreviousFlag);
+        UnlockForSpinLock(&(gs_stScheduler.stSpinLock));
+        SetInterruptFlag(bPreviousInterrupt);
         return;
     }
 
@@ -493,6 +492,7 @@ void Schedule(void)
     {
         // 대기 큐에 현재 태스크를 삽입
         AddListToTail(&(gs_stScheduler.stWaitList), pstRunningTask);
+        UnlockForSpinLock(&(gs_stScheduler.stSpinLock));
         // 컨텍스트는 저장할 필요가 없으므로 콘텍스트 전환
         SwitchContext(NULL, &(pstNextTask->stContext));
     }
@@ -501,6 +501,7 @@ void Schedule(void)
     {
         // 전환되었으니 조금 전까지 실행된 태스크는 준비 큐에 삽입되어야 함
         AddTaskToReadyList(pstRunningTask);
+        UnlockForSpinLock(&(gs_stScheduler.stSpinLock));
         // 삽입 후 컨텍스트 전환
         SwitchContext(&(pstRunningTask->stContext), &(pstNextTask->stContext));
     }
@@ -508,7 +509,7 @@ void Schedule(void)
     // 프로세서 사용 시간 업데이트
     gs_stScheduler.iProcessorTime = TASK_PROCESSORTIME;
 
-    UnlockForSystemData(bPreviousFlag);
+    SetInterruptFlag(bPreviousInterrupt);
 }
 
 /**
@@ -518,16 +519,15 @@ BOOL ScheduleInInterrupt(void)
 {
     TCB *pstRunningTask, *pstNextTask;
     char *pcContextAddress; // IST 주소
-    BOOL bPreviousFlag;
 
     // 인터럽트 제어
-    bPreviousFlag = LockForSystemData();
+    LockForSpinLock(&(gs_stScheduler.stSpinLock));
 
     // 전환할 다음 태스크를 찾음
     pstNextTask = GetNextTaskToRun();
     if (pstNextTask == NULL)
     {
-        UnlockForSystemData(bPreviousFlag);
+        UnlockForSpinLock(&(gs_stScheduler.stSpinLock));
         return FALSE;
     }
 
@@ -559,7 +559,7 @@ BOOL ScheduleInInterrupt(void)
         AddTaskToReadyList(pstRunningTask);
     }
 
-    UnlockForSystemData(bPreviousFlag);
+    UnlockForSpinLock(&(gs_stScheduler.stSpinLock));
 
     // 다음에 수행할 태스크가 FPU를 마지막으로 사용하지 않았다면
     if (gs_stScheduler.qwLastFPUUsedTaskID != pstNextTask->stLink.qwID)
@@ -612,9 +612,8 @@ BOOL EndTask(QWORD qwTaskID)
 {
     TCB *pstTarget;
     BYTE bPriority;
-    BOOL bPreviousFlag;
 
-    bPreviousFlag = LockForSystemData();
+    LockForSpinLock(&(gs_stScheduler.stSpinLock));
 
     // 현재 실행중인 태스크를 종료하는 경우 (자신을 종료하는 경우)
     pstTarget = gs_stScheduler.pstRunningTask;
@@ -625,8 +624,8 @@ BOOL EndTask(QWORD qwTaskID)
         // 우선순위도 대기 큐에 있도록 설정
         SETPRIORITY(pstTarget->qwFlags, TASK_FLAGS_WAIT);
 
-        UnlockForSystemData(bPreviousFlag);
-        
+        UnlockForSpinLock(&(gs_stScheduler.stSpinLock));
+
         // 다른 태스크로 전환
         Schedule();
 
@@ -649,7 +648,7 @@ BOOL EndTask(QWORD qwTaskID)
                 SETPRIORITY(pstTarget->qwFlags, TASK_FLAGS_WAIT);
             }
 
-            UnlockForSystemData(bPreviousFlag);
+            UnlockForSpinLock(&(gs_stScheduler.stSpinLock));
             return TRUE;
         }
 
@@ -659,7 +658,7 @@ BOOL EndTask(QWORD qwTaskID)
         AddListToTail(&(gs_stScheduler.stWaitList), pstTarget);
     }
 
-    UnlockForSystemData(bPreviousFlag);
+    UnlockForSpinLock(&(gs_stScheduler.stSpinLock));
     return TRUE;
 }
 
@@ -678,16 +677,15 @@ int GetReadyTaskCount(void)
 {
     int iTotalCount = 0;
     int i;
-    BOOL bPreviousFlag;
 
-    bPreviousFlag = LockForSystemData();
+    LockForSpinLock(&(gs_stScheduler.stSpinLock));
 
     for (i = 0; i < TASK_MAXREADYLISTCOUNT; i++)
     {
         iTotalCount += GetListCount(&(gs_stScheduler.vstReadyList[i]));
     }
 
-    UnlockForSystemData(bPreviousFlag);
+    UnlockForSpinLock(&(gs_stScheduler.stSpinLock));
     return iTotalCount;
 }
 
@@ -698,15 +696,14 @@ int GetReadyTaskCount(void)
 int GetTaskCount(void)
 {
     int iTotalCount;
-    BOOL bPreviousFlag;
 
     iTotalCount = GetReadyTaskCount();
 
-    bPreviousFlag = LockForSystemData();
+    LockForSpinLock(&(gs_stScheduler.stSpinLock));
 
     iTotalCount += GetListCount(&(gs_stScheduler.stWaitList)) + 1;
 
-    UnlockForSystemData(bPreviousFlag);
+    UnlockForSpinLock(&(gs_stScheduler.stSpinLock));
     return iTotalCount;
 }
 
@@ -785,8 +782,7 @@ void IdleTask(void)
     TCB *pstTask, *pstChildThread, *pstProcess;
     QWORD qwLastMeasureTickCount, qwLastSpendTickInIdleTask;
     QWORD qwCurrentMeasureTickCount, qwCurrentSpendTickInIdleTask;
-
-    BOOL bPreviousFlag;
+    
     QWORD qwTaskID;
 
     int i, iCount;
@@ -820,13 +816,13 @@ void IdleTask(void)
             while (1)
             {
                 // 임계 영역이므로 설정
-                bPreviousFlag = LockForSystemData();
-                
+                LockForSpinLock(&(gs_stScheduler.stSpinLock));
+
                 // 대기 큐에서 태스크를 가져와서 제거
                 pstTask = RemoveListFromHeader(&(gs_stScheduler.stWaitList));
                 if (pstTask == NULL)
                 {
-                    UnlockForSystemData(bPreviousFlag);
+                    UnlockForSpinLock(&(gs_stScheduler.stSpinLock));
                     break;
                 }
 
@@ -862,7 +858,7 @@ void IdleTask(void)
                     {
                         AddListToTail(&(gs_stScheduler.stWaitList), pstTask);
 
-                        UnlockForSystemData(bPreviousFlag);
+                        UnlockForSpinLock(&(gs_stScheduler.stSpinLock));
                         continue;
                     }
                     else
@@ -885,7 +881,7 @@ void IdleTask(void)
                 qwTaskID = pstTask->stLink.qwID;
                 FreeTCB(pstTask->stLink.qwID);
 
-                UnlockForSystemData(bPreviousFlag);
+                UnlockForSpinLock(&(gs_stScheduler.stSpinLock));
 
                 Printf("[*] IDLE: Task ID[0x%q] is completely ended.\n", qwTaskID);
                 

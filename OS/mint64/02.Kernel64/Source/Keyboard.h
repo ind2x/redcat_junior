@@ -2,6 +2,7 @@
 #define __KEYBOARD_H__
 
 #include "Types.h"
+#include "Synchronization.h"
 
 #define KEY_SKIPCOUNTFORPAUSE 2
 
@@ -68,6 +69,8 @@ typedef struct KeyMappingEntryStruct
 // 키보드 키 상태 관리 자료구조
 typedef struct KeyboardManagerStruct
 {
+    SPINLOCK stSpinLock;
+    
     BOOL bShiftDown;
     BOOL bCapsLockOn;
     BOOL bNumLockOn;

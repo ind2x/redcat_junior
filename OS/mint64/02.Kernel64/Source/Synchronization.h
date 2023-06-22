@@ -19,13 +19,31 @@ typedef struct MutexStruct
     BYTE vbPadding[3];
 } MUTEX;    // 16바이트
 
+typedef struct SpinLockStruct
+{
+    volatile DWORD dwLockCount;
+    volatile BYTE bAPICID;
+
+    volatile BOOL bLockFlag;
+
+    volatile BOOL bInterruptFlag;
+
+    BYTE vbPadding[1];
+} SPINLOCK;
+
 #pragma pack(pop)
 
+#if 0
 BOOL LockForSystemData(void);
 void UnlockForSystemData(BOOL bInterruptFlag);
+#endif
 
 void InitializeMutex(MUTEX *pstMutex);
 void Lock(MUTEX *pstMutex);
 void Unlock(MUTEX *pstMutex);
+
+void InitializeSpinLock(SPINLOCK *pstSpinLock);
+void LockForSpinLock(SPINLOCK *pstSpinLock);
+void UnlockForSpinLock(SPINLOCK *pstSpinLock);
 
 #endif /*__SYNCHRONIZATION_H__*/
