@@ -14,7 +14,7 @@
 
 <br><br>
 
-## ASM (complete)
+## ASM
 
 + intel syntax : https://www.cs.virginia.edu/~evans/cs216/guides/x86.html, https://rito15.github.io/posts/intel-assembly-memo/
 
@@ -28,11 +28,12 @@
 
 + Compile : <a href="https://bradbury.tistory.com/226">bradbury.tistory.com/226</a>
 
-+ tutorial: <a href="https://llvm.org/docs/tutorial/index.html">llvm.org/docs/tutorial/index.html</a>
++ tutorial: <a href="https://releases.llvm.org/14.0.0/docs/tutorial/index.html">releases.llvm.org/14.0.0/docs/tutorial/index.html</a>
+  + clang 버전에 맞춰서 document를 봐야 함. <a href="https://releases.llvm.org/" target="_blank">releases.llvm.org/</a> 
 
 + llvm version : 14.0.0 -> https://github.com/llvm/llvm-project/tree/llvmorg-14.0.0/llvm/examples/Kaleidoscope 
 
-+ 진행상황 : 7 / 14
++ LLVM Obfuscator : https://jeha.tistory.com/entry/LLVM
 
 <br><br>
 
@@ -40,12 +41,8 @@
 
 + Book: 64비트 멀티코어 OS 원리와 구조 1, 2
 
-+ 진행상황: 31 / 31 -> 31 / 58
-
 <br><br>
 
 ## CPU (nand2tetris)
 
 + course: <a href="https://www.coursera.org/learn/build-a-computer">coursera.org/learn/build-a-computer</a>
-
-+ 진행상황: 8 / 12
