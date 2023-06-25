@@ -40,12 +40,20 @@ void InitializeMutex(MUTEX *pstMutex)
 */
 void Lock(MUTEX *pstMutex)
 {
+    BYTE bCurrentAPICID;
+    BOOL bInterruptFlag;
+
+
+    bInterruptFlag = SetInterruptFlag(FALSE);
+    bCurrentAPICID = GetAPICID();
+
     // 이미 잠겨 있는 경우
     if (TestAndSet(&(pstMutex->bLockFlag), 0, 1) == FALSE)
     {
         // 현재 태스크가 잠근 경우 (내가 잠근 경우)
-        if (pstMutex->qwTaskID == GetRunningTask()->stLink.qwID)
+        if (pstMutex->qwTaskID == GetRunningTask(bCurrentAPICID)->stLink.qwID)
         {
+            SetInterruptFlag(bInterruptFlag);
             // 잠금 횟수만 증가
             pstMutex->dwLockCount++;
             return ;
@@ -61,7 +69,8 @@ void Lock(MUTEX *pstMutex)
 
     // 처음 잠그는 경우
     pstMutex->dwLockCount = 1;
-    pstMutex->qwTaskID = GetRunningTask()->stLink.qwID;
+    pstMutex->qwTaskID = GetRunningTask(bCurrentAPICID)->stLink.qwID;
+    SetInterruptFlag(bInterruptFlag);
 }
 
 /**
@@ -69,9 +78,14 @@ void Lock(MUTEX *pstMutex)
 */
 void Unlock(MUTEX *pstMutex)
 {
+    BOOL bInterruptFlag;
+
+    bInterruptFlag = SetInterruptFlag(FALSE);
+
     // 잠금이 해제되었거나 뮤텍스를 잠근 태스크가 아닌 경우
-    if ((pstMutex->bLockFlag == FALSE) || (pstMutex->qwTaskID != GetRunningTask()->stLink.qwID))
+    if ((pstMutex->bLockFlag == FALSE) || (pstMutex->qwTaskID != GetRunningTask(GetAPICID())->stLink.qwID))
     {
+        SetInterruptFlag(bInterruptFlag);
         return ;
     }
 
@@ -79,13 +93,16 @@ void Unlock(MUTEX *pstMutex)
     if(pstMutex->dwLockCount > 1)
     {
         pstMutex->dwLockCount--;
-        return ;
+    }
+    else
+    {
+        // 잠금 해제 시 설정 (초기화 할 때랑 똑같음)
+        pstMutex->qwTaskID = TASK_INVALIDID;
+        pstMutex->dwLockCount = 0;
+        pstMutex->bLockFlag = FALSE;
     }
 
-    // 잠금 해제 시 설정 (초기화 할 때랑 똑같음)
-    pstMutex->qwTaskID = TASK_INVALIDID;
-    pstMutex->dwLockCount = 0;
-    pstMutex->bLockFlag = FALSE;
+    SetInterruptFlag(bInterruptFlag);
 }
 
 void InitializeSpinLock(SPINLOCK *pstSpinLock)

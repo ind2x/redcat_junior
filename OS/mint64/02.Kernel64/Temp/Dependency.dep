@@ -2,6 +2,7 @@ HardDisk.o: ../Source/HardDisk.c ../Source/HardDisk.h ../Source/Types.h \
   ../Source/Synchronization.h ../Source/AssemblyUtility.h \
   ../Source/Task.h ../Source/List.h ../Source/Utility.h \
   ../Source/Console.h
+EnglishFont.o: ../Source/EnglishFont.c
 IOAPIC.o: ../Source/IOAPIC.c ../Source/IOAPIC.h ../Source/Types.h \
   ../Source/MPConfigurationTable.h ../Source/PIC.h ../Source/Console.h \
   ../Source/Utility.h
@@ -19,7 +20,8 @@ Main.o: ../Source/Main.c ../Source/Types.h ../Source/Keyboard.h \
   ../Source/List.h ../Source/Utility.h ../Source/PIT.h \
   ../Source/DynamicMemory.h ../Source/HardDisk.h ../Source/FileSystem.h \
   ../Source/CacheManager.h ../Source/SerialPort.h ../Source/Queue.h \
-  ../Source/LocalAPIC.h ../Source/IOAPIC.h
+  ../Source/LocalAPIC.h ../Source/IOAPIC.h ../Source/InterruptHandler.h \
+  ../Source/VBE.h ../Source/2DGraphics.h
 ConsoleShell.o: ../Source/ConsoleShell.c ../Source/ConsoleShell.h \
   ../Source/Types.h ../Source/Console.h ../Source/Keyboard.h \
   ../Source/Synchronization.h ../Source/Utility.h ../Source/PIT.h \
@@ -29,7 +31,7 @@ ConsoleShell.o: ../Source/ConsoleShell.c ../Source/ConsoleShell.h \
   ../Source/SerialPort.h ../Source/Queue.h \
   ../Source/MPConfigurationTable.h ../Source/LocalAPIC.h \
   ../Source/MultiProcessor.h ../Source/IOAPIC.h \
-  ../Source/InterruptHandler.h
+  ../Source/InterruptHandler.h ../Source/VBE.h
 Synchronization.o: ../Source/Synchronization.c \
   ../Source/Synchronization.h ../Source/Types.h ../Source/Utility.h \
   ../Source/Task.h ../Source/List.h ../Source/AssemblyUtility.h \
@@ -63,6 +65,8 @@ InterruptHandler.o: ../Source/InterruptHandler.c \
   ../Source/Synchronization.h ../Source/Console.h ../Source/Utility.h \
   ../Source/Task.h ../Source/List.h ../Source/Descriptor.h \
   ../Source/AssemblyUtility.h ../Source/HardDisk.h ../Source/LocalAPIC.h
+2DGraphics.o: ../Source/2DGraphics.c ../Source/2DGraphics.h \
+  ../Source/Types.h ../Source/VBE.h ../Source/Font.h ../Source/Utility.h
 Utility.o: ../Source/Utility.c ../Source/Utility.h ../Source/Types.h \
   ../Source/AssemblyUtility.h ../Source/Task.h ../Source/List.h \
   ../Source/Synchronization.h
@@ -81,6 +85,7 @@ Keyboard.o: ../Source/Keyboard.c ../Source/Types.h \
   ../Source/AssemblyUtility.h ../Source/Task.h ../Source/List.h \
   ../Source/Synchronization.h ../Source/Keyboard.h ../Source/Queue.h \
   ../Source/Utility.h
+VBE.o: ../Source/VBE.c ../Source/VBE.h ../Source/Types.h
 RTC.o: ../Source/RTC.c ../Source/RTC.h ../Source/Types.h \
   ../Source/AssemblyUtility.h ../Source/Task.h ../Source/List.h \
   ../Source/Synchronization.h
@@ -90,4 +95,5 @@ DynamicMemory.o: ../Source/DynamicMemory.c ../Source/DynamicMemory.h \
 Task.o: ../Source/Task.c ../Source/Task.h ../Source/Types.h \
   ../Source/List.h ../Source/Synchronization.h ../Source/Descriptor.h \
   ../Source/MultiProcessor.h ../Source/Utility.h \
-  ../Source/AssemblyUtility.h ../Source/Console.h
+  ../Source/AssemblyUtility.h ../Source/Console.h \
+  ../Source/MPConfigurationTable.h

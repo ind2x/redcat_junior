@@ -86,7 +86,7 @@
 // 쓰레드의 TCB를 가져옴
 #define GETTCBFROMTHREADLINK(x) (TCB *)((QWORD)(x)-offsetof(TCB, stThreadLink))
 
-
+#define TASK_LOADBALANCINGID 0xFF
 
 //========================================================
 // 자료구조
@@ -143,13 +143,19 @@ typedef struct TaskControlBlockStruct
     // FPU 레지스터 사용 여부
     BOOL bFPUUsed;
 
+    BYTE bAffinity;
+
+    BYTE bAPICID;
+
     // FPU 컨텍스트로 인한 TCB 전체를 16바이트 배수로 맞추기 위한 패딩
-    char vcPadding[11];
+    char vcPadding[9];
 } TCB;
 
 // TCB풀 관리용 자료구조
 typedef struct TCBPoolManagerStruct
 {
+    SPINLOCK stSpinLock;
+
     // TCB 풀의 시작 주소
     TCB *pstStartAddress;
     // TCB 최대 개수
@@ -189,6 +195,8 @@ typedef struct SchedulerStruct
     // 마지막으로 FPU를 사용한 태스크 ID
     QWORD qwLastFPUUsedTaskID;
 
+    BOOL bUseLoadBalancing;
+
 } SCHEDULER;
 
 #pragma pack(pop)
@@ -197,36 +205,41 @@ typedef struct SchedulerStruct
 static void InitializeTCBPool(void);
 static TCB *AllocateTCB(void);
 static void FreeTCB(QWORD qwID);
-TCB *CreateTask(QWORD qwFlags, void *pvMemoryAddress, QWORD qwMemorySize, QWORD qwEntryPointAddress);
+TCB *CreateTask(QWORD qwFlags, void *pvMemoryAddress, QWORD qwMemorySize, QWORD qwEntryPointAddress, BYTE bAffinity);
 static void SetUpTask(TCB *pstTCB, QWORD qwFlags, QWORD qwEntryPointAddress, void *pvStackAddress, QWORD qwStackSize);
 
 // 스케줄러 함수
 void InitializeScheduler(void);
-void SetRunningTask(TCB *pstTask);
-TCB *GetRunningTask(void);
-static TCB *GetNextTaskToRun(void);
-static BOOL AddTaskToReadyList(TCB *pstTask);
-void Schedule(void);
+void SetRunningTask(BYTE bAPICID, TCB *pstTask);
+TCB *GetRunningTask(BYTE bAPICID);
+static TCB *GetNextTaskToRun(BYTE bAPICID);
+static BOOL AddTaskToReadyList(BYTE bAPICID, TCB *pstTask);
+BOOL Schedule(void);
 BOOL ScheduleInInterrupt(void);
-void DecreaseProcessorTime(void);
-BOOL IsProcessorTimeExpired(void);
+void DecreaseProcessorTime(BYTE bAPICID);
+BOOL IsProcessorTimeExpired(BYTE bAPICID);
 
-static TCB* RemoveTaskFromReadyList(QWORD qwTaskID);
+static TCB *RemoveTaskFromReadyList(BYTE bAPICID, QWORD qwTaskID);
+static BOOL FindSchedulerOfTaskAndLock(QWORD qwTaskID, BYTE* pbAPICID);
 BOOL ChangePriority(QWORD qwID, BYTE bPriority);
 BOOL EndTask(QWORD qwTaskID);
 void ExitTask(void);
-int GetReadyTaskCount(void);
-int GetTaskCount(void);
+int GetReadyTaskCount(BYTE bAPICID);
+int GetTaskCount(BYTE bAPICID);
 TCB* GetTCBInTCBPool(int iOffset);
 BOOL IsTaskExist(QWORD qwID);
-QWORD GetProcessorLoad(void);
+QWORD GetProcessorLoad(BYTE bAPICID);
 
 static TCB *GetProcessByThread(TCB *pstThread);
+void AddTaskToSchedulerWithLoadBalancing(TCB* pstTask);
+static BYTE FindSchedulerOfMinumumTaskCount(const TCB* pstTask);
+void SetTaskLoadBalancing(BYTE bAPICID, BOOL bUseLoadBalancing);
+BOOL ChangeProcessorAffinity(QWORD qwTaskID, BYTE bAffinity);
 
 void IdleTask(void);
-void HaltProcessorByLoad(void);
+void HaltProcessorByLoad(BYTE bAPICID);
 
-QWORD GetLastFPUUsedTaskID(void);
-void SetLastFPUUsedTaskID(QWORD qwTaskID);
+QWORD GetLastFPUUsedTaskID(BYTE bAPICID);
+void SetLastFPUUsedTaskID(BYTE bAPICID, QWORD qwTaskID);
 
 #endif /*__TASK_H__*/

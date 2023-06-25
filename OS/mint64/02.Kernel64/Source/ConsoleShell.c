@@ -17,6 +17,7 @@
 #include "MultiProcessor.h"
 #include "IOAPIC.h"
 #include "InterruptHandler.h"
+#include "VBE.h"
 
 SHELLCOMMANDENTRY gs_vstCommandTable[] =
     {
@@ -63,6 +64,9 @@ SHELLCOMMANDENTRY gs_vstCommandTable[] =
         {"showirqintinmap", "Show IRQ->INITIN Mapping Table", ShowIRQINTINMappingTable},
         {"showintproccount", "Show Interrupt Processing Count", ShowInterruptProcessingCount},
         {"startintloadbal", "Start Interrupt Load Balancing", StartInterruptLoadBalancing},
+        {"starttaskloadbal", "Start Task Load Balancing", StartTaskLoadBalancing},
+        {"changeaffinity", "Change Task Affinity, ex)changeaffinity 1(ID) 0xFF(Affinity)", ChangeTaskAffinity},
+        {"vbemodeinfo", "Show VBE Mode Information", ShowVBEModeInfo},
 };
 
 /**
@@ -462,7 +466,7 @@ static void TestTask1(void)
     TCB *pstRunningTask;
 
     // 자신의 ID를 얻어서 화면 오프셋으로 사용
-    pstRunningTask = GetRunningTask();
+    pstRunningTask = GetRunningTask(GetAPICID());
     iMargin = (pstRunningTask->stLink.qwID & 0xFFFFFFFF) % 10;
 
     // 화면 네 귀퉁이를 돌면서 문자 출력
@@ -525,7 +529,7 @@ static void TestTask2(void)
     char vcData[4] = {'-', '\\', '|', '/'};
 
     // 자신의 ID를 얻어서 위치 계산
-    pstRunningTask = GetRunningTask();
+    pstRunningTask = GetRunningTask(GetAPICID());
     iOffset = (pstRunningTask->stLink.qwID & 0xFFFFFFFF) * 2;
     iOffset = CONSOLE_WIDTH * CONSOLE_HEIGHT -
               (iOffset % (CONSOLE_WIDTH * CONSOLE_HEIGHT));
@@ -536,6 +540,44 @@ static void TestTask2(void)
         pstScreen[iOffset].bCharactor = vcData[i % 4];
         pstScreen[iOffset].bAttribute = (iOffset % 15) + 1;
         i++;
+    }
+}
+
+/**
+ *  태스크 3
+ *      자신이 수행되는 코어의 ID가 변경될 때마다 자신의 태스크 ID와 코어의 ID를 출력
+ */
+static void TestTask3(void)
+{
+    QWORD qwTaskID;
+    TCB *pstRunningTask;
+    BYTE bLastLocalAPICID;
+    QWORD qwLastTick;
+
+    // 자신의 태스크 자료구조를 저장
+    pstRunningTask = GetRunningTask(GetAPICID());
+    qwTaskID = pstRunningTask->stLink.qwID;
+    Printf("Test Task 3 Started. Task ID = 0x%q, Local APIC ID = 0x%x\n",
+            qwTaskID, GetAPICID());
+
+    // 현재 수행 중인 로컬 APIC ID를 저장하였다가 태스크가 부하 분산되어 다른 코어로
+    // 옮겨갔을 때 메시지를 출력
+    bLastLocalAPICID = GetAPICID();
+
+    while (1)
+    {
+        // 이전에 수행되었던 코어와 현재 수행하는 코어가 다르면 메시지를 출력
+        if (bLastLocalAPICID != GetAPICID())
+        {
+            Printf("Core Changed. Task ID = 0x%q, Previous Local APIC ID = 0x%x "
+                    "Current = 0x%x\n",
+                    qwTaskID, bLastLocalAPICID, GetAPICID());
+
+            // 현재 수행중인 코어의 ID를 변경
+            bLastLocalAPICID = GetAPICID();
+        }
+
+        Schedule();
     }
 }
 
@@ -559,7 +601,7 @@ static void CreateTestTask(const char *pcParameterBuffer)
         for (i = 0; i < AToI(vcCount, 10); i++)
         {
             // 낮은 우선순위의 화면 테두리를 돌면서 문자를 출력하는 태스크 생성
-            if (CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD) TestTask1) == NULL)
+            if (CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD) TestTask1, TASK_LOADBALANCINGID) == NULL)
             {
                 break;
             }
@@ -573,13 +615,25 @@ static void CreateTestTask(const char *pcParameterBuffer)
         for (i = 0; i < AToI(vcCount, 10); i++)
         {
             // 낮은 우선순위의 바람개비를 생성하는 태스크 생성
-            if (CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD)TestTask2) == NULL)
+            if (CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD)TestTask2, TASK_LOADBALANCINGID) == NULL)
             {
                 break;
             }
         }
 
         Printf("[*] Task2 %d Created\n", i);
+        break;
+    
+    case 3:
+        for(i=0; i<AToI(vcCount, 10); i++)
+        {
+            if(CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD)TestTask3, TASK_LOADBALANCINGID) == NULL)
+            {
+                break;
+            }
+            Schedule();
+        }
+        Printf("[*] Task3 %d Created\n", i);
         break;
     }
 }
@@ -626,22 +680,67 @@ static void ChangeTaskPriority(const char *pcParameterBuffer)
 }
 
 /**
- * 현재 생성된 모든 태스크의 정보를 출력 
-*/
+ *  현재 생성된 모든 태스크의 정보를 출력
+ */
 static void ShowTaskList(const char *pcParameterBuffer)
 {
     int i;
     TCB *pstTCB;
     int iCount = 0;
+    int iTotalTaskCount = 0;
+    char vcBuffer[20];
+    int iRemainLength;
+    int iProcessorCount;
 
-    Printf("\n==================== Task Total Count [%d] ====================\n\n", GetTaskCount());
+    // 코어 수만큼 루프를 돌면서 각 스케줄러에 있는 태스크의 수를 더함
+    iProcessorCount = GetProcessorCount();
+
+    for (i = 0; i < iProcessorCount; i++)
+    {
+        iTotalTaskCount += GetTaskCount(i);
+    }
+
+    Printf("================= Task Total Count [%d] =================\n",
+            iTotalTaskCount);
+
+    // 코어가 2개 이상이면 각 스케줄러 별로 개수를 출력
+    if (iProcessorCount > 1)
+    {
+        // 각 스케줄러 별로 태스크의 개수를 출력
+        for (i = 0; i < iProcessorCount; i++)
+        {
+            if ((i != 0) && ((i % 4) == 0))
+            {
+                Printf("\n");
+            }
+
+            SPrintf(vcBuffer, "Core %d : %d", i, GetTaskCount(i));
+            Printf(vcBuffer);
+
+            // 출력하고 남은 공간을 모두 스페이스바로 채움
+            iRemainLength = 19 - StrLen(vcBuffer);
+            MemSet(vcBuffer, ' ', iRemainLength);
+            vcBuffer[iRemainLength] = '\0';
+            Printf(vcBuffer);
+        }
+
+        Printf("\nPress any key to continue... ('q' is exit) : ");
+        if (GetCh() == 'q')
+        {
+            Printf("\n");
+            return;
+        }
+        Printf("\n\n");
+    }
+
     for (i = 0; i < TASK_MAXCOUNT; i++)
     {
+        // TCB를 구해서 TCB가 사용 중이면 ID를 출력
         pstTCB = GetTCBInTCBPool(i);
         if ((pstTCB->stLink.qwID >> 32) != 0)
         {
-
-            if ((iCount != 0) && ((iCount % 10) == 0))
+            // 태스크가 6개 출력될 때마다, 계속 태스크 정보를 표시할지 여부를 확인
+            if ((iCount != 0) && ((iCount % 6) == 0))
             {
                 Printf("Press any key to continue... ('q' is exit) : ");
                 if (GetCh() == 'q')
@@ -652,9 +751,13 @@ static void ShowTaskList(const char *pcParameterBuffer)
                 Printf("\n");
             }
 
-            Printf("[%d] Task ID[0x%Q], Priority[%d], Flags[0x%Q], Thread[%d]\n", 1 + iCount++, pstTCB->stLink.qwID, GETPRIORITY(pstTCB->qwFlags), pstTCB->qwFlags, GetListCount(&(pstTCB->stChildThreadList)));
-            
-            Printf("    Parent PID[0x%Q], Memory Address[0x%Q], Size[0x%Q]\n\n", pstTCB->qwParentProcessID, pstTCB->pvMemoryAddress, pstTCB->qwMemorySize);
+            Printf("[%d] Task ID[0x%Q], Priority[%d], Flags[0x%Q], Thread[%d]\n", 1 + iCount++,
+                    pstTCB->stLink.qwID, GETPRIORITY(pstTCB->qwFlags),
+                    pstTCB->qwFlags, GetListCount(&(pstTCB->stChildThreadList)));
+            Printf("    Core ID[0x%X] CPU Affinity[0x%X]\n", pstTCB->bAPICID,
+                    pstTCB->bAffinity);
+            Printf("    Parent PID[0x%Q], Memory Address[0x%Q], Size[0x%Q]\n",
+                    pstTCB->qwParentProcessID, pstTCB->pvMemoryAddress, pstTCB->qwMemorySize);
         }
     }
 }
@@ -732,10 +835,31 @@ static void KillTask(const char *pcParameterBuffer)
 */
 static void CPULoad(const char *pcParameterBuffer)
 {
-    Printf("Processor Load : %d%%\n", GetProcessorLoad());
+    int i;
+    char vcBuffer[50];
+    int iRemainLength;
+
+    Printf("================= Processor Load =================\n");
+
+    // 각 코어 별로 부하를 출력
+    for (i = 0; i < GetProcessorCount(); i++)
+    {
+        if ((i != 0) && ((i % 4) == 0))
+        {
+            Printf("\n");
+        }
+
+        SPrintf(vcBuffer, "Core %d : %d%%", i, GetProcessorLoad(i));
+        Printf("%s", vcBuffer);
+
+        // 출력하고 남은 공간을 모두 스페이스바로 채움
+        iRemainLength = 19 - StrLen(vcBuffer);
+        MemSet(vcBuffer, ' ', iRemainLength);
+        vcBuffer[iRemainLength] = '\0';
+        Printf(vcBuffer);
+    }
+    Printf("\n");
 }
-
-
 
 ///////////////////////////////////////////////////////////////////////
 // 뮤텍스 테스트 함수
@@ -770,7 +894,7 @@ static void PrintNumberTask(void)
         // gs_qwAdder와 Printf가 뮤텍스 처리되어 다른 태스크가 접근할 수 없음
         Lock(&(gs_stMutex));
 
-        Printf("[*] Task ID [0x%Q] Value[%d]\n", GetRunningTask()->stLink.qwID, gs_qwAdder);
+        Printf("[*] Task ID [0x%Q] Value[%d]\n", GetRunningTask(GetAPICID())->stLink.qwID, gs_qwAdder);
 
         gs_qwAdder += 1;
 
@@ -804,7 +928,7 @@ static void TestMutex(const char *pcParameterBuffer)
     // 3개의 태스크를 생성하여 PrintNumberTask 함수 실행
     for (i = 0; i < 3; i++)
     {
-        CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD)PrintNumberTask);
+        CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD)PrintNumberTask, GetAPICID());
     }
     
     Printf("[*] Wait Util %d Task End.......\n", i);
@@ -827,7 +951,7 @@ static void CreateThreadTask(void)
 
     for (i = 0; i < 3; i++)
     {
-        CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD)TestTask2);
+        CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD)TestTask2, TASK_LOADBALANCINGID);
     }
 
     while (1)
@@ -844,7 +968,7 @@ static void TestThread(const char *pcParameterBuffer)
     TCB *pstProcess;
 
     // 프로세스 생성
-    pstProcess = CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_PROCESS, (void *)0xEEEEEEEE, 0x1000, (QWORD)CreateThreadTask);
+    pstProcess = CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_PROCESS, (void *)0xEEEEEEEE, 0x1000, (QWORD)CreateThreadTask, TASK_LOADBALANCINGID);
     
     if (pstProcess != NULL)
     {
@@ -917,7 +1041,7 @@ static void MatrixProcess(void)
 
     for (i = 0; i < 300; i++)
     {
-        if (CreateTask(TASK_FLAGS_THREAD | TASK_FLAGS_LOW, 0, 0, (QWORD)DropCharactorThread) == NULL)
+        if (CreateTask(TASK_FLAGS_THREAD | TASK_FLAGS_LOW, 0, 0, (QWORD)DropCharactorThread, TASK_LOADBALANCINGID) == NULL)
         {
             break;
         }
@@ -939,7 +1063,7 @@ static void ShowMatrix(const char *pcParameterBuffer)
     TCB *pstProcess;
 
     // 매트릭스 쓰레드들의 부모 프로세스 생성
-    pstProcess = CreateTask(TASK_FLAGS_PROCESS | TASK_FLAGS_LOW, (void *)0xE00000, 0xE00000,(QWORD)MatrixProcess);
+    pstProcess = CreateTask(TASK_FLAGS_PROCESS | TASK_FLAGS_LOW, (void *)0xE00000, 0xE00000,(QWORD)MatrixProcess, TASK_LOADBALANCINGID);
     
     if (pstProcess != NULL)
     {
@@ -977,7 +1101,7 @@ static void FPUTestTask(void)
     char vcData[4] = {'-', '\\', '|', '/'};
     CHARACTER *pstScreen = (CHARACTER *)CONSOLE_VIDEOMEMORYADDRESS;
 
-    pstRunningTask = GetRunningTask();
+    pstRunningTask = GetRunningTask(GetAPICID());
 
     // 자신의 ID를 얻어서 화면 오프셋으로 사용
     iOffset = (pstRunningTask->stLink.qwID & 0xFFFFFFFF) * 2;
@@ -1036,7 +1160,7 @@ static void TestPIE(const char *pcParameterBuffer)
 
     for(i=0; i<100; i++)
     {
-        CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD) FPUTestTask);
+        CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD) FPUTestTask, TASK_LOADBALANCINGID);
     }
 }
 
@@ -1139,7 +1263,7 @@ static void RandomAllocationTask(void)
     int i, j;
     int iY;
 
-    pstTask = GetRunningTask();
+    pstTask = GetRunningTask(GetAPICID());
     iY = (pstTask->stLink.qwID) % 15 + 9;
 
     for (j = 0; j < 10; j++)
@@ -1198,7 +1322,7 @@ static void TestRandomAllocation(const char *pcParameterBuffer)
 
     for (i = 0; i < 100; i++)
     {
-        CreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD, 0, 0, (QWORD)RandomAllocationTask);
+        CreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD, 0, 0, (QWORD)RandomAllocationTask, TASK_LOADBALANCINGID);
     }
 }
 
@@ -2402,4 +2526,98 @@ static void StartInterruptLoadBalancing(const char *pcParameterBuffer)
 {
     Printf("Start Interrupt Load Balancing\n");
     SetInterruptLoadBalancing(TRUE);
+}
+
+/**
+ *  태스크 부하 분산 기능을 시작
+ */
+static void StartTaskLoadBalancing(const char *pcParameterBuffer)
+{
+    int i;
+
+    Printf("Start Task Load Balancing\n");
+
+    for (i = 0; i < MAXPROCESSORCOUNT; i++)
+    {
+        SetTaskLoadBalancing(i, TRUE);
+    }
+}
+
+/**
+ *  태스크의 프로세서 친화도를 변경
+ */
+static void ChangeTaskAffinity(const char *pcParameterBuffer)
+{
+    PARAMETERLIST stList;
+    char vcID[30];
+    char vcAffinity[30];
+    QWORD qwID;
+    BYTE bAffinity;
+
+    // 파라미터를 추출
+    InitializeParameter(&stList, pcParameterBuffer);
+    GetNextParameter(&stList, vcID);
+    GetNextParameter(&stList, vcAffinity);
+
+    // 태스크 ID 필드 추출
+    if (MemCmp(vcID, "0x", 2) == 0)
+    {
+        qwID = AToI(vcID + 2, 16);
+    }
+    else
+    {
+        qwID = AToI(vcID, 10);
+    }
+
+    // 프로세서 친화도(Affinity) 추출
+    if (MemCmp(vcID, "0x", 2) == 0)
+    {
+        bAffinity = AToI(vcAffinity + 2, 16);
+    }
+    else
+    {
+        bAffinity = AToI(vcAffinity, 10);
+    }
+
+    Printf("Change Task Affinity ID [0x%q] Affinity[0x%x] ", qwID, bAffinity);
+    if (ChangeProcessorAffinity(qwID, bAffinity) == TRUE)
+    {
+        Printf("Success\n");
+    }
+    else
+    {
+        Printf("Fail\n");
+    }
+}
+
+/**
+ *  VBE 모드 정보 블록을 출력
+ */
+static void ShowVBEModeInfo(const char *pcParameterBuffer)
+{
+    VBEMODEINFOBLOCK *pstModeInfo;
+
+    // VBE 모드 정보 블록을 반환
+    pstModeInfo = GetVBEModeInfoBlock();
+
+    // 해상도와 색 정보를 위주로 출력
+    Printf("VESA %x\n", pstModeInfo->wWinGranulity);
+    Printf("X Resolution: %d\n", pstModeInfo->wXResolution);
+    Printf("Y Resolution: %d\n", pstModeInfo->wYResolution);
+    Printf("Bits Per Pixel: %d\n", pstModeInfo->bBitsPerPixel);
+
+    Printf("Red Mask Size: %d, Field Position: %d\n", pstModeInfo->bRedMaskSize,
+            pstModeInfo->bRedFieldPosition);
+    Printf("Green Mask Size: %d, Field Position: %d\n", pstModeInfo->bGreenMaskSize,
+            pstModeInfo->bGreenFieldPosition);
+    Printf("Blue Mask Size: %d, Field Position: %d\n", pstModeInfo->bBlueMaskSize,
+            pstModeInfo->bBlueFieldPosition);
+    Printf("Physical Base Pointer: 0x%X\n", pstModeInfo->dwPhysicalBasePointer);
+
+    Printf("Linear Red Mask Size: %d, Field Position: %d\n",
+            pstModeInfo->bLinearRedMaskSize, pstModeInfo->bLinearRedFieldPosition);
+    Printf("Linear Green Mask Size: %d, Field Position: %d\n",
+            pstModeInfo->bLinearGreenMaskSize, pstModeInfo->bLinearGreenFieldPosition);
+    Printf("Linear Blue Mask Size: %d, Field Position: %d\n",
+            pstModeInfo->bLinearBlueMaskSize, pstModeInfo->bLinearBlueFieldPosition);
 }

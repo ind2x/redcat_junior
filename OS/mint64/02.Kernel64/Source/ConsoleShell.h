@@ -95,4 +95,9 @@ static void ShowIRQINTINMappingTable( const char* pcParameterBuffer );
 static void ShowInterruptProcessingCount(const char *pcParameterBuffer);
 static void StartInterruptLoadBalancing(const char *pcParameterBuffer);
 
+static void StartTaskLoadBalancing(const char *pcParameterBuffer);
+static void ChangeTaskAffinity(const char *pcParameterBuffer);
+
+static void ShowVBEModeInfo(const char *pcParameterBuffer);
+
 #endif /*__CONSOLESHELL_H__*/

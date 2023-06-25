@@ -8,6 +8,7 @@ jmp 0x07C0:START
 TOTALSECTORCOUNT: dw 0x02  ; 보호모드 커널 + C커널
 KERNEL32SECTORCOUNT: dw 0x02    ; 보호모드 커널 총 섹터 수
 BOOTSTRAPPROCESSOR: db 0x01     ; 0x7C09, BSP = 1, AP = 0으로 구분
+STARTGRAPHICMODE: db 0x01       ; 그래픽 모드로 시작하는지 여부
 
 START:
     mov ax, 0x07C0
@@ -105,8 +106,40 @@ READEND:
     call PRINTMESSAGE
     add sp, 6
 
-    jmp 0x1000:0x0000   ; 다 읽었으면 OS를 메모리에 로딩한 주소가 0x10000이므로 CS를 설정
-                        ; 기준 주소는 0x0000으로 설정
+    ; VBE 기능 번호 0x4F01을 호출하여 그래픽 모드에 대한 모드 정보 블록 구함
+    mov ax, 0x4F01
+    mov cx, 0x117
+    mov bx, 0x07E0
+    mov es, bx
+    mov di, 0x00
+
+    int 0x10
+    cmp ax, 0x004F
+    jne VBEERROR
+
+    ; VBE 기능 번호 0x4F02 호출, 그래픽 모드 전환
+    cmp byte [STARTGRAPHICMODE], 0x00
+    je JUMPTOPROTECTEDMODE
+
+    mov ax, 0x4F02
+    mov bx, 0x4117
+
+    int 0x10
+    cmp ax, 0x004F
+    jne VBEERROR
+
+    jmp JUMPTOPROTECTEDMODE
+
+VBEERROR:
+    push CHANGEGRAPHICMODEFAIL
+    push 2
+    push 0
+    call PRINTMESSAGE
+    add sp, 6
+    jmp $
+
+JUMPTOPROTECTEDMODE:
+    jmp 0x1000:0x0000
 
 HANDLEDISKERROR:
     push DISKERRORMESSAGE
@@ -169,6 +202,7 @@ MESSAGE1: db '[*] MINT64 OS Boot Loader Start~!!', 0
 DISKERRORMESSAGE: db '[*] DISK Error~!!', 0
 OSLOADINGMESSAGE: db '[*] OS Image Loading...', 0
 LOADINGCOMPLETEMESSAGE: db 'Complete~!!', 0
+CHANGEGRAPHICMODEFAIL: db 'Change Graphic Mode Fail~!!', 0
 
 SECTORNUMBER: db 0x02
 HEADNUMBER: db 0x00

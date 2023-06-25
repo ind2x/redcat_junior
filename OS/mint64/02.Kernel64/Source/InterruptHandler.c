@@ -187,6 +187,7 @@ void TimerHandler(int iVectorNumber)
     char vcBuffer[] = "[INT:  , ]";
     static int g_iTimerInterruptCount = 0;
     int iIRQ;
+    BYTE bCurrentAPICID;
 
     vcBuffer[5] = '0' + iVectorNumber / 10;
     vcBuffer[6] = '0' + iVectorNumber % 10;
@@ -206,18 +207,19 @@ void TimerHandler(int iVectorNumber)
     IncreaseInterruptCount(iIRQ);
 
     // IRQ 0 인터럽트 처리는 Bootstrap Processor만 처리
-    if (GetAPICID() == 0)
+    bCurrentAPICID = GetAPICID();
+    if (bCurrentAPICID == 0)
     {
         // 타이머 발생 횟수를 증가
         g_qwTickCount++;
-
-        // 태스크가 사용한 프로세서의 시간을 줄임
-        DecreaseProcessorTime();
-        // 프로세서가 사용할 수 있는 시간을 다 썼다면 태스크 전환 수행
-        if (IsProcessorTimeExpired() == TRUE)
-        {
-            ScheduleInInterrupt();
-        }
+    }
+    
+    // 태스크가 사용한 프로세서의 시간을 줄임
+    DecreaseProcessorTime(bCurrentAPICID);
+    // 프로세서가 사용할 수 있는 시간을 다 썼다면 태스크 전환 수행
+    if (IsProcessorTimeExpired(bCurrentAPICID) == TRUE)
+    {
+        ScheduleInInterrupt();
     }
 }
 
@@ -229,6 +231,7 @@ void DeviceNotAvailableHandler(int iVectorNumber)
 {
     TCB *pstFPUTask, *pstCurrentTask;
     QWORD qwLastFPUTaskID;
+    BYTE bCurrentAPICID;
 
     char vcBuffer[] = "[EXC:  , ]";
     static int g_iFPUInterruptCount = 0;
@@ -240,13 +243,15 @@ void DeviceNotAvailableHandler(int iVectorNumber)
     g_iFPUInterruptCount = (g_iFPUInterruptCount + 1) % 10;
     PrintStringXY(0, 0, vcBuffer);
 
+    bCurrentAPICID = GetAPICID();
+
     // FPU를 사용한다면 예외 7번이 발생되고 이 함수가 실행이 됨
     // 실행되면 TS를 0으로 설정
     ClearTS();
 
     // 마지막으로 FPU를 사용한 태스크 확인
-    qwLastFPUTaskID = GetLastFPUUsedTaskID();
-    pstCurrentTask = GetRunningTask();
+    qwLastFPUTaskID = GetLastFPUUsedTaskID(bCurrentAPICID);
+    pstCurrentTask = GetRunningTask(bCurrentAPICID);
 
     // 마지막으로 FPU를 사용한 태스크가 현재 태스크이면 컨텍스트 전환이 필요없음
     if (qwLastFPUTaskID == pstCurrentTask->stLink.qwID)
@@ -279,7 +284,7 @@ void DeviceNotAvailableHandler(int iVectorNumber)
     }
 
     // 마지막으로 FPU를 사용한 태스크로 자신을 등록
-    SetLastFPUUsedTaskID(pstCurrentTask->stLink.qwID);
+    SetLastFPUUsedTaskID(bCurrentAPICID, pstCurrentTask->stLink.qwID);
 }
 
 void HDDHandler(int iVectorNumber)
