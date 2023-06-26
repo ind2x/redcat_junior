@@ -41,6 +41,10 @@ MINT64 OS 홈페이지 : http://jsandroidapp.cafe24.com/xe/index
 
   + 26, 27장 결론은 26장은 무시, 27장에서 RAM 디스크로 변경 후 실행하면 **아주 매우 정말 엄청 스무스하게 빠르게 신속하게 정확하게 문제없이** 잘됨
 
++ 35장 컴파일 문제 오류 발생
+  + 배열에 값을 초기화 해줄 수 없음(memset reference 에러)
+  + inline 함수에 대한 reference error 발생 --> extern으로 선언해서 해결 가능
+
 <br>
 <hr style="border: 2px solid;">
 <br>
