@@ -60,7 +60,8 @@ RESETDISK:
     mov es, si
     mov bx, 0x0000
 
-    mov di, word [ TOTALSECTORCOUNT ]
+    ;mov di, word [ TOTALSECTORCOUNT ]
+    mov di, 1146
 
 READDATA:
     ; 플로피 디스크는 섹터 -> 헤더 -> 트랙 순으로 증가됨

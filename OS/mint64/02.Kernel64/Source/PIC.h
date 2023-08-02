@@ -10,8 +10,8 @@
 
 #define PIC_IRQSTARTVECTOR  0x20    // 32번부터 인터럽트 시작
 
-void InitializePIC(void);
-void MaskPICInterrupt(WORD wIRQBitmask);
-void SendEOIToPIC(int iIRQNumber);
+void kInitializePIC(void);
+void kMaskPICInterrupt(WORD wIRQBitmask);
+void kSendEOIToPIC(int iIRQNumber);
 
 #endif /*__PIC_H__*/

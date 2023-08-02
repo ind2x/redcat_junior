@@ -4,32 +4,33 @@
 #include "Types.h"
 #include "Task.h"
 
-BYTE InPortByte(WORD wPort);
-void OutPortByte(WORD wPort, BYTE bData);
+////////////////////////////////////////////////////////////////////////////////
+//
+//  함수
+//
+////////////////////////////////////////////////////////////////////////////////
+BYTE kInPortByte(WORD wPort);
+void kOutPortByte(WORD wPort, BYTE bData);
+WORD kInPortWord(WORD wPort);
+void kOutPortWord(WORD wPort, WORD wData);
+void kLoadGDTR(QWORD qwGDTRAddress);
+void kLoadTR(WORD wTSSSegmentOffset);
+void kLoadIDTR(QWORD qwIDTRAddress);
+void kEnableInterrupt(void);
+void kDisableInterrupt(void);
+QWORD kReadRFLAGS(void);
+QWORD kReadTSC(void);
+void kSwitchContext(CONTEXT *pstCurrentContext, CONTEXT *pstNextContext);
+void kHlt(void);
+BOOL kTestAndSet(volatile BYTE *pbDestination, BYTE bCompare, BYTE bSource);
+void kInitializeFPU(void);
+void kSaveFPUContext(void *pvFPUContext);
+void kLoadFPUContext(void *pvFPUContext);
+void kSetTS(void);
+void kClearTS(void);
+void kEnableGlobalLocalAPIC(void);
+void kPause(void);
+void kReadMSR(QWORD qwMSRAddress, QWORD *pqwRDX, QWORD *pqwRAX);
+void kWriteMSR(QWORD qwMSRAddress, QWORD qwRDX, QWORD qwRAX);
 
-WORD InPortWord(WORD wPort);
-void OutPortWord(WORD wPort, WORD wData);
-
-void LoadGDTR(QWORD qwGDTRAddress);
-void LoadTR(WORD wTSSSegmentOffset);
-void LoadIDTR(QWORD qwIDTRAddress);
-void EnableInterrupt(void);
-void DisableInterrupt(void);
-QWORD ReadRFLAGS(void);
-QWORD ReadTSC( void );
-void SwitchContext(CONTEXT *pstCurrentContext, CONTEXT *pstNextContext);
-void Hlt(void);
-
-BOOL TestAndSet(volatile BYTE *pbDestination, BYTE bCompare, BYTE bSource);
-
-void InitializeFPU(void);
-void SaveFPUContext(void *pvFPUContext);
-void LoadFPUContext(void *pvFPUContext);
-void SetTS(void);
-void ClearTS(void);
-
-void EnableGlobalLocalAPIC(void);
-
-void Pause(void);
-
-#endif /* __ASSEMBLMYUTILITY_H__ */
+#endif /*__ASSEMBLYUTILITY_H__*/

@@ -18,8 +18,8 @@
 
 #define RTC_BCDTOBINARY( x )    ( ( ( ( x ) >> 4 ) * 10 ) + ( ( x ) & 0x0F ) )
 
-void ReadRTCTime( BYTE* pbHour, BYTE* pbMinute, BYTE* pbSecond );
-void ReadRTCDate( WORD* pwYear, BYTE* pbMonth, BYTE* pbDayOfMonth, BYTE* pbDayOfWeek );
-char* ConvertDayOfWeekToString( BYTE bDayOfWeek );
+void kReadRTCTime( BYTE* pbHour, BYTE* pbMinute, BYTE* pbSecond );
+void kReadRTCDate( WORD* pwYear, BYTE* pbMonth, BYTE* pbDayOfMonth, BYTE* pbDayOfWeek );
+char* kConvertDayOfWeekToString( BYTE bDayOfWeek );
 
 #endif /*__RTC_H__*/

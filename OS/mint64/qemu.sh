@@ -1,6 +1,6 @@
 #!/bin/sh
 
-make;
+#make;
 
 #qemu-system-x86_64 -L . -m 64 -fda ./Disk.img -hda ./HDD.img -boot a -M pc -curses;
 # fucking error HDD
@@ -8,7 +8,7 @@ make;
 # qemu-system-x86_64 -L . -m 64 -fda ./Disk.img -boot a -M pc -rtc base=localtime -curses;
 # use RAM Disk, no error, fast 
 
-qemu-system-x86_64 -L . -m 64 -fda ./Disk.img -boot a -M pc -rtc base=localtime -serial tcp::4444,server,nowait -smp 16 #-gdb tcp::1234 -S; 
+qemu-system-x86_64 -L . -m 64 -fda ./DiskWithPackage.img -boot a -M pc -rtc base=localtime -serial tcp::4444,server,nowait -smp 2 #-gdb tcp::1234 -S; 
 # Use RAM Disk, N Processor(MUlti Processor) with "-smp N" option
 
 

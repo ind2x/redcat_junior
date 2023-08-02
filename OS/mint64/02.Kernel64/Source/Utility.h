@@ -7,29 +7,31 @@
 #define MIN(x, y) ( ( (x) < (y) ) ? (x) : (y) )
 #define MAX(x, y) ( ( (x) > (y) ) ? (x) : (y) )
 
-void MemSet(void *pvDestination, BYTE bData, int iSize);
-extern inline void MemSetWord(void *pvDestination, WORD wData, int iWordSize);
-int MemCpy(void *pvDestination, const void *pvSource, int iSize);
-int MemCmp(const void *pvDestination, const void *pvSource, int iSize);
-BOOL SetInterruptFlag(BOOL bEnableInterrupt);
+void kMemSet(void *pvDestination, BYTE bData, int iSize);
+extern inline void kMemSetWord(void *pvDestination, WORD wData, int iWordSize);
+int kMemCpy(void *pvDestination, const void *pvSource, int iSize);
+int kMemCmp(const void *pvDestination, const void *pvSource, int iSize);
+BOOL kSetInterruptFlag(BOOL bkEnableInterrupt);
 
-int StrLen(const char *pcBuffer);
-void CheckTotalRAMSize(void);
-QWORD GetTotalRAMSize(void);
-void ReverseString(char *pcBuffer);
-long AToI(const char *pcBuffer, int iRadix);
-QWORD HexStringToQword(const char *pcBuffer);
-long DecimalStringToLong(const char *pcBuffer);
-int IToA(long lValue, char *pcBuffer, int iRadix);
-int HexToString(QWORD qwValue, char *pcBuffer);
-int DecimalToString(long lValue, char *pcBuffer);
-int SPrintf(char *pcBuffer, const char *pcFormatString, ...);
-int VSPrintf(char *pcBuffer, const char *pcFormatString, va_list ap);
+int kStrLen(const char *pcBuffer);
+void kCheckTotalRAMSize(void);
+QWORD kGetTotalRAMSize(void);
+void kReverseString(char *pcBuffer);
+long kAToI(const char *pcBuffer, int iRadix);
+QWORD kHexStringToQword(const char *pcBuffer);
+long kDecimalStringToLong(const char *pcBuffer);
+int kIToA(long lValue, char *pcBuffer, int iRadix);
+int kHexToString(QWORD qwValue, char *pcBuffer);
+int kDecimalToString(long lValue, char *pcBuffer);
+int kSPrintf(char *pcBuffer, const char *pckFormatString, ...);
+int kVSPrintf(char *pcBuffer, const char *pckFormatString, va_list ap);
 
-QWORD GetTickCount(void);
+QWORD kGetTickCount(void);
 
-void Sleep(QWORD qwMillisecond);
+void kSleep(QWORD qwMillisecond);
 
 extern volatile QWORD g_qwTickCount;
+
+BOOL kIsGraphicMode(void);
 
 #endif /*__UTILITY_H__*/

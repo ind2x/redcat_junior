@@ -1,9 +1,16 @@
+/**
+ *  file    ConsoleShell.c
+ *  date    2009/01/31
+ *  author  kkamagui
+ *          Copyright(c)2008 All rights reserved by kkamagui
+ *  brief   콘솔 셸에 관련된 소스 파일
+ */
+
 #include "ConsoleShell.h"
 #include "Console.h"
 #include "Keyboard.h"
 #include "Utility.h"
 #include "PIT.h"
-#include "PIC.h"
 #include "RTC.h"
 #include "AssemblyUtility.h"
 #include "Task.h"
@@ -18,131 +25,147 @@
 #include "IOAPIC.h"
 #include "InterruptHandler.h"
 #include "VBE.h"
+#include "SystemCall.h"
+#include "Loader.h"
 
+// 커맨드 테이블 정의
 SHELLCOMMANDENTRY gs_vstCommandTable[] =
     {
-        {"help", "Show Help", Help},
-        {"clear", "Clear Screen", Cls},
-        {"totalram", "Show Total RAM Size", ShowTotalRAMSize},
-        {"strtod", "String To Decimal/Hex Convert", StringToDecimalHexTest},
-        {"reboot", "Shutdown And Reboot OS", ShutDownAndReboot},
-        {"settimer", "Set PIT Controller Counter0, ex) settimer 10(ms) 1(periodic)", SetTimer},
-        {"wait", "Wait ms Using PIT, ex) wait 100(ms)", WaitUsingPIT},
-        {"rdtsc", "Read Time Stamp Counter", ReadTimeStampCounter},
-        {"cpuspeed", "Measure Processor Speed", MeasureProcessorSpeed},
-        {"date", "Show Date And Time", ShowDateAndTime},
-        {"createtask", "Create Task ex) createtask 1(type) 10(count), press 'q'", CreateTestTask},
-        {"changepriority", "Change Task Priority, ex) changepriority 1(ID) 2(Priority)", ChangeTaskPriority},
-        {"tasklist", "Show Task List", ShowTaskList},
-        {"killtask", "End Task, ex) killtask 1(ID) or 0xffffffff(All Task)", KillTask},
-        {"cpuload", "Show Processor Load", CPULoad},
-        {"testmutex", "Test Mutex Function", TestMutex},
-        {"testthread", "Test Thread And Process Function", TestThread},
-        {"showmatrix", "Show Matrix Screen", ShowMatrix},
-        {"testpie", "Test PIE Calculation", TestPIE},
-        {"dynamicmeminfo", "Show Dyanmic Memory Information", ShowDyanmicMemoryInformation},
-        {"testseqalloc", "Test Sequential Allocation & Free", TestSequentialAllocation},
-        {"testranalloc", "Test Random Allocation & Free", TestRandomAllocation},
-        {"hddinfo", "Show HDD Information", ShowHDDInformation},
-        {"readsector", "Read HDD Sector, ex) readsector 0(LBA) 10(count)", ReadSector},
-        {"writesector", "Write HDD Sector, ex) writesector 0(LBA) 10(count)", WriteSector},
-        {"mounthdd", "Mount HDD", MountHDD},
-        {"formathdd", "Format HDD", FormatHDD},
-        {"filesysinfo", "Show File System Information", ShowFileSystemInformation},
-        {"touch", "Create File, ex) touch a.txt", CreateFileInRootDirectory},
-        {"rm", "Delete File, ex) deletefile a.txt", DeleteFileInRootDirectory},
-        {"ls", "Show Directory", ShowRootDirectory},
-        {"writefile", "Write Data To File, ex) writefile a.txt", WriteDataToFile},
-        {"cat", "Read Data From File, ex) cat a.txt", ReadDataFromFile},
-        {"testfileio", "Test File I/O Function", TestFileIO},
-        {"testperformance", "Test File Read/Write Performance", TestPerformance},
-        {"flush", "Flush File System Cache", FlushCache},
-        {"download", "Download Data From Serial, ex) download a.txt", DownloadFile},
-        {"showmpinfo", "Show MP Configuration Table Information", ShowMPConfigurationTable},
-        {"startap", "Start Application Processor", StartApplicationProcessor},
-        {"startsymmetricio", "Start Symmetric I/O Mode", StartSymmetricIOMode},
-        {"showirqintinmap", "Show IRQ->INITIN Mapping Table", ShowIRQINTINMappingTable},
-        {"showintproccount", "Show Interrupt Processing Count", ShowInterruptProcessingCount},
-        {"startintloadbal", "Start Interrupt Load Balancing", StartInterruptLoadBalancing},
-        {"starttaskloadbal", "Start Task Load Balancing", StartTaskLoadBalancing},
-        {"changeaffinity", "Change Task Affinity, ex)changeaffinity 1(ID) 0xFF(Affinity)", ChangeTaskAffinity},
-        {"vbemodeinfo", "Show VBE Mode Information", ShowVBEModeInfo},
+        {"help", "Show Help", kHelp},
+        {"cls", "Clear Screen", kCls},
+        {"totalram", "Show Total RAM Size", kShowTotalRAMSize},
+        {"shutdown", "Shutdown And Reboot OS", kShutdown},
+        {"cpuspeed", "Measure Processor Speed", kMeasureProcessorSpeed},
+        {"date", "Show Date And Time", kShowDateAndTime},
+        {"changepriority", "Change Task Priority, ex)changepriority 1(ID) 2(Priority)",
+         kChangeTaskPriority},
+        {"tasklist", "Show Task List", kShowTaskList},
+        {"killtask", "End Task, ex)killtask 1(ID) or 0xffffffff(All Task)", kKillTask},
+        {"cpuload", "Show Processor Load", kCPULoad},
+        {"showmatrix", "Show Matrix Screen", kShowMatrix},
+        {"dynamicmeminfo", "Show Dyanmic Memory Information", kShowDyanmicMemoryInformation},
+        {"hddinfo", "Show HDD Information", kShowHDDInformation},
+        {"readsector", "Read HDD Sector, ex)readsector 0(LBA) 10(count)",
+         kReadSector},
+        {"writesector", "Write HDD Sector, ex)writesector 0(LBA) 10(count)",
+         kWriteSector},
+        {"mounthdd", "Mount HDD", kMountHDD},
+        {"formathdd", "Format HDD", kFormatHDD},
+        {"filesysteminfo", "Show File System Information", kShowFileSystemInformation},
+        {"createfile", "Create File, ex)createfile a.txt", kCreateFileInRootDirectory},
+        {"deletefile", "Delete File, ex)deletefile a.txt", kDeleteFileInRootDirectory},
+        {"dir", "Show Directory", kShowRootDirectory},
+        {"writefile", "Write Data To File, ex) writefile a.txt", kWriteDataToFile},
+        {"readfile", "Read Data From File, ex) readfile a.txt", kReadDataFromFile},
+        {"flush", "Flush File System Cache", kFlushCache},
+        {"download", "Download Data From Serial, ex) download a.txt", kDownloadFile},
+        {"showmpinfo", "Show MP Configuration Table Information", kShowMPConfigurationTable},
+        {"showirqintinmap", "Show IRQ->INITIN Mapping Table", kShowIRQINTINMappingTable},
+        {"showintproccount", "Show Interrupt Processing Count", kShowInterruptProcessingCount},
+        {"changeaffinity", "Change Task Affinity, ex)changeaffinity 1(ID) 0xFF(Affinity)",
+         kChangeTaskAffinity},
+        {"vbemodeinfo", "Show VBE Mode Information", kShowVBEModeInfo},
+        {"testsystemcall", "Test System Call Operation", kTestSystemCall},
+        {"exec", "Execute Application Program, ex)exec a.elf argument",
+         kExecuteApplicationProgram},
+        {"installpackage", "Install Package To HDD", kInstallPackage},
 };
 
+//==============================================================================
+//  실제 셸을 구성하는 코드
+//==============================================================================
 /**
- * 셸의 메인 루프
-*/
-void StartConsoleShell(void)
+ *  셸의 메인 루프
+ */
+void kStartConsoleShell(void)
 {
     char vcCommandBuffer[CONSOLESHELL_MAXCOMMANDBUFFERCOUNT];
     int iCommandBufferIndex = 0;
     BYTE bKey;
     int iCursorX, iCursorY;
+    CONSOLEMANAGER *pstConsoleManager;
 
-    Printf("\n");
-    Printf(CONSOLESHELL_PROMPTMESSAGE); // 셸 프롬프트 출력
+    // 콘솔을 관리하는 자료구조를 반환
+    pstConsoleManager = kGetConsoleManager();
 
-    while(1)
+    // 프롬프트 출력
+    kPrintf(CONSOLESHELL_PROMPTMESSAGE);
+
+    // 콘솔 셸 종료 플래그가 TRUE가 될 때까지 반복
+    while (pstConsoleManager->bExit == FALSE)
     {
-        bKey = GetCh(); // 키를 받을 때 까지 대기
-        if(bKey == KEY_BACKSPACE) // bacpspace 처리
+        bKey = kGetCh();
+
+        // 콘솔 셸 종료 플래그가 설정된 경우 루프를 종료
+        if (pstConsoleManager->bExit == TRUE)
         {
-            if(iCommandBufferIndex > 0)
+            break;
+        }
+
+        if (bKey == KEY_BACKSPACE)
+        {
+            if (iCommandBufferIndex > 0)
             {
-                GetCursor(&iCursorX, &iCursorY);
-                PrintStringXY(iCursorX - 1, iCursorY, " ");
-                SetCursor(iCursorX - 1, iCursorY);
+                // 현재 커서 위치를 얻어서 한 문자 앞으로 이동한 다음 공백을 출력하고
+                // 커맨드 버퍼에서 마지막 문자 삭제
+                kGetCursor(&iCursorX, &iCursorY);
+                kPrintStringXY(iCursorX - 1, iCursorY, " ");
+                kSetCursor(iCursorX - 1, iCursorY);
                 iCommandBufferIndex--;
             }
         }
-
-        else if (bKey == KEY_ENTER) // enter 처리
+        else if (bKey == KEY_ENTER)
         {
-            Printf("\n");
+            kPrintf("\n");
 
-            if(iCommandBufferIndex > 0)
+            if (iCommandBufferIndex > 0)
             {
+                // 커맨드 버퍼에 있는 명령을 실행
                 vcCommandBuffer[iCommandBufferIndex] = '\0';
-                ExecuteCommand(vcCommandBuffer);
+                kExecuteCommand(vcCommandBuffer);
             }
 
-            Printf("%s", CONSOLESHELL_PROMPTMESSAGE);
-            MemSet(vcCommandBuffer, '\0', CONSOLESHELL_MAXCOMMANDBUFFERCOUNT);
+            // 프롬프트 출력 및 커맨드 버퍼 초기화
+            kPrintf("%s", CONSOLESHELL_PROMPTMESSAGE);
+            kMemSet(vcCommandBuffer, '\0', CONSOLESHELL_MAXCOMMANDBUFFERCOUNT);
             iCommandBufferIndex = 0;
         }
-
-        else if ((bKey == KEY_LSHIFT) || (bKey == KEY_RSHIFT) || (bKey == KEY_CAPSLOCK) || (bKey == KEY_NUMLOCK) || (bKey == KEY_SCROLLLOCK))
+        // 시프트 키, CAPS Lock, NUM Lock, Scroll Lock은 무시
+        else if ((bKey == KEY_LSHIFT) || (bKey == KEY_RSHIFT) ||
+                 (bKey == KEY_CAPSLOCK) || (bKey == KEY_NUMLOCK) ||
+                 (bKey == KEY_SCROLLLOCK))
         {
             ;
         }
-
-        else
+        else if (bKey < 128)
         {
-            if(bKey == KEY_TAB)  // TAB은 공백으로 치환
+            // TAB은 공백으로 전환
+            if (bKey == KEY_TAB)
             {
                 bKey = ' ';
             }
 
+            // 버퍼가 남아있을 때만 가능
             if (iCommandBufferIndex < CONSOLESHELL_MAXCOMMANDBUFFERCOUNT)
             {
                 vcCommandBuffer[iCommandBufferIndex++] = bKey;
-                Printf("%c", bKey);
+                kPrintf("%c", bKey);
             }
         }
     }
 }
 
-/**
- * 명령어 실행해주는 함수
-*/
-void ExecuteCommand(const char *pcCommandBuffer)
+/*
+ *  커맨드 버퍼에 있는 커맨드를 비교하여 해당 커맨드를 처리하는 함수를 수행
+ */
+void kExecuteCommand(const char *pcCommandBuffer)
 {
     int i, iSpaceIndex;
     int iCommandBufferLength, iCommandLength;
     int iCount;
 
     // 공백으로 구분된 커맨드를 추출
-    iCommandBufferLength = StrLen(pcCommandBuffer);
+    iCommandBufferLength = kStrLen(pcCommandBuffer);
     for (iSpaceIndex = 0; iSpaceIndex < iCommandBufferLength; iSpaceIndex++)
     {
         if (pcCommandBuffer[iSpaceIndex] == ' ')
@@ -150,498 +173,214 @@ void ExecuteCommand(const char *pcCommandBuffer)
             break;
         }
     }
-    
-    // 커맨드 명과 입력값이 일치하는 명령어 추출 및 검사
-    iCount = sizeof(gs_vstCommandTable)/ sizeof(SHELLCOMMANDENTRY);
-    for(i=0; i<iCount; i++)
+
+    // 커맨드 테이블을 검사해서 동일한 이름의 커맨드가 있는지 확인
+    iCount = sizeof(gs_vstCommandTable) / sizeof(SHELLCOMMANDENTRY);
+    for (i = 0; i < iCount; i++)
     {
-        iCommandLength = StrLen(gs_vstCommandTable[i].pcCommand);
-        if((iCommandLength == iSpaceIndex) && (MemCmp(gs_vstCommandTable[i].pcCommand, pcCommandBuffer, iSpaceIndex) == 0))
+        iCommandLength = kStrLen(gs_vstCommandTable[i].pcCommand);
+        // 커맨드의 길이와 내용이 완전히 일치하는지 검사
+        if ((iCommandLength == iSpaceIndex) &&
+            (kMemCmp(gs_vstCommandTable[i].pcCommand, pcCommandBuffer,
+                     iSpaceIndex) == 0))
         {
-            // 같으면 함수를 호출
             gs_vstCommandTable[i].pfFunction(pcCommandBuffer + iSpaceIndex + 1);
             break;
         }
     }
 
-    if(i >= iCount)
+    // 리스트에서 찾을 수 없다면 에러 출력
+    if (i >= iCount)
     {
-        Printf("'%s' is not found.\n", pcCommandBuffer);
+        kPrintf("'%s' is not found.\n", pcCommandBuffer);
     }
 }
 
 /**
- * 파라미터 초기화 함수
+ *  파라미터 자료구조를 초기화
  */
-void InitializeParameter(PARAMETERLIST *pstList, const char *pcParameter)
+void kInitializeParameter(PARAMETERLIST *pstList, const char *pcParameter)
 {
     pstList->pcBuffer = pcParameter;
-    pstList->iLength = StrLen(pcParameter);
+    pstList->iLength = kStrLen(pcParameter);
     pstList->iCurrentPosition = 0;
-
 }
 
 /**
- * 공백으로 구분된 파라미터의 내용과 길이를 반환
+ *  공백으로 구분된 파라미터의 내용과 길이를 반환
  */
-int GetNextParameter(PARAMETERLIST *pstList, char *pcParameter)
+int kGetNextParameter(PARAMETERLIST *pstList, char *pcParameter)
 {
-    int i, iLength;
+    int i;
+    int iLength;
 
-    if(pstList->iLength <= pstList->iCurrentPosition) {
+    // 더 이상 파라미터가 없으면 나감
+    if (pstList->iLength <= pstList->iCurrentPosition)
+    {
         return 0;
     }
 
-    for(i = pstList->iCurrentPosition; i<pstList->iLength; i++)
+    // 버퍼의 길이만큼 이동하면서 공백을 검색
+    for (i = pstList->iCurrentPosition; i < pstList->iLength; i++)
     {
-        if(pstList->pcBuffer[i] == ' ') {
+        if (pstList->pcBuffer[i] == ' ')
+        {
             break;
         }
     }
 
-    MemCpy(pcParameter, pstList->pcBuffer + pstList->iCurrentPosition, i);
+    // 파라미터를 복사하고 길이를 반환
+    kMemCpy(pcParameter, pstList->pcBuffer + pstList->iCurrentPosition, i);
     iLength = i - pstList->iCurrentPosition;
     pcParameter[iLength] = '\0';
 
+    // 파라미터의 위치 업데이트
     pstList->iCurrentPosition += iLength + 1;
     return iLength;
-
 }
 
-static void Help(const char *pcParameterBuffer)
+//==============================================================================
+//  커맨드를 처리하는 코드
+//==============================================================================
+/**
+ *  셸 도움말을 출력
+ */
+static void kHelp(const char *pcCommandBuffer)
 {
     int i;
     int iCount;
     int iCursorX, iCursorY;
     int iLength, iMaxCommandLength = 0;
 
-    Printf("=========================================================\n");
-    Printf("                           Help                          \n");
-    Printf("=========================================================\n");
+    kPrintf("=========================================================\n");
+    kPrintf("                    MINT64 Shell Help                    \n");
+    kPrintf("=========================================================\n");
 
-    // 커맨드 개수 파악
     iCount = sizeof(gs_vstCommandTable) / sizeof(SHELLCOMMANDENTRY);
 
-    // 커맨드 중 가장 긴 커맨드명 길이 가져옴
+    // 가장 긴 커맨드의 길이를 계산
     for (i = 0; i < iCount; i++)
     {
-        iLength = StrLen(gs_vstCommandTable[i].pcCommand);
+        iLength = kStrLen(gs_vstCommandTable[i].pcCommand);
         if (iLength > iMaxCommandLength)
         {
             iMaxCommandLength = iLength;
         }
     }
 
+    // 도움말 출력
     for (i = 0; i < iCount; i++)
     {
-        Printf(" %s", gs_vstCommandTable[i].pcCommand);
-        GetCursor(&iCursorX, &iCursorY);
-        // 글자 짤려서 iMaxCommandLength + 1로 변경
-        SetCursor(iMaxCommandLength + 1, iCursorY);
-        Printf("  - %s\n", gs_vstCommandTable[i].pcHelp);
+        kPrintf("%s", gs_vstCommandTable[i].pcCommand);
+        kGetCursor(&iCursorX, &iCursorY);
+        kSetCursor(iMaxCommandLength, iCursorY);
+        kPrintf("  - %s\n", gs_vstCommandTable[i].pcHelp);
 
-        if((i != 0) && ((i % 20) == 0))
+        // 목록이 많을 경우 나눠서 보여줌
+        if ((i != 0) && ((i % 20) == 0))
         {
-            Printf("\n------------ Press any key to continue.... ('q' is exit) : ------------\n");
-            if(GetCh() == 'q')
+            kPrintf("Press any key to continue... ('q' is exit) : ");
+            if (kGetCh() == 'q')
             {
-                Printf("\n");
+                kPrintf("\n");
                 break;
             }
-            Printf("\n");
+            kPrintf("\n");
         }
     }
-
-}
-
-static void Cls(const char *pcParameterBuffer)
-{
-    ClearScreen();
-    SetCursor(0, 1);
-}
-
-static void ShowTotalRAMSize(const char *pcParameterBuffer)
-{
-    Printf("[*] Total RAM Size = %d MB\n", GetTotalRAMSize());
-
-}
-
-static void StringToDecimalHexTest(const char *pcParameterBuffer)
-{
-    char vcParameter[100];
-    int iLength;
-    PARAMETERLIST stList;
-    int iCount = 0;
-    long lValue;
-
-    // 파라미터 초기화
-    InitializeParameter(&stList, pcParameterBuffer);
-
-    while (1)
-    {
-        // 다음 파라미터를 구함, 파라미터의 길이가 0이면 파라미터가 없는 것이므로
-        // 종료
-        iLength = GetNextParameter(&stList, vcParameter);
-        if (iLength == 0)
-        {
-            break;
-        }
-
-        // 파라미터에 대한 정보를 출력하고 16진수인지 10진수인지 판단하여 변환한 후
-        // 결과를 printf로 출력
-        Printf("Param %d = '%s', Length = %d, ", iCount + 1,
-                vcParameter, iLength);
-
-        // 0x로 시작하면 16진수, 그외는 10진수로 판단
-        if (MemCmp(vcParameter, "0x", 2) == 0)
-        {
-            lValue = AToI(vcParameter + 2, 16);
-            Printf("HEX Value = %q\n", lValue);
-        }
-        else
-        {
-            lValue = AToI(vcParameter, 10);
-            Printf("Decimal Value = %d\n", lValue);
-        }
-
-        iCount++;
-    }
 }
 
 /**
- * 프로세스 리셋하는 함수
-*/
-static void ShutDownAndReboot(const char *pcParamegerBuffer)
+ *  화면을 지움
+ */
+static void kCls(const char *pcParameterBuffer)
 {
-    Printf("[*] System Shutdown........\n");
-    Printf("[*] Press any key to restart.....");
-    GetCh();
-    Reboot();
-}
-
-
-
-/////////////////////////////////////////////////////////////////////////////////
-// 시간 관련 함수들
-
-/**
- * PIT 컨트롤러의 카운터 0을 설정하는 함수
- * 물론 디폴트는 Main에서 10ms 1(periodic)으로 설정함
-*/
-static void SetTimer(const char *pcParameterBuffer)
-{
-    char vcParameter[100];
-    PARAMETERLIST stList;
-    long lValue;
-    BOOL bPeriodic;
-
-    InitializeParameter(&stList, pcParameterBuffer);
-
-    if(GetNextParameter(&stList, vcParameter) == 0)
-    {
-        Printf("[!] ex) settimer 10(ms) 1(periodic)\n");
-        return;
-    }
-    lValue = AToI(vcParameter, 10);
-
-    if(GetNextParameter(&stList, vcParameter) == 0)
-    {
-        Printf("[!] ex) settimer 10(ms) 1(periodic)\n");
-        return;
-    }
-    bPeriodic = AToI(vcParameter, 10);
-
-    InitializePIT(MSTOCOUNT(lValue), bPeriodic);
-    Printf("[*] Time = %d ms, Periodic = %d Change Complete..\n", lValue, bPeriodic);
+    // 맨 윗줄은 디버깅 용으로 사용하므로 화면을 지운 후, 라인 1로 커서 이동
+    kClearScreen();
+    kSetCursor(0, 1);
 }
 
 /**
- * PIT 컨트롤러를 직접 사용하여 ms 동안 대기
-*/
-static void WaitUsingPIT(const char *pcParameterBuffer)
+ *  총 메모리 크기를 출력
+ */
+static void kShowTotalRAMSize(const char *pcParameterBuffer)
 {
-    char vcParameter[100];
-    int iLength;
-    PARAMETERLIST stList;
-    long lMillisecond;
-    int i;
-
-    InitializeParameter(&stList, pcParameterBuffer);
-    if( GetNextParameter( &stList, vcParameter ) == 0 )
-    {
-        Printf("[*] [!] ex) wait 100(ms)\n" );
-        return ;
-    }
-
-    lMillisecond = AToI(pcParameterBuffer, 10);
-    Printf("[*] %d ms Sleep Start....\n", lMillisecond);
-
-    DisableInterrupt();
-    
-    for(i=0; i<lMillisecond/30; i++)
-    {
-        WaitUsingDirectPIT(MSTOCOUNT(30));
-    }
-    
-    WaitUsingDirectPIT( MSTOCOUNT( lMillisecond % 30 ) );   
-    
-    EnableInterrupt();
-    
-    Printf("[*] %d ms Sleep Complete...\n", lMillisecond );
-    
-    InitializePIT( MSTOCOUNT( 1 ), TRUE ); // 끝난 후 다시 재설정
+    kPrintf("Total RAM Size = %d MB\n", kGetTotalRAMSize());
 }
 
 /**
- * TSC를 읽는 함수
-*/
-static void ReadTimeStampCounter(const char *pcParameterBuffer)
+ *  PC를 재시작(Reboot)
+ */
+static void kShutdown(const char *pcParamegerBuffer)
 {
-    QWORD qwTSC;
-    
-    qwTSC = ReadTSC();
-    Printf("[*] Time Stamp Counter = %q\n", qwTSC );
+    kPrintf("System Shutdown Start...\n");
+
+    // 파일 시스템 캐시에 들어있는 내용을 하드 디스크로 옮김
+    kPrintf("Cache Flush... ");
+    if (kFlushFileSystemCache() == TRUE)
+    {
+        kPrintf("Pass\n");
+    }
+    else
+    {
+        kPrintf("Fail\n");
+    }
+
+    // 키보드 컨트롤러를 통해 PC를 재시작
+    kPrintf("Press Any Key To Reboot PC...");
+    kGetCh();
+    kReboot();
 }
 
 /**
- * 프로세서의 속도 측정
-*/
-static void MeasureProcessorSpeed(const char *pcParameterBuffer)
+ *  프로세서의 속도를 측정
+ */
+static void kMeasureProcessorSpeed(const char *pcParameterBuffer)
 {
     int i;
     QWORD qwLastTSC, qwTotalTSC = 0;
-        
-    Printf("[*] Measuring speed of CPU");
-    DisableInterrupt();
+
+    kPrintf("Now Measuring.");
 
     // 10초 동안 변화한 타임 스탬프 카운터를 이용하여 프로세서의 속도를 간접적으로 측정
-    for(i=1; i<=200; i++)
+    kDisableInterrupt();
+    for (i = 0; i < 200; i++)
     {
-        qwLastTSC = ReadTSC();
-        WaitUsingDirectPIT(MSTOCOUNT(50));
-        qwTotalTSC += ReadTSC() - qwLastTSC;
+        qwLastTSC = kReadTSC();
+        kWaitUsingDirectPIT(MSTOCOUNT(50));
+        qwTotalTSC += kReadTSC() - qwLastTSC;
 
-        Printf(".");
+        kPrintf(".");
     }
+    // 타이머 복원
+    kInitializePIT(MSTOCOUNT(1), TRUE);
+    kEnableInterrupt();
 
-    InitializePIT(MSTOCOUNT(1), TRUE);
-    EnableInterrupt();
-
-    Printf("\n[*] CPU Speed = %d MHz\n", qwTotalTSC / 10 / 1000 / 1000);
+    kPrintf("\nCPU Speed = %d MHz\n", qwTotalTSC / 10 / 1000 / 1000);
 }
 
 /**
- * RTC를 읽어서 일자, 시간 정보를 표시하는 함수
-*/
-static void ShowDateAndTime(const char *pcParameterBuffer)
+ *  RTC 컨트롤러에 저장된 일자 및 시간 정보를 표시
+ */
+static void kShowDateAndTime(const char *pcParameterBuffer)
 {
     BYTE bSecond, bMinute, bHour;
     BYTE bDayOfWeek, bDayOfMonth, bMonth;
     WORD wYear;
 
-    ReadRTCTime( &bHour, &bMinute, &bSecond );
-    ReadRTCDate( &wYear, &bMonth, &bDayOfMonth, &bDayOfWeek );
-    
-    Printf("[*] Date: %d/%d/%d %s\n", wYear, bMonth, bDayOfMonth, ConvertDayOfWeekToString( bDayOfWeek ) );
-    Printf("[*] Time: %d:%d:%d\n", bHour, bMinute, bSecond );
-}
+    // RTC 컨트롤러에서 시간 및 일자를 읽음
+    kReadRTCTime(&bHour, &bMinute, &bSecond);
+    kReadRTCDate(&wYear, &bMonth, &bDayOfMonth, &bDayOfWeek);
 
-
-
-////////////////////////////////////////////////////////////////////////////////////////
-// 멀티태스킹 부분 시작
-
-static TCB gs_vstTask[2] = {0, };
-static QWORD gs_vstStack[1024] = {0, };
-
-/**
- * 태스크 1
- * 화면 테두리를 돌면서 문자를 출력
-*/
-static void TestTask1(void)
-{
-    BYTE bData;
-    int i = 0, iX = 0, iY = 0, iMargin, j;
-    CHARACTER *pstScreen = (CHARACTER *)CONSOLE_VIDEOMEMORYADDRESS;
-    TCB *pstRunningTask;
-
-    // 자신의 ID를 얻어서 화면 오프셋으로 사용
-    pstRunningTask = GetRunningTask(GetAPICID());
-    iMargin = (pstRunningTask->stLink.qwID & 0xFFFFFFFF) % 10;
-
-    // 화면 네 귀퉁이를 돌면서 문자 출력
-    for(j=0; j<2000; j++)
-    {
-        switch (i)
-        {
-        case 0:
-            iX++;
-            if (iX >= (CONSOLE_WIDTH - iMargin))
-            {
-                i = 1;
-            }
-            break;
-
-        case 1:
-            iY++;
-            if (iY >= (CONSOLE_HEIGHT - iMargin))
-            {
-                i = 2;
-            }
-            break;
-
-        case 2:
-            iX--;
-            if (iX < iMargin)
-            {
-                i = 3;
-            }
-            break;
-
-        case 3:
-            iY--;
-            if (iY < iMargin)
-            {
-                i = 0;
-            }
-            break;
-        }
-
-        pstScreen[iY * CONSOLE_WIDTH + iX].bCharactor = bData;
-        pstScreen[iY * CONSOLE_WIDTH + iX].bAttribute = bData & 0x0F;
-        bData++;
-
-        //Schedule();
-    }
-
-    ExitTask();
+    kPrintf("Date: %d/%d/%d %s, ", wYear, bMonth, bDayOfMonth,
+            kConvertDayOfWeekToString(bDayOfWeek));
+    kPrintf("Time: %d:%d:%d\n", bHour, bMinute, bSecond);
 }
 
 /**
- * 태스크 2
- * 자신의 ID를 참고하여 특정 위치에 회전하는 바람개비를 출력
-*/
-static void TestTask2(void)
-{
-    int i = 0, iOffset;
-    CHARACTER *pstScreen = (CHARACTER *)CONSOLE_VIDEOMEMORYADDRESS;
-    TCB *pstRunningTask;
-    char vcData[4] = {'-', '\\', '|', '/'};
-
-    // 자신의 ID를 얻어서 위치 계산
-    pstRunningTask = GetRunningTask(GetAPICID());
-    iOffset = (pstRunningTask->stLink.qwID & 0xFFFFFFFF) * 2;
-    iOffset = CONSOLE_WIDTH * CONSOLE_HEIGHT -
-              (iOffset % (CONSOLE_WIDTH * CONSOLE_HEIGHT));
-
-    while (1)
-    {
-        // 회전하는 바람개비 표시
-        pstScreen[iOffset].bCharactor = vcData[i % 4];
-        pstScreen[iOffset].bAttribute = (iOffset % 15) + 1;
-        i++;
-    }
-}
-
-/**
- *  태스크 3
- *      자신이 수행되는 코어의 ID가 변경될 때마다 자신의 태스크 ID와 코어의 ID를 출력
+ *  태스크의 우선 순위를 변경
  */
-static void TestTask3(void)
-{
-    QWORD qwTaskID;
-    TCB *pstRunningTask;
-    BYTE bLastLocalAPICID;
-    QWORD qwLastTick;
-
-    // 자신의 태스크 자료구조를 저장
-    pstRunningTask = GetRunningTask(GetAPICID());
-    qwTaskID = pstRunningTask->stLink.qwID;
-    Printf("Test Task 3 Started. Task ID = 0x%q, Local APIC ID = 0x%x\n",
-            qwTaskID, GetAPICID());
-
-    // 현재 수행 중인 로컬 APIC ID를 저장하였다가 태스크가 부하 분산되어 다른 코어로
-    // 옮겨갔을 때 메시지를 출력
-    bLastLocalAPICID = GetAPICID();
-
-    while (1)
-    {
-        // 이전에 수행되었던 코어와 현재 수행하는 코어가 다르면 메시지를 출력
-        if (bLastLocalAPICID != GetAPICID())
-        {
-            Printf("Core Changed. Task ID = 0x%q, Previous Local APIC ID = 0x%x "
-                    "Current = 0x%x\n",
-                    qwTaskID, bLastLocalAPICID, GetAPICID());
-
-            // 현재 수행중인 코어의 ID를 변경
-            bLastLocalAPICID = GetAPICID();
-        }
-
-        Schedule();
-    }
-}
-
-/**
- * 태스크를 생성하여 멀티 태스킹 수행
-*/
-static void CreateTestTask(const char *pcParameterBuffer)
-{
-    PARAMETERLIST stList;
-    char vcType[30];
-    char vcCount[30];
-    int i;
-
-    InitializeParameter(&stList, pcParameterBuffer);
-    GetNextParameter(&stList, vcType);
-    GetNextParameter(&stList, vcCount);
-
-    switch (AToI(vcType, 10))
-    {
-    case 1:
-        for (i = 0; i < AToI(vcCount, 10); i++)
-        {
-            // 낮은 우선순위의 화면 테두리를 돌면서 문자를 출력하는 태스크 생성
-            if (CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD) TestTask1, TASK_LOADBALANCINGID) == NULL)
-            {
-                break;
-            }
-        }
-
-        Printf("[*] Task1 %d Created\n", i);
-        break;
-
-    case 2:
-    default:
-        for (i = 0; i < AToI(vcCount, 10); i++)
-        {
-            // 낮은 우선순위의 바람개비를 생성하는 태스크 생성
-            if (CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD)TestTask2, TASK_LOADBALANCINGID) == NULL)
-            {
-                break;
-            }
-        }
-
-        Printf("[*] Task2 %d Created\n", i);
-        break;
-    
-    case 3:
-        for(i=0; i<AToI(vcCount, 10); i++)
-        {
-            if(CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD)TestTask3, TASK_LOADBALANCINGID) == NULL)
-            {
-                break;
-            }
-            Schedule();
-        }
-        Printf("[*] Task3 %d Created\n", i);
-        break;
-    }
-}
-
-/**
- * 태스크의 우선순위를 변경
-*/
-static void ChangeTaskPriority(const char *pcParameterBuffer)
+static void kChangeTaskPriority(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
     char vcID[30];
@@ -649,40 +388,38 @@ static void ChangeTaskPriority(const char *pcParameterBuffer)
     QWORD qwID;
     BYTE bPriority;
 
-    InitializeParameter(&stList, pcParameterBuffer);
-    GetNextParameter(&stList, vcID);
-    GetNextParameter(&stList, vcPriority);
+    // 파라미터를 추출
+    kInitializeParameter(&stList, pcParameterBuffer);
+    kGetNextParameter(&stList, vcID);
+    kGetNextParameter(&stList, vcPriority);
 
-    // 태스크의 ID를 계산
-    if (MemCmp(vcID, "0x", 2) == 0)
+    // 태스크의 우선 순위를 변경
+    if (kMemCmp(vcID, "0x", 2) == 0)
     {
-        qwID = AToI(vcID + 2, 16);
+        qwID = kAToI(vcID + 2, 16);
     }
     else
     {
-        qwID = AToI(vcID, 10);
+        qwID = kAToI(vcID, 10);
     }
 
-    // 변경하고자 하는 우선순위 설정
-    bPriority = AToI(vcPriority, 10);
+    bPriority = kAToI(vcPriority, 10);
 
-    Printf("[*] Change Task Priority ID [0x%q] Priority[%d]..... ", qwID, bPriority);
-    
-    // 인자로 받은 태스크 ID의 우선순위 변경 
-    if (ChangePriority(qwID, bPriority) == TRUE)
+    kPrintf("Change Task Priority ID [0x%q] Priority[%d] ", qwID, bPriority);
+    if (kChangePriority(qwID, bPriority) == TRUE)
     {
-        Printf("Success\n");
+        kPrintf("Success\n");
     }
     else
     {
-        Printf("Fail\n");
+        kPrintf("Fail\n");
     }
 }
 
 /**
  *  현재 생성된 모든 태스크의 정보를 출력
  */
-static void ShowTaskList(const char *pcParameterBuffer)
+static void kShowTaskList(const char *pcParameterBuffer)
 {
     int i;
     TCB *pstTCB;
@@ -693,14 +430,14 @@ static void ShowTaskList(const char *pcParameterBuffer)
     int iProcessorCount;
 
     // 코어 수만큼 루프를 돌면서 각 스케줄러에 있는 태스크의 수를 더함
-    iProcessorCount = GetProcessorCount();
+    iProcessorCount = kGetProcessorCount();
 
     for (i = 0; i < iProcessorCount; i++)
     {
-        iTotalTaskCount += GetTaskCount(i);
+        iTotalTaskCount += kGetTaskCount(i);
     }
 
-    Printf("================= Task Total Count [%d] =================\n",
+    kPrintf("================= Task Total Count [%d] =================\n",
             iTotalTaskCount);
 
     // 코어가 2개 이상이면 각 스케줄러 별로 개수를 출력
@@ -711,61 +448,61 @@ static void ShowTaskList(const char *pcParameterBuffer)
         {
             if ((i != 0) && ((i % 4) == 0))
             {
-                Printf("\n");
+                kPrintf("\n");
             }
 
-            SPrintf(vcBuffer, "Core %d : %d", i, GetTaskCount(i));
-            Printf(vcBuffer);
+            kSPrintf(vcBuffer, "Core %d : %d", i, kGetTaskCount(i));
+            kPrintf(vcBuffer);
 
             // 출력하고 남은 공간을 모두 스페이스바로 채움
-            iRemainLength = 19 - StrLen(vcBuffer);
-            MemSet(vcBuffer, ' ', iRemainLength);
+            iRemainLength = 19 - kStrLen(vcBuffer);
+            kMemSet(vcBuffer, ' ', iRemainLength);
             vcBuffer[iRemainLength] = '\0';
-            Printf(vcBuffer);
+            kPrintf(vcBuffer);
         }
 
-        Printf("\nPress any key to continue... ('q' is exit) : ");
-        if (GetCh() == 'q')
+        kPrintf("\nPress any key to continue... ('q' is exit) : ");
+        if (kGetCh() == 'q')
         {
-            Printf("\n");
+            kPrintf("\n");
             return;
         }
-        Printf("\n\n");
+        kPrintf("\n\n");
     }
 
     for (i = 0; i < TASK_MAXCOUNT; i++)
     {
         // TCB를 구해서 TCB가 사용 중이면 ID를 출력
-        pstTCB = GetTCBInTCBPool(i);
+        pstTCB = kGetTCBInTCBPool(i);
         if ((pstTCB->stLink.qwID >> 32) != 0)
         {
             // 태스크가 6개 출력될 때마다, 계속 태스크 정보를 표시할지 여부를 확인
             if ((iCount != 0) && ((iCount % 6) == 0))
             {
-                Printf("Press any key to continue... ('q' is exit) : ");
-                if (GetCh() == 'q')
+                kPrintf("Press any key to continue... ('q' is exit) : ");
+                if (kGetCh() == 'q')
                 {
-                    Printf("\n");
+                    kPrintf("\n");
                     break;
                 }
-                Printf("\n");
+                kPrintf("\n");
             }
 
-            Printf("[%d] Task ID[0x%Q], Priority[%d], Flags[0x%Q], Thread[%d]\n", 1 + iCount++,
+            kPrintf("[%d] Task ID[0x%Q], Priority[%d], Flags[0x%Q], Thread[%d]\n", 1 + iCount++,
                     pstTCB->stLink.qwID, GETPRIORITY(pstTCB->qwFlags),
-                    pstTCB->qwFlags, GetListCount(&(pstTCB->stChildThreadList)));
-            Printf("    Core ID[0x%X] CPU Affinity[0x%X]\n", pstTCB->bAPICID,
+                    pstTCB->qwFlags, kGetListCount(&(pstTCB->stChildThreadList)));
+            kPrintf("    Core ID[0x%X] CPU Affinity[0x%X]\n", pstTCB->bAPICID,
                     pstTCB->bAffinity);
-            Printf("    Parent PID[0x%Q], Memory Address[0x%Q], Size[0x%Q]\n",
+            kPrintf("    Parent PID[0x%Q], Memory Address[0x%Q], Size[0x%Q]\n",
                     pstTCB->qwParentProcessID, pstTCB->pvMemoryAddress, pstTCB->qwMemorySize);
         }
     }
 }
 
 /**
- * 태스크를 종료시키는 함수
-*/
-static void KillTask(const char *pcParameterBuffer)
+ *  태스크를 종료
+ */
+static void kKillTask(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
     char vcID[30];
@@ -773,57 +510,63 @@ static void KillTask(const char *pcParameterBuffer)
     TCB *pstTCB;
     int i;
 
-    InitializeParameter(&stList, pcParameterBuffer);
-    GetNextParameter(&stList, vcID);
+    // 파라미터를 추출
+    kInitializeParameter(&stList, pcParameterBuffer);
+    kGetNextParameter(&stList, vcID);
 
-    if (MemCmp(vcID, "0x", 2) == 0)
+    // 태스크를 종료
+    if (kMemCmp(vcID, "0x", 2) == 0)
     {
-        qwID = AToI(vcID + 2, 16);
+        qwID = kAToI(vcID + 2, 16);
     }
     else
     {
-        qwID = AToI(vcID, 10);
+        qwID = kAToI(vcID, 10);
     }
 
-    if(qwID != 0xFFFFFFFFF)
+    // 특정 ID만 종료하는 경우
+    if (qwID != 0xFFFFFFFF)
     {
-        pstTCB = GetTCBInTCBPool(GETTCBOFFSET(qwID));
+        pstTCB = kGetTCBInTCBPool(GETTCBOFFSET(qwID));
         qwID = pstTCB->stLink.qwID;
 
+        // 시스템 테스트는 제외
         if (((qwID >> 32) != 0) && ((pstTCB->qwFlags & TASK_FLAGS_SYSTEM) == 0x00))
         {
-            Printf("[*] Kill Task ID [0x%q] ", qwID);
-            if (EndTask(qwID) == TRUE)
+            kPrintf("Kill Task ID [0x%q] ", qwID);
+            if (kEndTask(qwID) == TRUE)
             {
-                Printf("Success\n");
+                kPrintf("Success\n");
             }
             else
             {
-                Printf("Fail\n");
+                kPrintf("Fail\n");
             }
         }
         else
         {
-            Printf("[!] Task does not exist or task is system task....\n");
+            kPrintf("Task does not exist or task is system task\n");
         }
     }
+    // 콘솔 셸과 유휴 태스크를 제외하고 모든 태스크 종료
     else
     {
         for (i = 0; i < TASK_MAXCOUNT; i++)
         {
-            pstTCB = GetTCBInTCBPool(i);
+            pstTCB = kGetTCBInTCBPool(i);
             qwID = pstTCB->stLink.qwID;
-            
+
+            // 시스템 테스트는 삭제 목록에서 제외
             if (((qwID >> 32) != 0) && ((pstTCB->qwFlags & TASK_FLAGS_SYSTEM) == 0x00))
             {
-                Printf("[*] Kill Task ID [0x%q] ", qwID);
-                if (EndTask(qwID) == TRUE)
+                kPrintf("Kill Task ID [0x%q] ", qwID);
+                if (kEndTask(qwID) == TRUE)
                 {
-                    Printf("Success\n");
+                    kPrintf("Success\n");
                 }
                 else
                 {
-                    Printf("Fail\n");
+                    kPrintf("Fail\n");
                 }
             }
         }
@@ -831,542 +574,194 @@ static void KillTask(const char *pcParameterBuffer)
 }
 
 /**
- * 프로세서 부하를 계산함
-*/
-static void CPULoad(const char *pcParameterBuffer)
+ *  프로세서의 사용률을 표시
+ */
+static void kCPULoad(const char *pcParameterBuffer)
 {
     int i;
     char vcBuffer[50];
     int iRemainLength;
 
-    Printf("================= Processor Load =================\n");
+    kPrintf("================= Processor Load =================\n");
 
     // 각 코어 별로 부하를 출력
-    for (i = 0; i < GetProcessorCount(); i++)
+    for (i = 0; i < kGetProcessorCount(); i++)
     {
         if ((i != 0) && ((i % 4) == 0))
         {
-            Printf("\n");
+            kPrintf("\n");
         }
 
-        SPrintf(vcBuffer, "Core %d : %d%%", i, GetProcessorLoad(i));
-        Printf("%s", vcBuffer);
+        kSPrintf(vcBuffer, "Core %d : %d%%", i, kGetProcessorLoad(i));
+        kPrintf("%s", vcBuffer);
 
         // 출력하고 남은 공간을 모두 스페이스바로 채움
-        iRemainLength = 19 - StrLen(vcBuffer);
-        MemSet(vcBuffer, ' ', iRemainLength);
+        iRemainLength = 19 - kStrLen(vcBuffer);
+        kMemSet(vcBuffer, ' ', iRemainLength);
         vcBuffer[iRemainLength] = '\0';
-        Printf(vcBuffer);
+        kPrintf(vcBuffer);
     }
-    Printf("\n");
-}
-
-///////////////////////////////////////////////////////////////////////
-// 뮤텍스 테스트 함수
-
-static MUTEX gs_stMutex;
-static volatile QWORD gs_qwAdder;
-
-/**
- * 뮤텍스 테스트를 위한 테스트 함수
- * 1 ~ 5까지의 숫자를 출력하는 함수
-*/
-static void PrintNumberTask(void)
-{
-    int i;
-    int j;
-    QWORD qwTickCount;
-
-    // 50ms 정도 대기하면서 콘솔 셸과 곂치지 않도록 설정
-    qwTickCount = GetTickCount();
-    while ((GetTickCount() - qwTickCount) < 50)
-    {
-        Schedule();
-    }
-
-    // 루프를 돌면서 숫자를 출력
-    for (i = 0; i < 5; i++)
-    {   
-        // 뮤텍스를 해줘야 하는 이유는 공유되는 변수가 있으며, 이 값이 다른 태스크에 의해 변경되기 때문임
-        // 공유 변수는 gs_qwAdder와 Printf의 커서 위치 변수들임
-
-        // 현재 태스크로 뮤텍스 잠금 실행
-        // gs_qwAdder와 Printf가 뮤텍스 처리되어 다른 태스크가 접근할 수 없음
-        Lock(&(gs_stMutex));
-
-        Printf("[*] Task ID [0x%Q] Value[%d]\n", GetRunningTask(GetAPICID())->stLink.qwID, gs_qwAdder);
-
-        gs_qwAdder += 1;
-
-        Unlock(&(gs_stMutex));
-
-        for (j = 0; j < 30000; j++);
-    }
-
-    qwTickCount = GetTickCount();
-    while ((GetTickCount() - qwTickCount) < 1000)
-    {
-        Schedule();
-    }
-
-    ExitTask();
-}
-
-/**
- * 뮤텍스를 테스트하는 태스크 생성
- * 3개의 테스트 태스크를 생성하여 위의 PrintfNumber 함수를 실행시켜서 확인
- * 뮤텍스가 없다면 숫자들이 순서대로 출력되지 않고 뒤죽박죽일 것임
-*/
-static void TestMutex(const char *pcParameterBuffer)
-{
-    int i;
-
-    gs_qwAdder = 1;
-
-    InitializeMutex(&gs_stMutex);
-
-    // 3개의 태스크를 생성하여 PrintNumberTask 함수 실행
-    for (i = 0; i < 3; i++)
-    {
-        CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD)PrintNumberTask, GetAPICID());
-    }
-    
-    Printf("[*] Wait Util %d Task End.......\n", i);
-    // 아무 키나 눌러서 함수 종료
-    GetCh();
-}
-
-
-
-/////////////////////////////////////////////////////
-// 쓰레드 관련 기능
-
-/**
- * 낮은 우선순위의 TestTask2 함수를 실행하는 3개의 쓰레드를 생성함
- * TestTask2는 바람개비를 생성하는 태스크
-*/
-static void CreateThreadTask(void)
-{
-    int i;
-
-    for (i = 0; i < 3; i++)
-    {
-        CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD)TestTask2, TASK_LOADBALANCINGID);
-    }
-
-    while (1)
-    {
-        Sleep(1);
-    }
-}
-
-/**
- * 3개의 쓰레드를 테스트하는 태스크 생성
-*/
-static void TestThread(const char *pcParameterBuffer)
-{
-    TCB *pstProcess;
-
-    // 프로세스 생성
-    pstProcess = CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_PROCESS, (void *)0xEEEEEEEE, 0x1000, (QWORD)CreateThreadTask, TASK_LOADBALANCINGID);
-    
-    if (pstProcess != NULL)
-    {
-        Printf("[*] Process [0x%Q] Create Success\n\n", pstProcess->stLink.qwID);
-    }
-    else
-    {
-        Printf("[!] Process Create Fail\n\n");
-    }
+    kPrintf("\n");
 }
 
 // 난수를 발생시키기 위한 변수
 static volatile QWORD gs_qwRandomValue = 0;
 
 /**
- * 임의의 난수를 반환
-*/
-QWORD Random(void)
+ *  임의의 난수를 반환
+ */
+QWORD kRandom(void)
 {
     gs_qwRandomValue = (gs_qwRandomValue * 412153 + 5571031) >> 16;
-    
     return gs_qwRandomValue;
 }
 
 /**
- * 철자를 흘러내리게 하는 함수
- * 난수를 이용해서 철자를 만드는 것
- * 매트릭스 효과를 위한 함수
-*/
-static void DropCharactorThread(void)
+ *  철자를 흘러내리게 하는 스레드
+ */
+static void kDropCharactorThread(void)
 {
     int iX, iY;
     int i;
     char vcText[2];
 
-    iX = Random() % CONSOLE_WIDTH;
+    iX = kRandom() % CONSOLE_WIDTH;
 
     while (1)
     {
-        Sleep(Random() % 20);
+        // 잠시 대기함
+        kSleep(kRandom() % 20);
 
-        if ((Random() % 20) < 16)
+        if ((kRandom() % 20) < 16)
         {
             vcText[0] = ' ';
             for (i = 0; i < CONSOLE_HEIGHT - 1; i++)
             {
-                PrintStringXY(iX, i, vcText);
-                Sleep(50);
+                kPrintStringXY(iX, i, vcText);
+                kSleep(50);
             }
         }
         else
         {
             for (i = 0; i < CONSOLE_HEIGHT - 1; i++)
             {
-                vcText[0] = i + Random();
-                PrintStringXY(iX, i, vcText);
-                Sleep(50);
+                vcText[0] = (i + kRandom()) % 128;
+                kPrintStringXY(iX, i, vcText);
+                kSleep(50);
             }
         }
     }
 }
 
 /**
- * 쓰레드를 생성하여 매트릭스 화면처럼 보여주는 프로세스
- * 300개의 위의 함수를 실행하는 쓰레드를 생성
-*/
-static void MatrixProcess(void)
+ *  스레드를 생성하여 매트릭스 화면처럼 보여주는 프로세스
+ */
+static void kMatrixProcess(void)
 {
     int i;
 
     for (i = 0; i < 300; i++)
     {
-        if (CreateTask(TASK_FLAGS_THREAD | TASK_FLAGS_LOW, 0, 0, (QWORD)DropCharactorThread, TASK_LOADBALANCINGID) == NULL)
+        if (kCreateTask(TASK_FLAGS_THREAD | TASK_FLAGS_LOW, 0, 0,
+                        (QWORD)kDropCharactorThread, TASK_LOADBALANCINGID) == NULL)
         {
             break;
         }
 
-        Sleep(Random() % 5 + 5);
+        kSleep(kRandom() % 5 + 5);
     }
 
-    Printf("[*] %d Thread is created\n", i);
+    kPrintf("%d Thread is created\n", i);
 
     // 키가 입력되면 프로세스 종료
-    GetCh();
+    kGetCh();
 }
 
 /**
- * 
-*/
-static void ShowMatrix(const char *pcParameterBuffer)
+ *  매트릭스 화면을 보여줌
+ */
+static void kShowMatrix(const char *pcParameterBuffer)
 {
     TCB *pstProcess;
 
-    // 매트릭스 쓰레드들의 부모 프로세스 생성
-    pstProcess = CreateTask(TASK_FLAGS_PROCESS | TASK_FLAGS_LOW, (void *)0xE00000, 0xE00000,(QWORD)MatrixProcess, TASK_LOADBALANCINGID);
-    
+    pstProcess = kCreateTask(TASK_FLAGS_PROCESS | TASK_FLAGS_LOW, (void *)0xE00000, 0xE00000,
+                             (QWORD)kMatrixProcess, TASK_LOADBALANCINGID);
     if (pstProcess != NULL)
     {
-        Printf("[*] Matrix Process [0x%Q] Create Success\n", pstProcess->stLink.qwID);
+        kPrintf("Matrix Process [0x%Q] Create Success\n");
 
-        // 상위 32비트 값을 비교해 종료 태스크인지 검사
-        // 종료 태스크로 설정되면 종료
+        // 태스크가 종료 될 때까지 대기
         while ((pstProcess->stLink.qwID >> 32) != 0)
         {
-            Sleep(100);
+            kSleep(100);
         }
     }
     else
     {
-        Printf("[!] Matrix Process Create Fail\n");
-    }
-}
-
-
-//////////////////////////////////////////////////////
-// 실수 연산을 위한 기능
-
-/**
- * 
-*/
-static void FPUTestTask(void)
-{
-    double dValue1;
-    double dValue2;
-    TCB *pstRunningTask;
-    QWORD qwCount = 0;
-    QWORD qwRandomValue;
-    int i;
-    int iOffset;
-    char vcData[4] = {'-', '\\', '|', '/'};
-    CHARACTER *pstScreen = (CHARACTER *)CONSOLE_VIDEOMEMORYADDRESS;
-
-    pstRunningTask = GetRunningTask(GetAPICID());
-
-    // 자신의 ID를 얻어서 화면 오프셋으로 사용
-    iOffset = (pstRunningTask->stLink.qwID & 0xFFFFFFFF) * 2;
-    iOffset = CONSOLE_WIDTH * CONSOLE_HEIGHT -
-              (iOffset % (CONSOLE_WIDTH * CONSOLE_HEIGHT));
-
-    // 루프를 무한히 반복하면서 동일한 계산을 수행
-    while (1)
-    {
-        dValue1 = 1;
-        dValue2 = 1;
-
-        // 테스트를 위해 동일한 계산을 2번 반복해서 실행
-        for (i = 0; i < 10; i++)
-        {
-            qwRandomValue = Random();
-            dValue1 *= (double)qwRandomValue;
-            dValue2 *= (double)qwRandomValue;
-
-            Sleep(1);
-
-            qwRandomValue = Random();
-            dValue1 /= (double)qwRandomValue;
-            dValue2 /= (double)qwRandomValue;
-        }
-
-        if (dValue1 != dValue2)
-        {
-            Printf("\n[!] Value Is Not Same~!!! [%f] != [%f]\n", dValue1, dValue2);
-            break;
-        }
-        qwCount++;
-
-        // 회전하는 바람개비를 표시
-        pstScreen[iOffset].bCharactor = vcData[qwCount % 4];
-
-        // 색깔 지정
-        pstScreen[iOffset].bAttribute = (iOffset % 15) + 1;
+        kPrintf("Matrix Process Create Fail\n");
     }
 }
 
 /**
- * 파이 소수점 부분을 출력하도록 하는 함수
- * FPUTestTask를 실행하는 쓰레드를 100개 생성
-*/
-static void TestPIE(const char *pcParameterBuffer)
-{
-    double dResult;
-    int i;
-
-    Printf("\n[*] PIE Calculation Test....\n");
-    Printf("[*] Result: 355 / 113 = [ ");
-    
-    dResult = (double) 355 / 113;
-    Printf("%d.%d%d ]\n", (QWORD) dResult, ((QWORD) (dResult * 10) % 10), ((QWORD) (dResult * 100) % 10));
-
-    for(i=0; i<100; i++)
-    {
-        CreateTask(TASK_FLAGS_LOW | TASK_FLAGS_THREAD, 0, 0, (QWORD) FPUTestTask, TASK_LOADBALANCINGID);
-    }
-}
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// 동적 메모리 기능 함수들
-
-/**
- * 동적메모리 관련 아래 정보들을 출력
- * 동적 메모리 시작 주소, 전체 크기
- * 비트맵과 할당된 블록 크기를 저장하는데 사용한 영역
- * 사용된 메모리 영역 
-*/
-static void ShowDyanmicMemoryInformation(const char *pcParameterBuffer)
+ *  동적 메모리 정보를 표시
+ */
+static void kShowDyanmicMemoryInformation(const char *pcParameterBuffer)
 {
     QWORD qwStartAddress, qwTotalSize, qwMetaSize, qwUsedSize;
 
-    GetDynamicMemoryInformation(&qwStartAddress, &qwTotalSize, &qwMetaSize, &qwUsedSize);
+    kGetDynamicMemoryInformation(&qwStartAddress, &qwTotalSize, &qwMetaSize,
+                                 &qwUsedSize);
 
-    Printf("\n============ Dynamic Memory Information ============\n\n");
-    
-    Printf("[*] Start Address:    [ 0x%Q ]\n", qwStartAddress);
-
-    Printf("[*] Total Size:       [ 0x%Q ] byte,   [ %d ] MB\n", qwTotalSize, qwTotalSize / 1024 / 1024);
-
-    Printf("[*] Meta Size:        [ 0x%Q ] byte,   [ %d ] KB\n", qwMetaSize, qwMetaSize / 1024);
-
-    Printf("[*] Used Size:        [ 0x%Q ] byte,   [ %d ] KB\n", qwUsedSize, qwUsedSize / 1024);
+    kPrintf("============ Dynamic Memory Information ============\n");
+    kPrintf("Start Address: [0x%Q]\n", qwStartAddress);
+    kPrintf("Total Size:    [0x%Q]byte, [%d]MB\n", qwTotalSize,
+            qwTotalSize / 1024 / 1024);
+    kPrintf("Meta Size:     [0x%Q]byte, [%d]KB\n", qwMetaSize,
+            qwMetaSize / 1024);
+    kPrintf("Used Size:     [0x%Q]byte, [%d]KB\n", qwUsedSize, qwUsedSize / 1024);
 }
 
 /**
- * 블록을 크기순으로 순차적으로 할당하고 검사 후 해제하는 테스트를 수행
-*/
-static void TestSequentialAllocation(const char *pcParameterBuffer)
-{
-    DYNAMICMEMORY *pstMemory;
-    long i, j, k;
-    QWORD *pqwBuffer;
-
-    Printf("\n============ Dynamic Memory Test ============\n");
-    pstMemory = GetDynamicMemoryManager();
-
-    for (i = 0; i < pstMemory->iMaxLevelCount; i++)
-    {
-        Printf("[*] Block List [%d] Test Start\n", i);
-        Printf("[*] Allocation And Compare: ");
-
-        for (j = 0; j < (pstMemory->iBlockCountOfSmallestBlock >> i); j++)
-        {
-            pqwBuffer = AllocateMemory(DYNAMICMEMORY_MIN_SIZE << i);
-            if (pqwBuffer == NULL)
-            {
-                Printf("\nAllocation Fail\n");
-                return;
-            }
-
-            for (k = 0; k < (DYNAMICMEMORY_MIN_SIZE << i) / 8; k++)
-            {
-                pqwBuffer[k] = k;
-            }
-
-            for (k = 0; k < (DYNAMICMEMORY_MIN_SIZE << i) / 8; k++)
-            {
-                if (pqwBuffer[k] != k)
-                {
-                    Printf("\nCompare Fail\n");
-                    return;
-                }
-            }
-
-            Printf(".");
-        }
-
-        Printf("\nFree: ");
-
-        for (j = 0; j < (pstMemory->iBlockCountOfSmallestBlock >> i); j++)
-        {
-            if (FreeMemory((void *)(pstMemory->qwStartAddress + (DYNAMICMEMORY_MIN_SIZE << i) * j)) == FALSE)
-            {
-                Printf("\nFree Fail\n");
-                return;
-            }
-            Printf(".");
-        }
-        Printf("\n");
-    }
-    Printf("[*] Test Completed......!!!\n");
-}
-
-/**
- * 임의의 메모리를 할당하고 해제하는 테스트를 10번 진행
-*/
-static void RandomAllocationTask(void)
-{
-    TCB *pstTask;
-    QWORD qwMemorySize;
-    char vcBuffer[200];
-    BYTE *pbAllocationBuffer;
-    int i, j;
-    int iY;
-
-    pstTask = GetRunningTask(GetAPICID());
-    iY = (pstTask->stLink.qwID) % 15 + 9;
-
-    for (j = 0; j < 10; j++)
-    {
-        do
-        {
-            qwMemorySize = ((Random() % (32 * 1024)) + 1) * 1024;
-            pbAllocationBuffer = AllocateMemory(qwMemorySize);
-
-            if (pbAllocationBuffer == 0)
-            {
-                Sleep(1);
-            }
-        } while (pbAllocationBuffer == 0);
-
-        SPrintf(vcBuffer, "|Address: [0x%Q] Size: [0x%Q] Allocation Success", pbAllocationBuffer, qwMemorySize);
-
-        PrintStringXY(20, iY, vcBuffer);
-        Sleep(200);
-
-        SPrintf(vcBuffer, "|Address: [0x%Q] Size: [0x%Q] Data Write...     ", pbAllocationBuffer, qwMemorySize);
-        PrintStringXY(20, iY, vcBuffer);
-        
-        for (i = 0; i < qwMemorySize / 2; i++)
-        {
-            pbAllocationBuffer[i] = Random() & 0xFF;
-            pbAllocationBuffer[i + (qwMemorySize / 2)] = pbAllocationBuffer[i];
-        }
-        
-        Sleep(200);
-
-        SPrintf(vcBuffer, "|Address: [0x%Q] Size: [0x%Q] Data Verify...   ", pbAllocationBuffer, qwMemorySize);
-        PrintStringXY(20, iY, vcBuffer);
-
-        for (i = 0; i < qwMemorySize / 2; i++)
-        {
-            if (pbAllocationBuffer[i] != pbAllocationBuffer[i + (qwMemorySize / 2)])
-            {
-                Printf("[!] Task ID[0x%Q] Verify Fail\n", pstTask->stLink.qwID);
-                ExitTask();
-            }
-        }
-        FreeMemory(pbAllocationBuffer);
-        Sleep(200);
-    }
-
-    ExitTask();
-}
-
-/**
- * 위의 함수를 실행하는 쓰레드(태스크)를 100개 생성
-*/
-static void TestRandomAllocation(const char *pcParameterBuffer)
-{
-    int i;
-
-    for (i = 0; i < 100; i++)
-    {
-        CreateTask(TASK_FLAGS_LOWEST | TASK_FLAGS_THREAD, 0, 0, (QWORD)RandomAllocationTask, TASK_LOADBALANCINGID);
-    }
-}
-
-
-
-///////////////////////////////////////////////////////////////////////////
-// 파일 시스템 관련 기능들
-
-/**
- * 하드 디스크의 정보를 출력
-*/
-static void ShowHDDInformation(const char *pcParameterBuffer)
+ *  하드 디스크의 정보를 표시
+ */
+static void kShowHDDInformation(const char *pcParameterBuffer)
 {
     HDDINFORMATION stHDD;
     char vcBuffer[100];
 
     // 하드 디스크의 정보를 읽음
-    if (GetHDDInformation( &stHDD ) == FALSE)
+    if (kGetHDDInformation(&stHDD) == FALSE)
     {
-        Printf("\n[!] HDD Information Read Fail\n");
+        kPrintf("HDD Information Read Fail\n");
         return;
     }
 
-    Printf("\n============ Primary Master HDD Information ============\n\n");
+    kPrintf("============ Primary Master HDD Information ============\n");
 
-    MemCpy(vcBuffer, stHDD.vwModelNumber, sizeof(stHDD.vwModelNumber));
+    // 모델 번호 출력
+    kMemCpy(vcBuffer, stHDD.vwModelNumber, sizeof(stHDD.vwModelNumber));
     vcBuffer[sizeof(stHDD.vwModelNumber) - 1] = '\0';
-    Printf("[*] Model Number:\t %s\n", vcBuffer);
+    kPrintf("Model Number:\t %s\n", vcBuffer);
 
-    MemCpy(vcBuffer, stHDD.vwSerialNumber, sizeof(stHDD.vwSerialNumber));
+    // 시리얼 번호 출력
+    kMemCpy(vcBuffer, stHDD.vwSerialNumber, sizeof(stHDD.vwSerialNumber));
     vcBuffer[sizeof(stHDD.vwSerialNumber) - 1] = '\0';
-    Printf("[*] Serial Number:\t %s\n", vcBuffer);
+    kPrintf("Serial Number:\t %s\n", vcBuffer);
 
-    Printf("[*] Head Count:\t\t %d\n", stHDD.wNumberOfHead);
-    Printf("[*] Cylinder Count:\t %d\n", stHDD.wNumberOfCylinder);
-    Printf("[*] Sector Count:\t %d\n", stHDD.wNumberOfSectorPerCylinder);
+    // 헤드, 실린더, 실린더 당 섹터 수를 출력
+    kPrintf("Head Count:\t %d\n", stHDD.wNumberOfHead);
+    kPrintf("Cylinder Count:\t %d\n", stHDD.wNumberOfCylinder);
+    kPrintf("Sector Count:\t %d\n", stHDD.wNumberOfSectorPerCylinder);
 
-    Printf("[*] Total Sector:\t %d Sector, %dMB\n", stHDD.dwTotalSectors, stHDD.dwTotalSectors / 2 / 1024);
+    // 총 섹터 수 출력
+    kPrintf("Total Sector:\t %d Sector, %dMB\n", stHDD.dwTotalSectors,
+            stHDD.dwTotalSectors / 2 / 1024);
 }
 
 /**
- * 인자로 넘어온 하드 디스크의 LBA 어드레스에서 섹터 수 만큼 읽음 
-*/
-static void ReadSector(const char *pcParameterBuffer)
+ *  하드 디스크에 파라미터로 넘어온 LBA 어드레스에서 섹터 수 만큼 읽음
+ */
+static void kReadSector(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
     char vcLBA[50], vcSectorCount[50];
@@ -1377,30 +772,31 @@ static void ReadSector(const char *pcParameterBuffer)
     BYTE bData;
     BOOL bExit = FALSE;
 
-    InitializeParameter(&stList, pcParameterBuffer);
-    if ((GetNextParameter(&stList, vcLBA) == 0) || (GetNextParameter(&stList, vcSectorCount) == 0))
+    // 파라미터 리스트를 초기화하여 LBA 어드레스와 섹터 수 추출
+    kInitializeParameter(&stList, pcParameterBuffer);
+    if ((kGetNextParameter(&stList, vcLBA) == 0) ||
+        (kGetNextParameter(&stList, vcSectorCount) == 0))
     {
-        Printf("\nex) readsector 0(LBA) 10(count)\n");
+        kPrintf("ex) readsector 0(LBA) 10(count)\n");
         return;
     }
+    dwLBA = kAToI(vcLBA, 10);
+    iSectorCount = kAToI(vcSectorCount, 10);
 
-    dwLBA = AToI(vcLBA, 10);
-    iSectorCount = AToI(vcSectorCount, 10);
-
-    pcBuffer = AllocateMemory(iSectorCount * 512);
-    if (ReadHDDSector(TRUE, TRUE, dwLBA, iSectorCount, pcBuffer) == iSectorCount)
+    // 섹터 수만큼 메모리를 할당 받아 읽기 수행
+    pcBuffer = kAllocateMemory(iSectorCount * 512);
+    if (kReadHDDSector(TRUE, TRUE, dwLBA, iSectorCount, pcBuffer) == iSectorCount)
     {
-        Printf("[*] LBA [%d], [%d] Sector Read Success......\n", dwLBA, iSectorCount);
-
+        kPrintf("LBA [%d], [%d] Sector Read Success~!!", dwLBA, iSectorCount);
+        // 데이터 버퍼의 내용을 출력
         for (j = 0; j < iSectorCount; j++)
         {
             for (i = 0; i < 512; i++)
             {
                 if (!((j == 0) && (i == 0)) && ((i % 256) == 0))
                 {
-                    Printf("\n\nPress any key to continue... ('q' is exit) : ");
-                    
-                    if (GetCh() == 'q')
+                    kPrintf("\nPress any key to continue... ('q' is exit) : ");
+                    if (kGetCh() == 'q')
                     {
                         bExit = TRUE;
                         break;
@@ -1409,15 +805,16 @@ static void ReadSector(const char *pcParameterBuffer)
 
                 if ((i % 16) == 0)
                 {
-                    Printf("\n[LBA: %d, Offset: %d]\t| ", dwLBA + j, i);
+                    kPrintf("\n[LBA:%d, Offset:%d]\t| ", dwLBA + j, i);
                 }
 
+                // 모두 두 자리로 표시하려고 16보다 작은 경우 0을 추가해줌
                 bData = pcBuffer[j * 512 + i] & 0xFF;
                 if (bData < 16)
                 {
-                    Printf("0");
+                    kPrintf("0");
                 }
-                Printf("%X ", bData);
+                kPrintf("%X ", bData);
             }
 
             if (bExit == TRUE)
@@ -1425,20 +822,20 @@ static void ReadSector(const char *pcParameterBuffer)
                 break;
             }
         }
-        Printf("\n");
+        kPrintf("\n");
     }
     else
     {
-        Printf("Read Fail\n");
+        kPrintf("Read Fail\n");
     }
 
-    FreeMemory(pcBuffer);
+    kFreeMemory(pcBuffer);
 }
 
 /**
- * 인자로 넘어온 하드디스크의 LBA 주소에 섹터 수 만큼 값을 씀 
-*/
-static void WriteSector(const char *pcParameterBuffer)
+ *  하드 디스크에 파라미터로 넘어온 LBA 어드레스에서 섹터 수 만큼 씀
+ */
+static void kWriteSector(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
     char vcLBA[50], vcSectorCount[50];
@@ -1450,21 +847,22 @@ static void WriteSector(const char *pcParameterBuffer)
     BYTE bData;
     static DWORD s_dwWriteCount = 0;
 
-    InitializeParameter(&stList, pcParameterBuffer);
-    
-    if ((GetNextParameter(&stList, vcLBA) == 0) || (GetNextParameter(&stList, vcSectorCount) == 0))
+    // 파라미터 리스트를 초기화하여 LBA 어드레스와 섹터 수 추출
+    kInitializeParameter(&stList, pcParameterBuffer);
+    if ((kGetNextParameter(&stList, vcLBA) == 0) ||
+        (kGetNextParameter(&stList, vcSectorCount) == 0))
     {
-        Printf("\nex) writesector 0(LBA) 10(count)\n");
+        kPrintf("ex) writesector 0(LBA) 10(count)\n");
         return;
     }
-    
-    dwLBA = AToI(vcLBA, 10);
-    iSectorCount = AToI(vcSectorCount, 10);
+    dwLBA = kAToI(vcLBA, 10);
+    iSectorCount = kAToI(vcSectorCount, 10);
 
     s_dwWriteCount++;
 
-    pcBuffer = AllocateMemory(iSectorCount * 512);
-    
+    // 버퍼를 할당 받아 데이터를 채움.
+    // 패턴은 4 바이트의 LBA 어드레스와 4 바이트의 쓰기가 수행된 횟수로 생성
+    pcBuffer = kAllocateMemory(iSectorCount * 512);
     for (j = 0; j < iSectorCount; j++)
     {
         for (i = 0; i < 512; i += 8)
@@ -1474,23 +872,23 @@ static void WriteSector(const char *pcParameterBuffer)
         }
     }
 
-    if (WriteHDDSector(TRUE, TRUE, dwLBA, iSectorCount, pcBuffer) != iSectorCount)
+    // 쓰기 수행
+    if (kWriteHDDSector(TRUE, TRUE, dwLBA, iSectorCount, pcBuffer) != iSectorCount)
     {
-        Printf("\n[!] Write Fail\n");
+        kPrintf("Write Fail\n");
         return;
     }
-    
-    Printf("\n[*] LBA [%d], [%d] Sector Write Success......\n", dwLBA, iSectorCount);
+    kPrintf("LBA [%d], [%d] Sector Write Success~!!", dwLBA, iSectorCount);
 
+    // 데이터 버퍼의 내용을 출력
     for (j = 0; j < iSectorCount; j++)
     {
         for (i = 0; i < 512; i++)
         {
             if (!((j == 0) && (i == 0)) && ((i % 256) == 0))
             {
-                Printf("\nPress any key to continue... ('q' is exit) : ");
-                
-                if (GetCh() == 'q')
+                kPrintf("\nPress any key to continue... ('q' is exit) : ");
+                if (kGetCh() == 'q')
                 {
                     bExit = TRUE;
                     break;
@@ -1499,17 +897,16 @@ static void WriteSector(const char *pcParameterBuffer)
 
             if ((i % 16) == 0)
             {
-                Printf("\n[LBA: %d, Offset: %d]\t| ", dwLBA + j, i);
+                kPrintf("\n[LBA:%d, Offset:%d]\t| ", dwLBA + j, i);
             }
 
+            // 모두 두 자리로 표시하려고 16보다 작은 경우 0을 추가해줌
             bData = pcBuffer[j * 512 + i] & 0xFF;
-            
             if (bData < 16)
             {
-                Printf("0");
+                kPrintf("0");
             }
-            
-            Printf("%X ", bData);
+            kPrintf("%X ", bData);
         }
 
         if (bExit == TRUE)
@@ -1517,129 +914,119 @@ static void WriteSector(const char *pcParameterBuffer)
             break;
         }
     }
-    
-    Printf("\n");
-    
-    FreeMemory(pcBuffer);
+    kPrintf("\n");
+    kFreeMemory(pcBuffer);
 }
 
 /**
- * MINT 파일 시스템 인식하는 함수
-*/
-static void MountHDD(const char *pcParameterBuffer)
+ *  하드 디스크를 연결
+ */
+static void kMountHDD(const char *pcParameterBuffer)
 {
-    if (Mount() == FALSE)
+    if (kMount() == FALSE)
     {
-        Printf("[!] HDD Mount Fail.......\n");
+        kPrintf("HDD Mount Fail\n");
         return;
     }
-    
-    Printf("[*] HDD Mount Success.......\n");
+    kPrintf("HDD Mount Success\n");
 }
 
 /**
- * MINT 파일 시스템 생성하는 함수
-*/
-static void FormatHDD(const char *pcParameterBuffer)
+ *  하드 디스크에 파일 시스템을 생성(포맷)
+ */
+static void kFormatHDD(const char *pcParameterBuffer)
 {
-    if (Format() == FALSE)
+    if (kFormat() == FALSE)
     {
-        Printf("[!] HDD Format Fail.......\n");
+        kPrintf("HDD Format Fail\n");
         return;
     }
-    
-    Printf("[*] HDD Format Success.......\n");
+    kPrintf("HDD Format Success\n");
 }
 
 /**
- * 파일 시스템 정보 출력
-*/
-static void ShowFileSystemInformation(const char *pcParameterBuffer)
+ *  파일 시스템 정보를 표시
+ */
+static void kShowFileSystemInformation(const char *pcParameterBuffer)
 {
     FILESYSTEMMANAGER stManager;
 
-    GetFileSystemInformation(&stManager);
+    kGetFileSystemInformation(&stManager);
 
-    Printf("\n================== File System Information ==================\n\n");
-    Printf("[*] Mouted:\t\t\t\t\t %d\n", stManager.bMounted);
-    Printf("[*] Reserved Sector Count:\t\t\t %d Sector\n", stManager.dwReservedSectorCount);
-    Printf("[*] Cluster Link Table Start Address:\t\t %d Sector\n",
+    kPrintf("================== File System Information ==================\n");
+    kPrintf("Mouted:\t\t\t\t\t %d\n", stManager.bMounted);
+    kPrintf("Reserved Sector Count:\t\t\t %d Sector\n", stManager.dwReservedSectorCount);
+    kPrintf("Cluster Link Table Start Address:\t %d Sector\n",
             stManager.dwClusterLinkAreaStartAddress);
-    Printf("[*] Cluster Link Table Size:\t\t\t %d Sector\n", stManager.dwClusterLinkAreaSize);
-    Printf("[*] Data Area Start Address:\t\t\t %d Sector\n", stManager.dwDataAreaStartAddress);
-    Printf("[*] Total Cluster Count:\t\t\t %d Cluster\n", stManager.dwTotalClusterCount);
+    kPrintf("Cluster Link Table Size:\t\t %d Sector\n", stManager.dwClusterLinkAreaSize);
+    kPrintf("Data Area Start Address:\t\t %d Sector\n", stManager.dwDataAreaStartAddress);
+    kPrintf("Total Cluster Count:\t\t\t %d Cluster\n", stManager.dwTotalClusterCount);
 }
 
 /**
- * 루트 디렉터리에 파일을 생성하는 함수
-*/
-static void CreateFileInRootDirectory(const char *pcParameterBuffer)
+ *  루트 디렉터리에 빈 파일을 생성
+ */
+static void kCreateFileInRootDirectory(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
     char vcFileName[50];
     int iLength;
     DWORD dwCluster;
-    DIRECTORYENTRY stEntry;
     int i;
     FILE *pstFile;
 
-    InitializeParameter(&stList, pcParameterBuffer);
-    iLength = GetNextParameter(&stList, vcFileName);
+    // 파라미터 리스트를 초기화하여 파일 이름을 추출
+    kInitializeParameter(&stList, pcParameterBuffer);
+    iLength = kGetNextParameter(&stList, vcFileName);
     vcFileName[iLength] = '\0';
-
     if ((iLength > (FILESYSTEM_MAXFILENAMELENGTH - 1)) || (iLength == 0))
     {
-        Printf("\n[!] Too Long or Too Short File Name.......\n");
+        kPrintf("Too Long or Too Short File Name\n");
         return;
     }
 
-    // 파일을 쓰기 모드로 생성
     pstFile = fopen(vcFileName, "w");
-
-    if(pstFile == NULL)
+    if (pstFile == NULL)
     {
-        Printf("\n[!] File Create Fail.........\n");
+        kPrintf("File Create Fail\n");
         return;
     }
-    
     fclose(pstFile);
-    Printf("\n[*] File Create Success...........\n");
-    
+    kPrintf("File Create Success\n");
 }
 
 /**
- * 파일 이름을 넘겨받아 파일을 삭제하는 함수
-*/
-static void DeleteFileInRootDirectory(const char *pcParameterBuffer)
+ *  루트 디렉터리에서 파일을 삭제
+ */
+static void kDeleteFileInRootDirectory(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
     char vcFileName[50];
     int iLength;
 
-    InitializeParameter(&stList, pcParameterBuffer);
-    
-    iLength = GetNextParameter(&stList, vcFileName);
+    // 파라미터 리스트를 초기화하여 파일 이름을 추출
+    kInitializeParameter(&stList, pcParameterBuffer);
+    iLength = kGetNextParameter(&stList, vcFileName);
     vcFileName[iLength] = '\0';
-    
     if ((iLength > (FILESYSTEM_MAXFILENAMELENGTH - 1)) || (iLength == 0))
     {
-        Printf("\n[!] Too Long or Too Short File Name.......\n");
+        kPrintf("Too Long or Too Short File Name\n");
         return;
     }
 
-    if(remove(vcFileName) != 0)
+    if (remove(vcFileName) != 0)
     {
-        Printf("\n[!] File Not Found or File Opened........\n");
-        return ;
+        kPrintf("File Not Found or File Opened\n");
+        return;
     }
 
-    Printf("\n[*] File delete success..........\n");
+    kPrintf("File Delete Success\n");
 }
 
 /**
- * 파일 목록 표시
-*/
-static void ShowRootDirectory(const char *pcParameterBuffer)
+ *  루트 디렉터리의 파일 목록을 표시
+ */
+static void kShowRootDirectory(const char *pcParameterBuffer)
 {
     DIR *pstDirectory;
     int i, iCount, iTotalCount;
@@ -1650,95 +1037,110 @@ static void ShowRootDirectory(const char *pcParameterBuffer)
     DWORD dwUsedClusterCount;
     FILESYSTEMMANAGER stManager;
 
-    GetFileSystemInformation(&stManager);
+    // 파일 시스템 정보를 얻음
+    kGetFileSystemInformation(&stManager);
 
+    // 루트 디렉터리를 엶
     pstDirectory = opendir("/");
-
-    Printf("\n");
-    
     if (pstDirectory == NULL)
     {
-        Printf("[!] Root Directory Open Fail.........\n");
-        return ;
+        kPrintf("Root Directory Open Fail\n");
+        return;
     }
 
+    // 먼저 루프를 돌면서 디렉터리에 있는 파일의 개수와 전체 파일이 사용한 크기를 계산
     iTotalCount = 0;
     dwTotalByte = 0;
     dwUsedClusterCount = 0;
-
-    while(1)
+    while (1)
     {
+        // 디렉터리에서 엔트리 하나를 읽음
         pstEntry = readdir(pstDirectory);
-        
-        if(pstEntry == NULL)
+        // 더이상 파일이 없으면 나감
+        if (pstEntry == NULL)
         {
             break;
         }
-
         iTotalCount++;
         dwTotalByte += pstEntry->dwFileSize;
 
-        if(pstEntry->dwFileSize == 0)
+        // 실제로 사용된 클러스터의 개수를 계산
+        if (pstEntry->dwFileSize == 0)
         {
+            // 크기가 0이라도 클러스터 1개는 할당되어 있음
             dwUsedClusterCount++;
         }
         else
         {
-            dwUsedClusterCount += (pstEntry->dwFileSize + (FILESYSTEM_CLUSTERSIZE - 1)) / FILESYSTEM_CLUSTERSIZE;
+            // 클러스터 개수를 올림하여 더함
+            dwUsedClusterCount += (pstEntry->dwFileSize +
+                                   (FILESYSTEM_CLUSTERSIZE - 1)) /
+                                  FILESYSTEM_CLUSTERSIZE;
         }
     }
 
+    // 실제 파일의 내용을 표시하는 루프
     rewinddir(pstDirectory);
     iCount = 0;
-
     while (1)
     {
+        // 디렉터리에서 엔트리 하나를 읽음
         pstEntry = readdir(pstDirectory);
-        
+        // 더이상 파일이 없으면 나감
         if (pstEntry == NULL)
         {
             break;
         }
 
-        MemSet(vcBuffer, ' ', sizeof(vcBuffer) - 1);
+        // 전부 공백으로 초기화 한 후 각 위치에 값을 대입
+        kMemSet(vcBuffer, ' ', sizeof(vcBuffer) - 1);
         vcBuffer[sizeof(vcBuffer) - 1] = '\0';
 
-        MemCpy(vcBuffer, pstEntry->d_name,
-                StrLen(pstEntry->d_name));
+        // 파일 이름 삽입
+        kMemCpy(vcBuffer, pstEntry->d_name,
+                kStrLen(pstEntry->d_name));
 
-        SPrintf(vcTempValue, "%d Byte", pstEntry->dwFileSize);
-        MemCpy(vcBuffer + 30, vcTempValue, StrLen(vcTempValue));
+        // 파일 길이 삽입
+        kSPrintf(vcTempValue, "%d Byte", pstEntry->dwFileSize);
+        kMemCpy(vcBuffer + 30, vcTempValue, kStrLen(vcTempValue));
 
-        SPrintf(vcTempValue, "0x%X Cluster", pstEntry->dwStartClusterIndex);
-        MemCpy(vcBuffer + 55, vcTempValue, StrLen(vcTempValue) + 1);
-        Printf("    %s\n", vcBuffer);
+        // 파일의 시작 클러스터 삽입
+        kSPrintf(vcTempValue, "0x%X Cluster", pstEntry->dwStartClusterIndex);
+        kMemCpy(vcBuffer + 55, vcTempValue, kStrLen(vcTempValue) + 1);
+        kPrintf("    %s\n", vcBuffer);
 
         if ((iCount != 0) && ((iCount % 20) == 0))
         {
-            Printf("\n----------------- Press any key to continue... ('q' is exit) : -----------------\n\n");
-            if (GetCh() == 'q')
+            kPrintf("Press any key to continue... ('q' is exit) : ");
+            if (kGetCh() == 'q')
             {
-                Printf("\n");
+                kPrintf("\n");
                 break;
             }
         }
-        
         iCount++;
     }
 
-    Printf("\t\tTotal File Count: %d\n", iTotalCount);
-    Printf("\t\tTotal File Size: %d KByte (%d Cluster)\n", dwTotalByte, dwUsedClusterCount);
+    // 총 파일의 개수와 파일의 총 크기를 출력
+    kPrintf("\t\tTotal File Count: %d\n", iTotalCount);
+    kPrintf("\t\tTotal File Size: %d KByte (%d Cluster)\n", dwTotalByte,
+            dwUsedClusterCount);
 
-    Printf("\t\tFree Space: %d KByte (%d Cluster)\n", (stManager.dwTotalClusterCount - dwUsedClusterCount) * FILESYSTEM_CLUSTERSIZE / 1024, stManager.dwTotalClusterCount - dwUsedClusterCount);
+    // 남은 클러스터 수를 이용해서 여유 공간을 출력
+    kPrintf("\t\tFree Space: %d KByte (%d Cluster)\n",
+            (stManager.dwTotalClusterCount - dwUsedClusterCount) *
+                FILESYSTEM_CLUSTERSIZE / 1024,
+            stManager.dwTotalClusterCount -
+                dwUsedClusterCount);
 
+    // 디렉터리를 닫음
     closedir(pstDirectory);
 }
 
 /**
- * 파일을 생성하여 내용을 입력
- * 엔터 3번치면 종료
-*/
-static void WriteDataToFile(const char *pcParameterBuffer)
+ *  파일을 생성하여 키보드로 입력된 데이터를 씀
+ */
+static void kWriteDataToFile(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
     char vcFileName[50];
@@ -1747,26 +1149,30 @@ static void WriteDataToFile(const char *pcParameterBuffer)
     int iEnterCount;
     BYTE bKey;
 
-    InitializeParameter(&stList, pcParameterBuffer);
-    iLength = GetNextParameter(&stList, vcFileName);
+    // 파라미터 리스트를 초기화하여 파일 이름을 추출
+    kInitializeParameter(&stList, pcParameterBuffer);
+    iLength = kGetNextParameter(&stList, vcFileName);
     vcFileName[iLength] = '\0';
     if ((iLength > (FILESYSTEM_MAXFILENAMELENGTH - 1)) || (iLength == 0))
     {
-        Printf("\n[!] Too Long or Too Short File Name.......\n");
+        kPrintf("Too Long or Too Short File Name\n");
         return;
     }
 
+    // 파일 생성
     fp = fopen(vcFileName, "w");
     if (fp == NULL)
     {
-        Printf("\n[!] %s File Open Fail.........\n", vcFileName);
+        kPrintf("%s File Open Fail\n", vcFileName);
         return;
     }
 
+    // 엔터 키가 연속으로 3번 눌러질 때까지 내용을 파일에 씀
     iEnterCount = 0;
     while (1)
     {
-        bKey = GetCh();
+        bKey = kGetCh();
+        // 엔터 키이면 연속 3번 눌러졌는가 확인하여 루프를 빠져 나감
         if (bKey == KEY_ENTER)
         {
             iEnterCount++;
@@ -1775,27 +1181,28 @@ static void WriteDataToFile(const char *pcParameterBuffer)
                 break;
             }
         }
+        // 엔터 키가 아니라면 엔터 키 입력 횟수를 초기화
         else
         {
             iEnterCount = 0;
         }
 
-        Printf("%c", bKey);
+        kPrintf("%c", bKey);
         if (fwrite(&bKey, 1, 1, fp) != 1)
         {
-            Printf("\n[!] File Write Fail...........\n");
+            kPrintf("File Wirte Fail\n");
             break;
         }
     }
 
-    Printf("\n[*] File Create Success..............\n");
+    kPrintf("File Create Success\n");
     fclose(fp);
 }
 
 /**
- * 파일을 열어서 데이터를 읽음
-*/
-static void ReadDataFromFile(const char *pcParameterBuffer)
+ *  파일을 열어서 데이터를 읽음
+ */
+static void kReadDataFromFile(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
     char vcFileName[50];
@@ -1804,22 +1211,25 @@ static void ReadDataFromFile(const char *pcParameterBuffer)
     int iEnterCount;
     BYTE bKey;
 
-    InitializeParameter(&stList, pcParameterBuffer);
-    iLength = GetNextParameter(&stList, vcFileName);
+    // 파라미터 리스트를 초기화하여 파일 이름을 추출
+    kInitializeParameter(&stList, pcParameterBuffer);
+    iLength = kGetNextParameter(&stList, vcFileName);
     vcFileName[iLength] = '\0';
     if ((iLength > (FILESYSTEM_MAXFILENAMELENGTH - 1)) || (iLength == 0))
     {
-        Printf("\n[!] Too Long or Too Short File Name\n");
+        kPrintf("Too Long or Too Short File Name\n");
         return;
     }
 
+    // 파일 생성
     fp = fopen(vcFileName, "r");
     if (fp == NULL)
     {
-        Printf("\n[!] %s File Open Fail\n", vcFileName);
+        kPrintf("%s File Open Fail\n", vcFileName);
         return;
     }
 
+    // 파일의 끝까지 출력하는 것을 반복
     iEnterCount = 0;
     while (1)
     {
@@ -1827,21 +1237,23 @@ static void ReadDataFromFile(const char *pcParameterBuffer)
         {
             break;
         }
-        Printf("%c", bKey);
+        kPrintf("%c", bKey);
 
+        // 만약 엔터 키이면 엔터 키 횟수를 증가시키고 20라인까지 출력했다면
+        // 더 출력할지 여부를 물어봄
         if (bKey == KEY_ENTER)
         {
             iEnterCount++;
 
             if ((iEnterCount != 0) && ((iEnterCount % 20) == 0))
             {
-                Printf("\n-------------- Press any key to continue... ('q' is exit) : --------------\n");
-                if (GetCh() == 'q')
+                kPrintf("Press any key to continue... ('q' is exit) : ");
+                if (kGetCh() == 'q')
                 {
-                    Printf("\n");
+                    kPrintf("\n");
                     break;
                 }
-                Printf("\n");
+                kPrintf("\n");
                 iEnterCount = 0;
             }
         }
@@ -1850,588 +1262,191 @@ static void ReadDataFromFile(const char *pcParameterBuffer)
 }
 
 /**
- * 파일 I/O 기능 테스트
- * 하드디스크로 했을 때 매우 잘 안됨
- * 램 디스크로 해야 잘 됨
-*/
-static void TestFileIO(const char *pcParameterBuffer)
-{
-    FILE *pstFile;
-    BYTE *pbBuffer;
-    int i;
-    int j;
-    DWORD dwRandomOffset;
-    DWORD dwByteCount;
-    BYTE vbTempBuffer[1024];
-    DWORD dwMaxFileSize;
-
-    Printf("\n================== File I/O Function Test ==================\n");
-
-    dwMaxFileSize = 4 * 1024 * 1024;
-    pbBuffer = AllocateMemory(dwMaxFileSize);
-    if (pbBuffer == NULL)
-    {
-        Printf("\n[!] Memory Allocation Fail........\n");
-        return;
-    }
-    else
-    {
-        Printf("\n[*] Memory Allocation Success.........\n");
-    }
-
-    remove("testfileio.bin");
-
-    Printf("\n[*] 1. File Open Fail Test...");
-    
-    pstFile = fopen("testfileio.bin", "r");
-    if (pstFile == NULL)
-    {
-        Printf("[Pass]\n");
-    }
-    else
-    {
-        Printf("[Fail]\n");
-        fclose(pstFile);
-    }
-
-    Printf("\n[*] 2. File Create Test...");
-    pstFile = fopen("testfileio.bin", "w");
-    if (pstFile != NULL)
-    {
-        Printf("[Pass]\n");
-        Printf("    File Handle [0x%Q]\n", pstFile);
-    }
-    else
-    {
-        Printf("[Fail]\n");
-    }
-
-    Printf("\n[*] 3. Sequential Write Test(Cluster Size)...");
-    for (i = 0; i < 100; i++)
-    {
-        MemSet(pbBuffer, i, FILESYSTEM_CLUSTERSIZE);
-        if (fwrite(pbBuffer, 1, FILESYSTEM_CLUSTERSIZE, pstFile) !=
-            FILESYSTEM_CLUSTERSIZE)
-        {
-            Printf("[Fail]\n");
-            Printf("    %d Cluster Error\n", i);
-            break;
-        }
-    }
-    if (i >= 100)
-    {
-        Printf("[Pass]\n");
-    }
-
-    Printf("\n[*] 4. Sequential Read And Verify Test(Cluster Size)...");
-    fseek(pstFile, -100 * FILESYSTEM_CLUSTERSIZE, SEEK_END);
-
-    for (i = 0; i < 100; i++)
-    {
-        if (fread(pbBuffer, 1, FILESYSTEM_CLUSTERSIZE, pstFile) !=
-            FILESYSTEM_CLUSTERSIZE)
-        {
-            Printf("[Fail]\n");
-            return;
-        }
-
-        for (j = 0; j < FILESYSTEM_CLUSTERSIZE; j++)
-        {
-            if (pbBuffer[j] != (BYTE)i)
-            {
-                Printf("[Fail]\n");
-                Printf("    %d Cluster Error. [%X] != [%X]\n", i, pbBuffer[j],
-                        (BYTE)i);
-                break;
-            }
-        }
-    }
-    if (i >= 100)
-    {
-        Printf("[Pass]\n");
-    }
-
-    Printf("\n[*] 5. Random Write Test...\n");
-
-    MemSet(pbBuffer, 0, dwMaxFileSize);
-
-    fseek(pstFile, -100 * FILESYSTEM_CLUSTERSIZE, SEEK_CUR);
-    fread(pbBuffer, 1, dwMaxFileSize, pstFile);
-
-    for (i = 0; i < 100; i++)
-    {
-        dwByteCount = (Random() % (sizeof(vbTempBuffer) - 1)) + 1;
-        dwRandomOffset = Random() % (dwMaxFileSize - dwByteCount);
-
-        Printf("    [%d] Offset [%d] Byte [%d]...", i, dwRandomOffset,
-                dwByteCount);
-
-        fseek(pstFile, dwRandomOffset, SEEK_SET);
-        MemSet(vbTempBuffer, i, dwByteCount);
-
-        if (fwrite(vbTempBuffer, 1, dwByteCount, pstFile) != dwByteCount)
-        {
-            Printf("[Fail]\n");
-            break;
-        }
-        else
-        {
-            Printf("[Pass]\n");
-        }
-
-        MemSet(pbBuffer + dwRandomOffset, i, dwByteCount);
-    }
-
-    fseek(pstFile, dwMaxFileSize - 1, SEEK_SET);
-    fwrite(&i, 1, 1, pstFile);
-    pbBuffer[dwMaxFileSize - 1] = (BYTE)i;
-
-    Printf("\n[*] 6. Random Read And Verify Test...\n");
-    
-    for (i = 0; i < 100; i++)
-    {
-        dwByteCount = (Random() % (sizeof(vbTempBuffer) - 1)) + 1;
-        dwRandomOffset = Random() % ((dwMaxFileSize)-dwByteCount);
-
-        Printf("    [%d] Offset [%d] Byte [%d]...", i, dwRandomOffset,
-                dwByteCount);
-
-        fseek(pstFile, dwRandomOffset, SEEK_SET);
-
-        if (fread(vbTempBuffer, 1, dwByteCount, pstFile) != dwByteCount)
-        {
-            Printf("[Fail]\n");
-            Printf("    Read Fail\n", dwRandomOffset);
-            break;
-        }
-
-        if (MemCmp(pbBuffer + dwRandomOffset, vbTempBuffer, dwByteCount) != 0)
-        {
-            Printf("[Fail]\n");
-            Printf("    Compare Fail\n", dwRandomOffset);
-            break;
-        }
-
-        Printf("[Pass]\n");
-    }
-
-    Printf("\n[*] 7. Sequential Write, Read And Verify Test(1024 Byte)...\n");
-
-    fseek(pstFile, -dwMaxFileSize, SEEK_CUR);
-
-    for (i = 0; i < (2 * 1024 * 1024 / 1024); i++)
-    {
-        Printf("    [%d] Offset [%d] Byte [%d] Write...", i, i * 1024, 1024);
-
-        if (fwrite(pbBuffer + (i * 1024), 1, 1024, pstFile) != 1024)
-        {
-            Printf("[Fail]\n");
-            return;
-        }
-        else
-        {
-            Printf("[Pass]\n");
-        }
-    }
-
-    fseek(pstFile, -dwMaxFileSize, SEEK_SET);
-
-    for (i = 0; i < (dwMaxFileSize / 1024); i++)
-    {
-        Printf("    [%d] Offset [%d] Byte [%d] Read And Verify...", i,
-                i * 1024, 1024);
-
-        if (fread(vbTempBuffer, 1, 1024, pstFile) != 1024)
-        {
-            Printf("[Fail]\n");
-            return;
-        }
-
-        if (MemCmp(pbBuffer + (i * 1024), vbTempBuffer, 1024) != 0)
-        {
-            Printf("[Fail]\n");
-            break;
-        }
-        else
-        {
-            Printf("[Pass]\n");
-        }
-    }
-
-    Printf("\n[*] 8. File Delete Fail Test...  ");
-    
-    if (remove("testfileio.bin") != 0)
-    {
-        Printf("[Pass]\n");
-    }
-    else
-    {
-        Printf("[Fail]\n");
-    }
-
-    Printf("\n[*] 9. File Close Test...  ");
-
-    if (fclose(pstFile) == 0)
-    {
-        Printf("[Pass]\n");
-    }
-    else
-    {
-        Printf("[Fail]\n");
-    }
-
-    Printf("\n[*] 10. File Delete Test...  ");
-
-    if (remove("testfileio.bin") == 0)
-    {
-        Printf("[Pass]\n");
-    }
-    else
-    {
-        Printf("[Fail]\n");
-    }
-
-    FreeMemory(pbBuffer);
-}
-
-static void TestPerformance(const char *pcParameterBuffer)
-{
-    FILE *pstFile;
-    DWORD dwClusterTestFileSize;
-    DWORD dwOneByteTestFileSize;
-    QWORD qwLastTickCount;
-    DWORD i;
-    BYTE *pbBuffer;
-
-    dwClusterTestFileSize = 1024 * 1024;
-    dwOneByteTestFileSize = 16 * 1024;
-
-    pbBuffer = AllocateMemory(dwClusterTestFileSize);
-    if (pbBuffer == NULL)
-    {
-        Printf("\n[!] Memory Allocate Fail\n");
-        return;
-    }
-
-    Printf("\n[*] 0. Memory Allocate Success......\n");
-
-    MemSet(pbBuffer, 0, FILESYSTEM_CLUSTERSIZE);
-
-    Printf("\n================== File I/O Performance Test ==================\n");
-
-    Printf("[*] 1.Sequential Read/Write Test(Cluster Size)\n");
-
-    remove("performance.txt");
-    pstFile = fopen("performance.txt", "w");
-    if (pstFile == NULL)
-    {
-        Printf("\t[!] File Open Fail.......\n");
-        FreeMemory(pbBuffer);
-        return;
-    }
-
-    qwLastTickCount = GetTickCount();
-    for (i = 0; i < (dwClusterTestFileSize / FILESYSTEM_CLUSTERSIZE); i++)
-    {
-        if (fwrite(pbBuffer, 1, FILESYSTEM_CLUSTERSIZE, pstFile) !=
-            FILESYSTEM_CLUSTERSIZE)
-        {
-            Printf("\t[!] Write Fail.......\n");
-            fclose(pstFile);
-            FreeMemory(pbBuffer);
-            return;
-        }
-    }
-    Printf("   Sequential Write(Cluster Size): %d ms\n", GetTickCount() -
-                                                              qwLastTickCount);
-
-    fseek(pstFile, 0, SEEK_SET);
-
-    qwLastTickCount = GetTickCount();
-    for (i = 0; i < (dwClusterTestFileSize / FILESYSTEM_CLUSTERSIZE); i++)
-    {
-        if (fread(pbBuffer, 1, FILESYSTEM_CLUSTERSIZE, pstFile) !=
-            FILESYSTEM_CLUSTERSIZE)
-        {
-            Printf("\t[!] Read Fail..........\n");
-            fclose(pstFile);
-            FreeMemory(pbBuffer);
-            return;
-        }
-    }
-    Printf("   Sequential Read(Cluster Size): %d ms\n", GetTickCount() -
-                                                             qwLastTickCount);
-
-    Printf("[*] 2.Sequential Read/Write Test(1 Byte)\n");
-
-    remove("performance.txt");
-    pstFile = fopen("performance.txt", "w");
-    if (pstFile == NULL)
-    {
-        Printf("\t[!] File Open Fail\n");
-        FreeMemory(pbBuffer);
-        return;
-    }
-
-    qwLastTickCount = GetTickCount();
-    for (i = 0; i < dwOneByteTestFileSize; i++)
-    {
-        if (fwrite(pbBuffer, 1, 1, pstFile) != 1)
-        {
-            Printf("\t[!] Write Fail...............\n");
-            fclose(pstFile);
-            FreeMemory(pbBuffer);
-            return;
-        }
-    }
-    
-    Printf("   Sequential Write(1 Byte): %d ms\n", GetTickCount() -
-                                                        qwLastTickCount);
-
-    fseek(pstFile, 0, SEEK_SET);
-
-    qwLastTickCount = GetTickCount();
-    for (i = 0; i < dwOneByteTestFileSize; i++)
-    {
-        if (fread(pbBuffer, 1, 1, pstFile) != 1)
-        {
-            Printf("\t[!] Read Fail................\n");
-            fclose(pstFile);
-            FreeMemory(pbBuffer);
-            return;
-        }
-    }
-    Printf("   Sequential Read(1 Byte): %d ms\n", GetTickCount() -  qwLastTickCount);
-
-    fclose(pstFile);
-    FreeMemory(pbBuffer);
-}
-
-/**
- * 캐시 버퍼를 비움
-*/
-static void FlushCache(const char *pcParameterBuffer)
+ *  파일 시스템의 캐시 버퍼에 있는 데이터를 모두 하드 디스크에 씀
+ */
+static void kFlushCache(const char *pcParameterBuffer)
 {
     QWORD qwTickCount;
 
-    qwTickCount = GetTickCount();
-    
-    Printf("\n[*] Cache Flush...... ");
-    
-    if (FlushFileSystemCache() == TRUE)
+    qwTickCount = kGetTickCount();
+    kPrintf("Cache Flush... ");
+    if (kFlushFileSystemCache() == TRUE)
     {
-        Printf("Pass\n");
+        kPrintf("Pass\n");
     }
     else
     {
-        Printf("Fail\n");
+        kPrintf("Fail\n");
     }
-    
-    Printf("[*] Total Time = %d ms\n", GetTickCount() - qwTickCount);
+    kPrintf("Total Time = %d ms\n", kGetTickCount() - qwTickCount);
 }
 
 /**
- * 파일을 외부에서 다운로드함
-*/
-static void DownloadFile( const char* pcParameterBuffer )
+ *  시리얼 포트로부터 데이터를 수신하여 파일로 저장
+ */
+static void kDownloadFile(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
-    char vcFileName[ 50 ];
+    char vcFileName[50];
     int iFileNameLength;
     DWORD dwDataLength;
-    FILE* fp;
+    FILE *fp;
     DWORD dwReceivedSize;
     DWORD dwTempSize;
-    BYTE vbDataBuffer[ SERIAL_FIFOMAXSIZE ];
+    BYTE vbDataBuffer[SERIAL_FIFOMAXSIZE];
     QWORD qwLastReceivedTickCount;
-    
-    InitializeParameter( &stList, pcParameterBuffer );
-    iFileNameLength = GetNextParameter( &stList, vcFileName );
-    vcFileName[ iFileNameLength ] = '\0';
-    
-    if( ( iFileNameLength > ( FILESYSTEM_MAXFILENAMELENGTH - 1 ) ) || ( iFileNameLength == 0 ) )
+
+    // 파라미터 리스트를 초기화하여 파일 이름을 추출
+    kInitializeParameter(&stList, pcParameterBuffer);
+    iFileNameLength = kGetNextParameter(&stList, vcFileName);
+    vcFileName[iFileNameLength] = '\0';
+    if ((iFileNameLength > (FILESYSTEM_MAXFILENAMELENGTH - 1)) ||
+        (iFileNameLength == 0))
     {
-        Printf("[*] \nToo Long or Too Short File Name\n" );
-        Printf("[*] ex) download a.txt\n" );
-        
-        return ;
+        kPrintf("Too Long or Too Short File Name\n");
+        kPrintf("ex)download a.txt\n");
+        return;
     }
-    
-    ClearSerialFIFO();
-    
-    Printf("[*] \n[*] Waiting For Data Length......" );
+
+    // 시리얼 포트의 FIFO를 모두 비움
+    kClearSerialFIFO();
+
+    //==========================================================================
+    // 데이터 길이가 수신될 때까지 기다린다는 메시지를 출력하고, 4 바이트를 수신한 뒤
+    // Ack를 전송
+    //==========================================================================
+    kPrintf("Waiting For Data Length.....");
     dwReceivedSize = 0;
-    qwLastReceivedTickCount = GetTickCount();
-    
-    while( dwReceivedSize < 4 )
+    qwLastReceivedTickCount = kGetTickCount();
+    while (dwReceivedSize < 4)
     {
-        dwTempSize = ReceiveSerialData( ( ( BYTE* ) &dwDataLength ) + dwReceivedSize, 4 - dwReceivedSize );
-        
+        // 남은 수만큼 데이터 수신
+        dwTempSize = kReceiveSerialData(((BYTE *)&dwDataLength) +
+                                            dwReceivedSize,
+                                        4 - dwReceivedSize);
         dwReceivedSize += dwTempSize;
-        
-        if( dwTempSize == 0 )
+
+        // 수신된 데이터가 없다면 잠시 대기
+        if (dwTempSize == 0)
         {
-            Sleep( 0 );
-            
-            if( ( GetTickCount() - qwLastReceivedTickCount ) > 30000 )
+            kSleep(0);
+
+            // 대기한 시간이 30초 이상이라면 Time Out으로 중지
+            if ((kGetTickCount() - qwLastReceivedTickCount) > 30000)
             {
-                Printf("[*]  Time Out Occur......\n" );
-                return ;
+                kPrintf("Time Out Occur~!!\n");
+                return;
             }
         }
         else
         {
-            qwLastReceivedTickCount = GetTickCount();
+            // 마지막으로 데이터를 수신한 시간을 갱신
+            qwLastReceivedTickCount = kGetTickCount();
         }
     }
-    Printf("[*] [%d] Byte\n", dwDataLength );
+    kPrintf("[%d] Byte\n", dwDataLength);
 
-    SendSerialData( "A", 1 );
+    // 정상적으로 데이터 길이를 수신했으므로, Ack를 송신
+    kSendSerialData("A", 1);
 
-    fp = fopen( vcFileName, "w" );
-    if( fp == NULL )
+    //==========================================================================
+    // 파일을 생성하고 시리얼로부터 데이터를 수신하여 파일에 저장
+    //==========================================================================
+    // 파일 생성
+    fp = fopen(vcFileName, "w");
+    if (fp == NULL)
     {
-        Printf("[*] %s File Open Fail\n", vcFileName );
-        return ;
+        kPrintf("%s File Open Fail\n", vcFileName);
+        return;
     }
-    
-    Printf("[*] Data Receive Start: " );
+
+    // 데이터 수신
+    kPrintf("Data Receive Start: ");
     dwReceivedSize = 0;
-    qwLastReceivedTickCount = GetTickCount();
-    
-    while( dwReceivedSize < dwDataLength )
+    qwLastReceivedTickCount = kGetTickCount();
+    while (dwReceivedSize < dwDataLength)
     {
-        dwTempSize = ReceiveSerialData( vbDataBuffer, SERIAL_FIFOMAXSIZE );
+        // 버퍼에 담아서 데이터를 씀
+        dwTempSize = kReceiveSerialData(vbDataBuffer, SERIAL_FIFOMAXSIZE);
         dwReceivedSize += dwTempSize;
 
-        if( dwTempSize != 0 ) 
+        // 이번에 데이터가 수신된 것이 있다면 ACK 또는 파일 쓰기 수행
+        if (dwTempSize != 0)
         {
-
-            if( ( ( dwReceivedSize % SERIAL_FIFOMAXSIZE ) == 0 ) ||
-                ( ( dwReceivedSize == dwDataLength ) ) )
+            // 수신하는 쪽은 데이터의 마지막까지 수신했거나 FIFO의 크기인
+            // 16 바이트마다 한번씩 Ack를 전송
+            if (((dwReceivedSize % SERIAL_FIFOMAXSIZE) == 0) ||
+                ((dwReceivedSize == dwDataLength)))
             {
-                SendSerialData( "A", 1 );
-                Printf("[*] #" );
+                kSendSerialData("A", 1);
+                kPrintf("#");
             }
-            
-            if( fwrite( vbDataBuffer, 1, dwTempSize, fp ) != dwTempSize )
+
+            // 쓰기 중에 문제가 생기면 바로 종료
+            if (fwrite(vbDataBuffer, 1, dwTempSize, fp) != dwTempSize)
             {
-                Printf("[*] [!] File Write Error Occur\n" );
+                kPrintf("File Write Error Occur\n");
                 break;
             }
-            
-            qwLastReceivedTickCount = GetTickCount();
+
+            // 마지막으로 데이터를 수신한 시간을 갱신
+            qwLastReceivedTickCount = kGetTickCount();
         }
+        // 이번에 수신된 데이터가 없다면 잠시 대기
         else
         {
-            Sleep( 0 );
-            
-            if( ( GetTickCount() - qwLastReceivedTickCount ) > 10000 )
+            kSleep(0);
+
+            // 대기한 시간이 10초 이상이라면 Time Out으로 중지
+            if ((kGetTickCount() - qwLastReceivedTickCount) > 10000)
             {
-                Printf("[*] Time Out Occur~!!\n" );
+                kPrintf("Time Out Occur~!!\n");
                 break;
             }
         }
-    }   
+    }
 
-    if( dwReceivedSize != dwDataLength )
+    //==========================================================================
+    // 전체 데이터의 크기와 실제로 수신 받은 데이터의 크기를 비교하여 성공 여부를
+    // 출력한 뒤, 파일을 닫고 파일 시스템 캐시를 모두 비움
+    //==========================================================================
+    // 수신된 길이를 비교해서 문제가 발생했는지를 표시
+    if (dwReceivedSize != dwDataLength)
     {
-        Printf("[*] \nError Occur. Total Size [%d] Received Size [%d]\n", 
-                 dwReceivedSize, dwDataLength );
+        kPrintf("\nError Occur. Total Size [%d] Received Size [%d]\n",
+                dwReceivedSize, dwDataLength);
     }
     else
     {
-        Printf("[*] \nReceive Complete. Total Size [%d] Byte\n", dwReceivedSize );
+        kPrintf("\nReceive Complete. Total Size [%d] Byte\n", dwReceivedSize);
     }
-    
-    fclose( fp );
-    FlushFileSystemCache();
+
+    // 파일을 닫고 파일 시스템 캐시를 내보냄
+    fclose(fp);
+    kFlushFileSystemCache();
 }
 
 /**
- * MP테이블 보여줌
-*/
-static void ShowMPConfigurationTable( const char* pcParameterBuffer )
+ *  MP 설정 테이블 정보를 출력
+ */
+static void kShowMPConfigurationTable(const char *pcParameterBuffer)
 {
-    PrintMPConfigurationTable();
+    kPrintMPConfigurationTable();
 }
 
 /**
- * AP 코어 활성화
-*/
-static void StartApplicationProcessor( const char* pcParameterBuffer )
+ *  IRQ와 I/O APIC의 인터럽트 입력 핀(INTIN)의 관계를 저장한 테이블을 표시
+ */
+static void kShowIRQINTINMappingTable(const char *pcParameterBuffer)
 {
-    if( StartUpApplicationProcessor() == FALSE )
-    {
-        Printf("\n[!] Application Processor Start Fail\n" );
-        return ;
-    }
-    Printf("\n[*] Application Processor Start Success.....\n" );
-    
-    Printf("[*] Bootstrap Processor [APIC ID: %d] Start Application Processor.....\n", GetAPICID() );
-}
-
-/**
- * 대칭 I/O 모드 활성화
-*/
-static void StartSymmetricIOMode( const char* pcParameterBuffer )
-{
-    MPCONFIGURATIONMANAGER* pstMPManager;
-    BOOL bInterruptFlag;
-
-    if( AnalysisMPConfigurationTable() == FALSE )
-    {
-        Printf("\n[!] Analyze MP Configuration Table Fail\n" );
-        return ;
-    }
-
-    pstMPManager = GetMPConfigurationManager();
-    
-    if( pstMPManager->bUsePICMode == TRUE )
-    {
-
-        OutPortByte( 0x22, 0x70 );
-        OutPortByte( 0x23, 0x01 );
-    }
-
-    Printf("\n[*] Mask All PIC Controller Interrupt\n" );
-    MaskPICInterrupt( 0xFFFF );
-
-    Printf("[*] Enable Global Local APIC\n" );
-    EnableGlobalLocalAPIC();
-    
-    Printf("[*] Enable Software Local APIC\n" );
-    EnableSoftwareLocalAPIC();
-
-    Printf("[*] Disable CPU Interrupt Flag\n" );
-    bInterruptFlag = SetInterruptFlag( FALSE );
-    
-    SetTaskPriority( 0 );
-
-    InitializeLocalVectorTable();
-
-    // 대칭 I/O 모드로 변경되었음을 설정
-    SetSymmetricIOMode(TRUE);
-    
-    Printf("[*] Initialize IO Redirection Table\n" );
-    InitializeIORedirectionTable();
-        
-    // 이전 인터럽트 플래그를 복원
-    Printf("[*] Restore CPU Interrupt Flag\n" );
-    SetInterruptFlag( bInterruptFlag );
-        
-    Printf("[*] Change Symmetric I/O Mode Complete\n" );
-}
-
-static void ShowIRQINTINMappingTable( const char* pcParameterBuffer )
-{
-    PrintIRQToINTINMap();
+    // I/O APIC를 관리하는 자료구조에 있는 출력 함수를 호출
+    kPrintIRQToINTINMap();
 }
 
 /**
  *  코어 별로 인터럽트를 처리한 횟수를 출력
  */
-static void ShowInterruptProcessingCount(const char *pcParameterBuffer)
+static void kShowInterruptProcessingCount(const char *pcParameterBuffer)
 {
     INTERRUPTMANAGER *pstInterruptManager;
     int i;
@@ -2441,10 +1456,10 @@ static void ShowInterruptProcessingCount(const char *pcParameterBuffer)
     int iRemainLength;
     int iLineCount;
 
-    Printf("========================== Interrupt Count ==========================\n");
+    kPrintf("========================== Interrupt Count ==========================\n");
 
     // MP 설정 테이블에 저장된 코어의 개수를 읽음
-    iProcessCount = GetProcessorCount();
+    iProcessCount = kGetProcessorCount();
 
     //==========================================================================
     //  Column 출력
@@ -2455,29 +1470,29 @@ static void ShowInterruptProcessingCount(const char *pcParameterBuffer)
     {
         if (i == 0)
         {
-            Printf("IRQ Num\t\t");
+            kPrintf("IRQ Num\t\t");
         }
         else if ((i % 4) == 0)
         {
-            Printf("\n       \t\t");
+            kPrintf("\n       \t\t");
         }
-        SPrintf(vcBuffer, "Core %d", i);
-        Printf(vcBuffer);
+        kSPrintf(vcBuffer, "Core %d", i);
+        kPrintf(vcBuffer);
 
         // 출력하고 남은 공간을 모두 스페이스로 채움
-        iRemainLength = 15 - StrLen(vcBuffer);
-        MemSet(vcBuffer, ' ', iRemainLength);
+        iRemainLength = 15 - kStrLen(vcBuffer);
+        kMemSet(vcBuffer, ' ', iRemainLength);
         vcBuffer[iRemainLength] = '\0';
-        Printf(vcBuffer);
+        kPrintf(vcBuffer);
     }
-    Printf("\n");
+    kPrintf("\n");
 
     //==========================================================================
     //  Row와 인터럽트 처리 횟수 출력
     //==========================================================================
     // 총 인터럽트 횟수와 코어 별 인터럽트 처리 횟수를 출력
     iLineCount = 0;
-    pstInterruptManager = GetInterruptManager();
+    pstInterruptManager = kGetInterruptManager();
     for (i = 0; i < INTERRUPT_MAXVECTORCOUNT; i++)
     {
         for (j = 0; j < iProcessCount; j++)
@@ -2488,65 +1503,41 @@ static void ShowInterruptProcessingCount(const char *pcParameterBuffer)
                 // 20 라인마다 화면 정지
                 if ((iLineCount != 0) && (iLineCount > 10))
                 {
-                    Printf("\nPress any key to continue... ('q' is exit) : ");
-                    if (GetCh() == 'q')
+                    kPrintf("\nPress any key to continue... ('q' is exit) : ");
+                    if (kGetCh() == 'q')
                     {
-                        Printf("\n");
+                        kPrintf("\n");
                         return;
                     }
                     iLineCount = 0;
-                    Printf("\n");
+                    kPrintf("\n");
                 }
-                Printf("---------------------------------------------------------------------\n");
-                Printf("IRQ %d\t\t", i);
+                kPrintf("---------------------------------------------------------------------\n");
+                kPrintf("IRQ %d\t\t", i);
                 iLineCount += 2;
             }
             else if ((j % 4) == 0)
             {
-                Printf("\n      \t\t");
+                kPrintf("\n      \t\t");
                 iLineCount++;
             }
 
-            SPrintf(vcBuffer, "0x%Q", pstInterruptManager->vvqwCoreInterruptCount[j][i]);
+            kSPrintf(vcBuffer, "0x%Q", pstInterruptManager->vvqwCoreInterruptCount[j][i]);
             // 출력하고 남은 영역을 모두 스페이스로 채움
-            Printf(vcBuffer);
-            iRemainLength = 15 - StrLen(vcBuffer);
-            MemSet(vcBuffer, ' ', iRemainLength);
+            kPrintf(vcBuffer);
+            iRemainLength = 15 - kStrLen(vcBuffer);
+            kMemSet(vcBuffer, ' ', iRemainLength);
             vcBuffer[iRemainLength] = '\0';
-            Printf(vcBuffer);
+            kPrintf(vcBuffer);
         }
-        Printf("\n");
-    }
-}
-
-/**
- *  인터럽트 부하 분산 기능을 시작
- */
-static void StartInterruptLoadBalancing(const char *pcParameterBuffer)
-{
-    Printf("Start Interrupt Load Balancing\n");
-    SetInterruptLoadBalancing(TRUE);
-}
-
-/**
- *  태스크 부하 분산 기능을 시작
- */
-static void StartTaskLoadBalancing(const char *pcParameterBuffer)
-{
-    int i;
-
-    Printf("Start Task Load Balancing\n");
-
-    for (i = 0; i < MAXPROCESSORCOUNT; i++)
-    {
-        SetTaskLoadBalancing(i, TRUE);
+        kPrintf("\n");
     }
 }
 
 /**
  *  태스크의 프로세서 친화도를 변경
  */
-static void ChangeTaskAffinity(const char *pcParameterBuffer)
+static void kChangeTaskAffinity(const char *pcParameterBuffer)
 {
     PARAMETERLIST stList;
     char vcID[30];
@@ -2555,69 +1546,202 @@ static void ChangeTaskAffinity(const char *pcParameterBuffer)
     BYTE bAffinity;
 
     // 파라미터를 추출
-    InitializeParameter(&stList, pcParameterBuffer);
-    GetNextParameter(&stList, vcID);
-    GetNextParameter(&stList, vcAffinity);
+    kInitializeParameter(&stList, pcParameterBuffer);
+    kGetNextParameter(&stList, vcID);
+    kGetNextParameter(&stList, vcAffinity);
 
     // 태스크 ID 필드 추출
-    if (MemCmp(vcID, "0x", 2) == 0)
+    if (kMemCmp(vcID, "0x", 2) == 0)
     {
-        qwID = AToI(vcID + 2, 16);
+        qwID = kAToI(vcID + 2, 16);
     }
     else
     {
-        qwID = AToI(vcID, 10);
+        qwID = kAToI(vcID, 10);
     }
 
     // 프로세서 친화도(Affinity) 추출
-    if (MemCmp(vcID, "0x", 2) == 0)
+    if (kMemCmp(vcID, "0x", 2) == 0)
     {
-        bAffinity = AToI(vcAffinity + 2, 16);
+        bAffinity = kAToI(vcAffinity + 2, 16);
     }
     else
     {
-        bAffinity = AToI(vcAffinity, 10);
+        bAffinity = kAToI(vcAffinity, 10);
     }
 
-    Printf("Change Task Affinity ID [0x%q] Affinity[0x%x] ", qwID, bAffinity);
-    if (ChangeProcessorAffinity(qwID, bAffinity) == TRUE)
+    kPrintf("Change Task Affinity ID [0x%q] Affinity[0x%x] ", qwID, bAffinity);
+    if (kChangeProcessorAffinity(qwID, bAffinity) == TRUE)
     {
-        Printf("Success\n");
+        kPrintf("Success\n");
     }
     else
     {
-        Printf("Fail\n");
+        kPrintf("Fail\n");
     }
 }
 
 /**
  *  VBE 모드 정보 블록을 출력
  */
-static void ShowVBEModeInfo(const char *pcParameterBuffer)
+static void kShowVBEModeInfo(const char *pcParameterBuffer)
 {
     VBEMODEINFOBLOCK *pstModeInfo;
 
     // VBE 모드 정보 블록을 반환
-    pstModeInfo = GetVBEModeInfoBlock();
+    pstModeInfo = kGetVBEModeInfoBlock();
 
     // 해상도와 색 정보를 위주로 출력
-    Printf("VESA %x\n", pstModeInfo->wWinGranulity);
-    Printf("X Resolution: %d\n", pstModeInfo->wXResolution);
-    Printf("Y Resolution: %d\n", pstModeInfo->wYResolution);
-    Printf("Bits Per Pixel: %d\n", pstModeInfo->bBitsPerPixel);
+    kPrintf("VESA %x\n", pstModeInfo->wWinGranulity);
+    kPrintf("X Resolution: %d\n", pstModeInfo->wXResolution);
+    kPrintf("Y Resolution: %d\n", pstModeInfo->wYResolution);
+    kPrintf("Bits Per Pixel: %d\n", pstModeInfo->bBitsPerPixel);
 
-    Printf("Red Mask Size: %d, Field Position: %d\n", pstModeInfo->bRedMaskSize,
+    kPrintf("Red Mask Size: %d, Field Position: %d\n", pstModeInfo->bRedMaskSize,
             pstModeInfo->bRedFieldPosition);
-    Printf("Green Mask Size: %d, Field Position: %d\n", pstModeInfo->bGreenMaskSize,
+    kPrintf("Green Mask Size: %d, Field Position: %d\n", pstModeInfo->bGreenMaskSize,
             pstModeInfo->bGreenFieldPosition);
-    Printf("Blue Mask Size: %d, Field Position: %d\n", pstModeInfo->bBlueMaskSize,
+    kPrintf("Blue Mask Size: %d, Field Position: %d\n", pstModeInfo->bBlueMaskSize,
             pstModeInfo->bBlueFieldPosition);
-    Printf("Physical Base Pointer: 0x%X\n", pstModeInfo->dwPhysicalBasePointer);
+    kPrintf("Physical Base Pointer: 0x%X\n", pstModeInfo->dwPhysicalBasePointer);
 
-    Printf("Linear Red Mask Size: %d, Field Position: %d\n",
+    kPrintf("Linear Red Mask Size: %d, Field Position: %d\n",
             pstModeInfo->bLinearRedMaskSize, pstModeInfo->bLinearRedFieldPosition);
-    Printf("Linear Green Mask Size: %d, Field Position: %d\n",
+    kPrintf("Linear Green Mask Size: %d, Field Position: %d\n",
             pstModeInfo->bLinearGreenMaskSize, pstModeInfo->bLinearGreenFieldPosition);
-    Printf("Linear Blue Mask Size: %d, Field Position: %d\n",
+    kPrintf("Linear Blue Mask Size: %d, Field Position: %d\n",
             pstModeInfo->bLinearBlueMaskSize, pstModeInfo->bLinearBlueFieldPosition);
+}
+
+/**
+ *  시스템 콜을 테스트하는 유저 레벨 태스크를 생성
+ */
+static void kTestSystemCall(const char *pcParameterBuffer)
+{
+    BYTE *pbUserMemory;
+
+    // 동적 할당 영역에 4Kbyte 메모리를 할당 받아 유저 레벨 태스크를 생성할 준비를 함
+    pbUserMemory = kAllocateMemory(0x1000);
+    if (pbUserMemory == NULL)
+    {
+        return;
+    }
+
+    // 유저 레벨 태스크로 사용할 kSystemCallTestTask() 함수의 코드를 할당 받은 메모리에 복사
+    kMemCpy(pbUserMemory, kSystemCallTestTask, 0x1000);
+
+    // 유저 레벨 태스크로 생성
+    kCreateTask(TASK_FLAGS_USERLEVEL | TASK_FLAGS_PROCESS,
+                pbUserMemory, 0x1000, (QWORD)pbUserMemory, TASK_LOADBALANCINGID);
+}
+
+/**
+ *  응용프로그램을 실행
+ */
+static void kExecuteApplicationProgram(const char *pcParameterBuffer)
+{
+    PARAMETERLIST stList;
+    char vcFileName[512];
+    char vcArgumentString[1024];
+    QWORD qwID;
+
+    // 파라미터를 추출
+    kInitializeParameter(&stList, pcParameterBuffer);
+    // 형식에 맞지 않으면 도움말을 출력하고 종료
+    if (kGetNextParameter(&stList, vcFileName) == 0)
+    {
+        kPrintf("ex)exec a.elf argument\n");
+        return;
+    }
+
+    // 두 번째 인자 문자열은 옵션으로 처리
+    if (kGetNextParameter(&stList, vcArgumentString) == 0)
+    {
+        vcArgumentString[0] = '\0';
+    }
+
+    kPrintf("Execute Program... File [%s], Argument [%s]\n", vcFileName,
+            vcArgumentString);
+
+    // 태스크 생성
+    qwID = kExecuteProgram(vcFileName, vcArgumentString, TASK_LOADBALANCINGID);
+    kPrintf("Task ID = 0x%Q\n", qwID);
+}
+
+/**
+ *  패키지에 들어있는 데이터를 하드 디스크에 복사
+ */
+static void kInstallPackage(const char *pcParameterBuffer)
+{
+    PACKAGEHEADER *pstHeader;
+    PACKAGEITEM *pstItem;
+    WORD wKernelTotalSectorCount;
+    int i;
+    FILE *fp;
+    QWORD qwDataAddress;
+
+    kPrintf("Package Install Start...\n");
+
+    // 부트 로더가 로딩된 0x7C05 어드레스에서 보호 모드 커널과 IA-32e 모드 커널을
+    // 합한 섹터 수를 읽음
+    wKernelTotalSectorCount = *((WORD *)0x7C05);
+
+    // 디스크 이미지는 0x10000 어드레스에 로딩되므로 이를 기준으로
+    // 커널 섹터 수만큼 떨어진 곳에 패키지 헤더가 있음
+    pstHeader = (PACKAGEHEADER *)((QWORD)0x10000 + wKernelTotalSectorCount * 512);
+
+    // 시그너처를 확인
+    if (kMemCmp(pstHeader->vcSignature, PACKAGESIGNATURE,
+                sizeof(pstHeader->vcSignature)) != 0)
+    {
+        kPrintf("Package Signature Fail\n");
+        return;
+    }
+
+    //--------------------------------------------------------------------------
+    // 패키지 내의 모든 파일을 찾아서 하드 디스크에 복사
+    //--------------------------------------------------------------------------
+    // 패키지 데이터가 시작하는 어드레스
+    qwDataAddress = (QWORD)pstHeader + pstHeader->dwHeaderSize;
+    // 패키지 헤더의 첫 번째 파일 데이터
+    pstItem = pstHeader->vstItem;
+
+    // 패키지에 포함된 모든 파일을 찾아서 복사
+    for (i = 0; i < pstHeader->dwHeaderSize / sizeof(PACKAGEITEM); i++)
+    {
+        kPrintf("[%d] file: %s, size: %d Byte\n", i + 1, pstItem[i].vcFileName,
+                pstItem[i].dwFileLength);
+
+        // 패키지에 포함된 파일 이름으로 파일을 생성
+        fp = fopen(pstItem[i].vcFileName, "w");
+        if (fp == NULL)
+        {
+            kPrintf("%s File Create Fail\n");
+            return;
+        }
+
+        // 패키지 데이터 부분에 포함된 파일 내용을 하드 디스크로 복사
+        if (fwrite((BYTE *)qwDataAddress, 1, pstItem[i].dwFileLength, fp) !=
+            pstItem[i].dwFileLength)
+        {
+            kPrintf("Write Fail\n");
+
+            // 파일을 닫고 파일 시스템 캐시를 내보냄
+            fclose(fp);
+            kFlushFileSystemCache();
+
+            return;
+        }
+
+        // 파일을 닫음
+        fclose(fp);
+
+        // 다음 파일이 저장된 위치로 이동
+        qwDataAddress += pstItem[i].dwFileLength;
+    }
+
+    kPrintf("Package Install Complete\n");
+
+    // 파일 시스템 캐시를 내보냄
+    kFlushFileSystemCache();
 }

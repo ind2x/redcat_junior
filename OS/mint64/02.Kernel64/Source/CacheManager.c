@@ -6,11 +6,11 @@
 
 static CACHEMANAGER gs_stCacheManager;
 
-BOOL InitializeCacheManager(void)
+BOOL kInitializeCacheManager(void)
 {
     int i;
 
-    MemSet(&gs_stCacheManager, 0, sizeof(gs_stCacheManager));
+    kMemSet(&gs_stCacheManager, 0, sizeof(gs_stCacheManager));
 
     gs_stCacheManager.vdwAccessTime[CACHE_CLUSTERLINKTABLEAREA] = 0;
     gs_stCacheManager.vdwAccessTime[CACHE_DATAAREA] = 0;
@@ -18,7 +18,7 @@ BOOL InitializeCacheManager(void)
     gs_stCacheManager.vdwMaxCount[CACHE_CLUSTERLINKTABLEAREA] = CACHE_MAXCLUSTERLINKTABLEAREACOUNT;
     gs_stCacheManager.vdwMaxCount[CACHE_DATAAREA] = CACHE_MAXDATAAREACOUNT;
 
-    gs_stCacheManager.vpbBuffer[CACHE_CLUSTERLINKTABLEAREA] = (BYTE *)AllocateMemory(CACHE_MAXCLUSTERLINKTABLEAREACOUNT * 512);
+    gs_stCacheManager.vpbBuffer[CACHE_CLUSTERLINKTABLEAREA] = (BYTE *)kAllocateMemory(CACHE_MAXCLUSTERLINKTABLEAREACOUNT * 512);
 
     if(gs_stCacheManager.vpbBuffer[CACHE_CLUSTERLINKTABLEAREA] == NULL)
     {
@@ -32,11 +32,11 @@ BOOL InitializeCacheManager(void)
         gs_stCacheManager.vvstCacheBuffer[CACHE_CLUSTERLINKTABLEAREA][i].dwTag = CACHE_INVALIDTAG;
     }
 
-    gs_stCacheManager.vpbBuffer[CACHE_DATAAREA] = (BYTE *)AllocateMemory(CACHE_MAXDATAAREACOUNT * FILESYSTEM_CLUSTERSIZE);
+    gs_stCacheManager.vpbBuffer[CACHE_DATAAREA] = (BYTE *)kAllocateMemory(CACHE_MAXDATAAREACOUNT * FILESYSTEM_CLUSTERSIZE);
     
     if (gs_stCacheManager.vpbBuffer[CACHE_DATAAREA] == NULL)
     {
-        FreeMemory(gs_stCacheManager.vpbBuffer[CACHE_CLUSTERLINKTABLEAREA]);
+        kFreeMemory(gs_stCacheManager.vpbBuffer[CACHE_CLUSTERLINKTABLEAREA]);
         return FALSE;
     }
 
@@ -50,7 +50,7 @@ BOOL InitializeCacheManager(void)
     return TRUE;
 }
 
-CACHEBUFFER *AllocateCacheBuffer(int iCacheTableIndex)
+CACHEBUFFER *kAllocateCacheBuffer(int iCacheTableIndex)
 {
     CACHEBUFFER *pstCacheBuffer;
     int i;
@@ -60,7 +60,7 @@ CACHEBUFFER *AllocateCacheBuffer(int iCacheTableIndex)
         return FALSE;
     }
 
-    CutDownAccessTime(iCacheTableIndex);
+    kCutDownAccessTime(iCacheTableIndex);
 
     pstCacheBuffer = gs_stCacheManager.vvstCacheBuffer[iCacheTableIndex];
     
@@ -79,7 +79,7 @@ CACHEBUFFER *AllocateCacheBuffer(int iCacheTableIndex)
     return NULL;
 }
 
-CACHEBUFFER *FindCacheBuffer(int iCacheTableIndex, DWORD dwTag)
+CACHEBUFFER *kFindCacheBuffer(int iCacheTableIndex, DWORD dwTag)
 {
     CACHEBUFFER *pstCacheBuffer;
     int i;
@@ -89,7 +89,7 @@ CACHEBUFFER *FindCacheBuffer(int iCacheTableIndex, DWORD dwTag)
         return FALSE;
     }
 
-    CutDownAccessTime(iCacheTableIndex);
+    kCutDownAccessTime(iCacheTableIndex);
 
     pstCacheBuffer = gs_stCacheManager.vvstCacheBuffer[iCacheTableIndex];
 
@@ -106,7 +106,7 @@ CACHEBUFFER *FindCacheBuffer(int iCacheTableIndex, DWORD dwTag)
     return NULL;
 }
 
-static void CutDownAccessTime(int iCacheTableIndex)
+static void kCutDownAccessTime(int iCacheTableIndex)
 {
     CACHEBUFFER stTemp;
     CACHEBUFFER *pstCacheBuffer;
@@ -135,9 +135,9 @@ static void CutDownAccessTime(int iCacheTableIndex)
             {
                 bSorted = FALSE;
 
-                MemCpy(&stTemp, &(pstCacheBuffer[i]), sizeof(CACHEBUFFER));
-                MemCpy(&(pstCacheBuffer[i]), &(pstCacheBuffer[i + 1]), sizeof(CACHEBUFFER));
-                MemCpy(&(pstCacheBuffer[i + 1]), &stTemp, sizeof(CACHEBUFFER));
+                kMemCpy(&stTemp, &(pstCacheBuffer[i]), sizeof(CACHEBUFFER));
+                kMemCpy(&(pstCacheBuffer[i]), &(pstCacheBuffer[i + 1]), sizeof(CACHEBUFFER));
+                kMemCpy(&(pstCacheBuffer[i + 1]), &stTemp, sizeof(CACHEBUFFER));
             }
         }
 
@@ -155,7 +155,7 @@ static void CutDownAccessTime(int iCacheTableIndex)
     gs_stCacheManager.vdwAccessTime[iCacheTableIndex] = i;
 }
 
-CACHEBUFFER *GetVictimInCacheBuffer(int iCacheTableIndex)
+CACHEBUFFER *kGetVictimInCacheBuffer(int iCacheTableIndex)
 {
     DWORD dwOldTime;
     CACHEBUFFER *pstCacheBuffer;
@@ -189,7 +189,7 @@ CACHEBUFFER *GetVictimInCacheBuffer(int iCacheTableIndex)
 
     if(iOldIndex == -1)
     {
-        Printf("[!] Cache Buffer Find Error.......\n");
+        kPrintf("[!] Cache Buffer Find Error.......\n");
         return NULL;
     }
 
@@ -198,7 +198,7 @@ CACHEBUFFER *GetVictimInCacheBuffer(int iCacheTableIndex)
     return &(pstCacheBuffer[iOldIndex]);
 }
 
-void DiscardAllCacheBuffer(int iCacheTableIndex)
+void kDiscardAllCacheBuffer(int iCacheTableIndex)
 {
     CACHEBUFFER *pstCacheBuffer;
     int i;
@@ -212,7 +212,7 @@ void DiscardAllCacheBuffer(int iCacheTableIndex)
     gs_stCacheManager.vdwAccessTime[iCacheTableIndex] = 0;
 }
 
-BOOL GetCacheBufferAndCount(int iCacheTableIndex, CACHEBUFFER **ppstCacheBuffer, int *piMaxCount)
+BOOL kGetCacheBufferAndCount(int iCacheTableIndex, CACHEBUFFER **ppstCacheBuffer, int *piMaxCount)
 {
     if (iCacheTableIndex > CACHE_MAXCACHETABLEINDEX)
     {

@@ -1,7 +1,7 @@
 #include "Queue.h"
 #include "Utility.h"
 
-void InitializeQueue(QUEUE *pstQueue, void *pvQueueBuffer, int iMaxDataCount,
+void kInitializeQueue(QUEUE *pstQueue, void *pvQueueBuffer, int iMaxDataCount,
                      int iDataSize)
 {
 
@@ -14,7 +14,7 @@ void InitializeQueue(QUEUE *pstQueue, void *pvQueueBuffer, int iMaxDataCount,
     pstQueue->bLastOperationPut = FALSE;
 }
 
-BOOL IsQueueFull(const QUEUE *pstQueue)
+BOOL kIsQueueFull(const QUEUE *pstQueue)
 {
     if ((pstQueue->iGetIndex == pstQueue->iPutIndex) &&
         (pstQueue->bLastOperationPut == TRUE))
@@ -24,7 +24,7 @@ BOOL IsQueueFull(const QUEUE *pstQueue)
     return FALSE;
 }
 
-BOOL IsQueueEmpty(const QUEUE *pstQueue)
+BOOL kIsQueueEmpty(const QUEUE *pstQueue)
 {
     if ((pstQueue->iGetIndex == pstQueue->iPutIndex) &&
         (pstQueue->bLastOperationPut == FALSE))
@@ -34,28 +34,28 @@ BOOL IsQueueEmpty(const QUEUE *pstQueue)
     return FALSE;
 }
 
-BOOL PutQueue(QUEUE *pstQueue, const void *pvData)
+BOOL kPutQueue(QUEUE *pstQueue, const void *pvData)
 {
-    if (IsQueueFull(pstQueue) == TRUE)
+    if (kIsQueueFull(pstQueue) == TRUE)
     {
         return FALSE;
     }
 
-    MemCpy((char *)pstQueue->pvQueueArray + (pstQueue->iDataSize * pstQueue->iPutIndex), pvData, pstQueue->iDataSize);
+    kMemCpy((char *)pstQueue->pvQueueArray + (pstQueue->iDataSize * pstQueue->iPutIndex), pvData, pstQueue->iDataSize);
 
     pstQueue->iPutIndex = (pstQueue->iPutIndex + 1) % pstQueue->iMaxDataCount;
     pstQueue->bLastOperationPut = TRUE;
     return TRUE;
 }
 
-BOOL GetQueue(QUEUE *pstQueue, void *pvData)
+BOOL kGetQueue(QUEUE *pstQueue, void *pvData)
 {
-    if (IsQueueEmpty(pstQueue) == TRUE)
+    if (kIsQueueEmpty(pstQueue) == TRUE)
     {
         return FALSE;
     }
 
-    MemCpy(pvData, (char *)pstQueue->pvQueueArray + (pstQueue->iDataSize * pstQueue->iGetIndex), pstQueue->iDataSize);
+    kMemCpy(pvData, (char *)pstQueue->pvQueueArray + (pstQueue->iDataSize * pstQueue->iGetIndex), pstQueue->iDataSize);
 
     pstQueue->iGetIndex = (pstQueue->iGetIndex + 1) % pstQueue->iMaxDataCount;
     pstQueue->bLastOperationPut = FALSE;

@@ -38,12 +38,12 @@ BOOL LockForSystemData(void);
 void UnlockForSystemData(BOOL bInterruptFlag);
 #endif
 
-void InitializeMutex(MUTEX *pstMutex);
-void Lock(MUTEX *pstMutex);
-void Unlock(MUTEX *pstMutex);
+void kInitializeMutex(MUTEX *pstMutex);
+void kLock(MUTEX *pstMutex);
+void kUnlock(MUTEX *pstMutex);
 
-void InitializeSpinLock(SPINLOCK *pstSpinLock);
-void LockForSpinLock(SPINLOCK *pstSpinLock);
-void UnlockForSpinLock(SPINLOCK *pstSpinLock);
+void kInitializeSpinLock(SPINLOCK *pstSpinLock);
+void kLockForSpinLock(SPINLOCK *pstSpinLock);
+void kUnlockForSpinLock(SPINLOCK *pstSpinLock);
 
 #endif /*__SYNCHRONIZATION_H__*/

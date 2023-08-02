@@ -173,12 +173,12 @@ typedef struct MPConfigurationManagerStruct
 } MPCONFIGURATIONMANAGER;
 
 
-BOOL FindMPFloatingPointerAddress(QWORD *pstAddress);
-BOOL AnalysisMPConfigurationTable(void);
-MPCONFIGURATIONMANAGER *GetMPConfigurationManager(void);
-void PrintMPConfigurationTable(void);
-int GetProcessorCount(void);
+BOOL kFindMPFloatingPointerAddress(QWORD *pstAddress);
+BOOL kAnalysisMPConfigurationTable(void);
+MPCONFIGURATIONMANAGER *kGetMPConfigurationManager(void);
+void kPrintMPConfigurationTable(void);
+int kGetProcessorCount(void);
 
-IOAPICENTRY* FindIOAPICEntryForISA( void );
+IOAPICENTRY* kFindIOAPICEntryForISA( void );
 
 #endif /*__MPCONFIGURATIONTABLE__*/

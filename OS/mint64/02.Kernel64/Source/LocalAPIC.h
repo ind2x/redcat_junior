@@ -50,10 +50,10 @@
 #define APIC_POLARITY_ACTIVEHIGH 0x000000
 
 
-QWORD GetLocalAPICBaseAddress( void );
-void EnableSoftwareLocalAPIC( void );
-void SendEOIToLocalAPIC( void );
-void SetTaskPriority( BYTE bPriority );
-void InitializeLocalVectorTable( void );
+QWORD kGetLocalAPICBaseAddress( void );
+void kEnableSoftwareLocalAPIC( void );
+void kSendEOIToLocalAPIC( void );
+void kSetTaskPriority( BYTE bPriority );
+void kInitializeLocalVectorTable( void );
 
 #endif /*__LOCALAPIC_H__*/

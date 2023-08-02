@@ -23,16 +23,16 @@ typedef struct ListManagerStruct
 
 #pragma pack(pop)
 
-void InitializeList(LIST *pstList);
-int GetListCount(const LIST *pstList);
-void AddListToTail(LIST *pstList, void *pvItem);
-void AddListToHeader(LIST *pstList, void *pvItem);
-void* RemoveList(LIST *pstList, QWORD qwID);
-void* RemoveListFromHeader(LIST *pstList);
-void* RemoveListFromTail(LIST *pstList);
-void* FindList(const LIST *pstList, QWORD qwID);
-void* GetHeaderFromList(const LIST *pstList);
-void* GetTailFromList(const LIST *pstList);
-void* GetNextFromList(const LIST *pstList, void *pstCurrent);
+void kInitializeList(LIST *pstList);
+int kGetListCount(const LIST *pstList);
+void kAddListToTail(LIST *pstList, void *pvItem);
+void kAddListToHeader(LIST *pstList, void *pvItem);
+void* kRemoveList(LIST *pstList, QWORD qwID);
+void* kRemoveListFromHeader(LIST *pstList);
+void* kRemoveListFromTail(LIST *pstList);
+void* kFindList(const LIST *pstList, QWORD qwID);
+void* kGetHeaderFromList(const LIST *pstList);
+void* kGetTailFromList(const LIST *pstList);
+void* kGetNextFromList(const LIST *pstList, void *pstCurrent);
 
 #endif /*__LIST_H__*/

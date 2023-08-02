@@ -64,14 +64,14 @@ typedef struct IOAPICManagerStruct
     BYTE vbIRQToINTINMap[IOAPIC_MAXIRQTOINTINMAPCOUNT];
 } IOAPICMANAGER;
 
-QWORD GetIOAPICBaseAddressOfISA(void);
-void SetIOAPICRedirectionEntry(IOREDIRECTIONTABLE *pstEntry, BYTE bAPICID, BYTE bInterruptMask, BYTE bFlagsAndDeliveryMode, BYTE bVector);
-void ReadIOAPICRedirectionTable(int iINTIN, IOREDIRECTIONTABLE *pstEntry);
-void WriteIOAPICRedirectionTable(int iINTIN, IOREDIRECTIONTABLE *pstEntry);
-void MaskAllInterruptInIOAPIC(void);
-void InitializeIORedirectionTable(void);
-void PrintIRQToINTINMap(void);
+QWORD kGetIOAPICBaseAddressOfISA(void);
+void kSetIOAPICRedirectionEntry(IOREDIRECTIONTABLE *pstEntry, BYTE bAPICID, BYTE bInterruptMask, BYTE bFlagsAndDeliveryMode, BYTE bVector);
+void kReadIOAPICRedirectionTable(int iINTIN, IOREDIRECTIONTABLE *pstEntry);
+void kWriteIOAPICRedirectionTable(int iINTIN, IOREDIRECTIONTABLE *pstEntry);
+void kMaskAllInterruptInIOAPIC(void);
+void kInitializeIORedirectionTable(void);
+void kPrintIRQToINTINMap(void);
 
-void RoutingIRQToAPICID(int iIRQ, BYTE bAPICID);
+void kRoutingIRQToAPICID(int iIRQ, BYTE bAPICID);
 
 #endif /*__IOAPIC_H__*/

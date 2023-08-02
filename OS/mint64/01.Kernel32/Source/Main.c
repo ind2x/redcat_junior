@@ -17,7 +17,7 @@ void Main(void)
 
     if( *( ( BYTE* ) BOOTSTRAPPROCESSOR_FLAGADDRESS ) == 0 )
     {
-        SwitchAndExecute64bitKernel();
+        kSwitchAndExecute64bitKernel();
         while( 1 ) ;
     }
 
@@ -46,18 +46,18 @@ void Main(void)
 
     // 64GB 물리 주소 지원을 위한 페이지 초기화
     PrintString(0, 6, "[*] IA-32e Page Tables Initialize.................[    ]");
-    InitializePageTables();
+    kInitializePageTables();
     PrintString(51, 6, "Pass");
     
     // CPU 제조사를 읽어서 IA-32e 모드 지원 여부 확인
-    ReadCPUID(0x00, &dwEAX, &dwEBX, &dwECX, &dwEDX);
+    kReadCPUID(0x00, &dwEAX, &dwEBX, &dwECX, &dwEDX);
     *(DWORD *) vcVendorString = dwEBX;
     *((DWORD *)vcVendorString + 1) = dwEDX;
     *((DWORD *)vcVendorString + 2) = dwECX;
     PrintString(0, 7, "[*] Processor Vendor String.......................[            ]");
     PrintString(51, 7, vcVendorString);
 
-    ReadCPUID(0x80000001, &dwEAX, &dwEBX, &dwECX, &dwEDX);
+    kReadCPUID(0x80000001, &dwEAX, &dwEBX, &dwECX, &dwEDX);
     PrintString(0, 8, "[*] 64bit Mode Support Check......................[    ]");
     if(dwEDX & (1 << 29)) 
     { 
@@ -77,7 +77,7 @@ void Main(void)
 
     // IA-32e 모드로 전환
     PrintString(0, 10, "[*] Switch To IA-32e Mode......");
-    SwitchAndExecute64bitKernel();
+    kSwitchAndExecute64bitKernel();
 
     while (1);
 }

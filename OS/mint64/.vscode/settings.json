@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "string.h": "c",
+        "multiprocessor.h": "c",
+        "windowmanagertask.h": "c",
+        "consoleshell.h": "c",
+        "uio.h": "c"
+    }
+}

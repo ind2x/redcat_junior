@@ -9,18 +9,18 @@ volatile int g_iWakeUpApplicationProcessorCount = 0;
 volatile QWORD g_qwAPICIDAddress = 0;
 
 
-BOOL StartUpApplicationProcessor( void )
+BOOL kStartUpApplicationProcessor( void )
 {
-    if( AnalysisMPConfigurationTable() == FALSE )
+    if( kAnalysisMPConfigurationTable() == FALSE )
     {
         return FALSE;
     }
     
-    EnableGlobalLocalAPIC();
+    kEnableGlobalLocalAPIC();
     
-    EnableSoftwareLocalAPIC();    
+    kEnableSoftwareLocalAPIC();    
     
-    if( WakeUpApplicationProcessor() == FALSE )
+    if( kWakeUpApplicationProcessor() == FALSE )
     {
         return FALSE;
     }
@@ -29,7 +29,7 @@ BOOL StartUpApplicationProcessor( void )
 }
 
 
-static BOOL WakeUpApplicationProcessor( void )
+static BOOL kWakeUpApplicationProcessor( void )
 {
     MPCONFIGURATIONMANAGER* pstMPManager;
     MPCONFIGURATIONTABLEHEADER* pstMPHeader;
@@ -37,9 +37,9 @@ static BOOL WakeUpApplicationProcessor( void )
     BOOL bInterruptFlag;
     int i;
 
-    bInterruptFlag = SetInterruptFlag( FALSE );
+    bInterruptFlag = kSetInterruptFlag( FALSE );
 
-    pstMPManager = GetMPConfigurationManager(); 
+    pstMPManager = kGetMPConfigurationManager(); 
     pstMPHeader = pstMPManager->pstMPConfigurationTableHeader;
     qwLocalAPICBaseAddress = pstMPHeader->dwMemoryMapIOAddressOfLocalAPIC;
 
@@ -50,14 +50,14 @@ static BOOL WakeUpApplicationProcessor( void )
         APIC_DESTINATIONSHORTHAND_ALLEXCLUDINGSELF | APIC_TRIGGERMODE_EDGE |
         APIC_LEVEL_ASSERT | APIC_DESTINATIONMODE_PHYSICAL | APIC_DELIVERYMODE_INIT;
     
-    WaitUsingDirectPIT( MSTOCOUNT( 10 ) );
+    kWaitUsingDirectPIT( MSTOCOUNT( 10 ) );
 
     if( *( DWORD* )( qwLocalAPICBaseAddress + APIC_REGISTER_ICR_LOWER ) &
             APIC_DELIVERYSTATUS_PENDING )
     {
-        InitializePIT( MSTOCOUNT( 1 ), TRUE );
+        kInitializePIT( MSTOCOUNT( 1 ), TRUE );
         
-        SetInterruptFlag( bInterruptFlag );
+        kSetInterruptFlag( bInterruptFlag );
         return FALSE;
     }
     
@@ -69,29 +69,29 @@ static BOOL WakeUpApplicationProcessor( void )
             APIC_LEVEL_ASSERT | APIC_DESTINATIONMODE_PHYSICAL | 
             APIC_DELIVERYMODE_STARTUP | 0x10;
         
-        WaitUsingDirectPIT( USTOCOUNT( 200 ) );
+        kWaitUsingDirectPIT( USTOCOUNT( 200 ) );
             
         if( *( DWORD* )( qwLocalAPICBaseAddress + APIC_REGISTER_ICR_LOWER ) &APIC_DELIVERYSTATUS_PENDING )
         {
-            InitializePIT( MSTOCOUNT( 1 ), TRUE );
+            kInitializePIT( MSTOCOUNT( 1 ), TRUE );
             
-            SetInterruptFlag( bInterruptFlag );
+            kSetInterruptFlag( bInterruptFlag );
             return FALSE;
         }
     }
     
-    InitializePIT( MSTOCOUNT( 1 ), TRUE );
+    kInitializePIT( MSTOCOUNT( 1 ), TRUE );
     
-    SetInterruptFlag( bInterruptFlag );
+    kSetInterruptFlag( bInterruptFlag );
     
     while( g_iWakeUpApplicationProcessorCount < ( pstMPManager->iProcessorCount - 1 ) )
     {
-        Sleep( 50 );
+        kSleep( 50 );
     }    
     return TRUE;
 }
 
-BYTE GetAPICID( void )
+BYTE kGetAPICID( void )
 {
     MPCONFIGURATIONTABLEHEADER* pstMPHeader;
     QWORD qwLocalAPICBaseAddress;
@@ -99,7 +99,7 @@ BYTE GetAPICID( void )
     if( g_qwAPICIDAddress == 0 )
     {
 
-        pstMPHeader = GetMPConfigurationManager()->pstMPConfigurationTableHeader;
+        pstMPHeader = kGetMPConfigurationManager()->pstMPConfigurationTableHeader;
         if( pstMPHeader == NULL )
         {
             return 0;

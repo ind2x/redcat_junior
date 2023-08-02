@@ -1,18 +1,35 @@
+/**
+ *  file    VBE.h
+ *  date    2009/08/29
+ *  author  kkamagui
+ *          Copyright(c)2008 All rights reserved by kkamagui
+ *  brief   VBE에 관련된 함수를 정의한 헤더 파일
+ */
+
 #ifndef __VBE_H__
 #define __VBE_H__
 
 #include "Types.h"
 
+////////////////////////////////////////////////////////////////////////////////
+//
+// 매크로
+//
+////////////////////////////////////////////////////////////////////////////////
 // 모드 정보 블록이 저장된 어드레스
 #define VBE_MODEINFOBLOCKADDRESS 0x7E00
 // 그래픽 모드로 시작하는 플래그가 저장된 어드레스
 #define VBE_STARTGRAPHICMODEFLAGADDRESS 0x7C0A
 
-
+////////////////////////////////////////////////////////////////////////////////
+//
+// 구조체
+//
+////////////////////////////////////////////////////////////////////////////////
 #pragma pack(push, 1)
 
 // VBE에서 정의한 모드 정보 블록(ModeInfoBlock) 자료구조, 256바이트
-typedef struct VBEInfoBlockStruct
+typedef struct kVBEInfoBlockStruct
 {
     //==========================================================================
     // 모든 VBE 버전에 공통인 부분
@@ -83,7 +100,11 @@ typedef struct VBEInfoBlockStruct
 
 #pragma pack(pop)
 
-
-VBEMODEINFOBLOCK *GetVBEModeInfoBlock(void);
+////////////////////////////////////////////////////////////////////////////////
+//
+// 함수
+//
+////////////////////////////////////////////////////////////////////////////////
+VBEMODEINFOBLOCK *kGetVBEModeInfoBlock(void);
 
 #endif /*__VBE_H__*/

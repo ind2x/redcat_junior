@@ -19,11 +19,11 @@ typedef struct kQueueManagerStruct
 
 #pragma pack(pop)
 
-void InitializeQueue(QUEUE *pstQueue, void *pvQueueBuffer, int iMaxDataCount,
+void kInitializeQueue(QUEUE *pstQueue, void *pvQueueBuffer, int iMaxDataCount,
                       int iDataSize);
-BOOL IsQueueFull(const QUEUE *pstQueue);
-BOOL IsQueueEmpty(const QUEUE *pstQueue);
-BOOL PutQueue(QUEUE *pstQueue, const void *pvData);
-BOOL GetQueue(QUEUE *pstQueue, void *pvData);
+BOOL kIsQueueFull(const QUEUE *pstQueue);
+BOOL kIsQueueEmpty(const QUEUE *pstQueue);
+BOOL kPutQueue(QUEUE *pstQueue, const void *pvData);
+BOOL kGetQueue(QUEUE *pstQueue, void *pvData);
 
 #endif /*__QUEUE_H__*/

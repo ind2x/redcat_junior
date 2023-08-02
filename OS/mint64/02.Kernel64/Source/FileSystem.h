@@ -36,23 +36,23 @@
 #define FILESYSTEM_SEEK_END 2
 
 // 하드 디스크 제어에 관련된 함수 포인터
-typedef BOOL (*fReadHDDInformation)(BOOL bPrimary, BOOL bMaster,
+typedef BOOL (*fkReadHDDInformation)(BOOL bPrimary, BOOL bMaster,
                                     HDDINFORMATION *pstHDDInformation);
-typedef int (*fReadHDDSector)(BOOL bPrimary, BOOL bMaster, DWORD dwLBA,
+typedef int (*fkReadHDDSector)(BOOL bPrimary, BOOL bMaster, DWORD dwLBA,
                               int iSectorCount, char *pcBuffer);
-typedef int (*fWriteHDDSector)(BOOL bPrimary, BOOL bMaster, DWORD dwLBA,
+typedef int (*fkWriteHDDSector)(BOOL bPrimary, BOOL bMaster, DWORD dwLBA,
                                int iSectorCount, char *pcBuffer);
 
-#define fopen OpenFile
-#define fread ReadFile
-#define fwrite WriteFile
-#define fseek SeekFile
-#define fclose CloseFile
-#define remove RemoveFile
-#define opendir OpenDirectory
-#define readdir ReadDirectory
-#define rewinddir RewindDirectory
-#define closedir CloseDirectory
+#define fopen kOpenFile
+#define fread kReadFile
+#define fwrite kWriteFile
+#define fseek kSeekFile
+#define fclose kCloseFile
+#define remove kRemoveFile
+#define opendir kOpenDirectory
+#define readdir kReadDirectory
+#define rewinddir kRewindDirectory
+#define closedir kCloseDirectory
 
 #define SEEK_SET FILESYSTEM_SEEK_SET
 #define SEEK_CUR FILESYSTEM_SEEK_CUR
@@ -198,54 +198,54 @@ typedef struct FileSystemManagerStruct
 } FILESYSTEMMANAGER;
 
 
-BOOL InitializeFileSystem(void);
-BOOL Format(void);
-BOOL Mount(void);
-BOOL GetHDDInformation(HDDINFORMATION *pstInformation);
+BOOL kInitializeFileSystem(void);
+BOOL kFormat(void);
+BOOL kMount(void);
+BOOL kGetHDDInformation(HDDINFORMATION *pstInformation);
 
-static BOOL ReadClusterLinkTable(DWORD dwOffset, BYTE *pbBuffer);
-static BOOL WriteClusterLinkTable(DWORD dwOffset, BYTE *pbBuffer);
-static BOOL ReadCluster(DWORD dwOffset, BYTE *pbBuffer);
-static BOOL WriteCluster(DWORD dwOffset, BYTE *pbBuffer);
-static DWORD FindFreeCluster(void);
-static BOOL SetClusterLinkData(DWORD dwClusterIndex, DWORD dwData);
-static BOOL GetClusterLinkData(DWORD dwClusterIndex, DWORD *pdwData);
+static BOOL kkReadClusterLinkTable(DWORD dwOffset, BYTE *pbBuffer);
+static BOOL kkWriteClusterLinkTable(DWORD dwOffset, BYTE *pbBuffer);
+static BOOL kReadCluster(DWORD dwOffset, BYTE *pbBuffer);
+static BOOL kWriteCluster(DWORD dwOffset, BYTE *pbBuffer);
+static DWORD kFindFreeCluster(void);
+static BOOL kSetClusterLinkData(DWORD dwClusterIndex, DWORD dwData);
+static BOOL kGetClusterLinkData(DWORD dwClusterIndex, DWORD *pdwData);
 
-static int FindFreeDirectoryEntry(void);
-static BOOL SetDirectoryEntryData(int iIndex, DIRECTORYENTRY *pstEntry);
-static BOOL GetDirectoryEntryData(int iIndex, DIRECTORYENTRY *pstEntry);
-static int FindDirectoryEntry(const char *pcFileName, DIRECTORYENTRY *pstEntry);
-void GetFileSystemInformation(FILESYSTEMMANAGER *pstManager);
+static int kFindFreeDirectoryEntry(void);
+static BOOL kSetDirectoryEntryData(int iIndex, DIRECTORYENTRY *pstEntry);
+static BOOL kGetDirectoryEntryData(int iIndex, DIRECTORYENTRY *pstEntry);
+static int kFindDirectoryEntry(const char *pcFileName, DIRECTORYENTRY *pstEntry);
+void kGetFileSystemInformation(FILESYSTEMMANAGER *pstManager);
 
-static BOOL InternalReadClusterLinkTableWithoutCache(DWORD dwOffset, BYTE *pbBuffer);
-static BOOL InternalReadClusterLinkTableWithCache(DWORD dwOffset, BYTE *pbBuffer);
-static BOOL InternalWriteClusterLinkTableWithoutCache(DWORD dwOffset, BYTE *pbBuffer);
-static BOOL InternalWriteClusterLinkTableWithCache(DWORD dwOffset, BYTE *pbBuffer);
-static BOOL InternalReadClusterWithoutCache(DWORD dwOffset, BYTE *pbBuffer);
-static BOOL InternalReadClusterWithCache(DWORD dwOffset, BYTE *pbBuffer);
-static BOOL InternalWriteClusterWithoutCache(DWORD dwOffset, BYTE *pbBuffer);
-static BOOL InternalWriteClusterWithCache(DWORD dwOffset, BYTE *pbBuffer);
+static BOOL kInternalkkReadClusterLinkTableWithoutCache(DWORD dwOffset, BYTE *pbBuffer);
+static BOOL kInternalkkReadClusterLinkTableWithCache(DWORD dwOffset, BYTE *pbBuffer);
+static BOOL kInternalkkWriteClusterLinkTableWithoutCache(DWORD dwOffset, BYTE *pbBuffer);
+static BOOL kInternalkkWriteClusterLinkTableWithCache(DWORD dwOffset, BYTE *pbBuffer);
+static BOOL kInternalkReadClusterWithoutCache(DWORD dwOffset, BYTE *pbBuffer);
+static BOOL kInternalkReadClusterWithCache(DWORD dwOffset, BYTE *pbBuffer);
+static BOOL kInternalkWriteClusterWithoutCache(DWORD dwOffset, BYTE *pbBuffer);
+static BOOL kInternalkWriteClusterWithCache(DWORD dwOffset, BYTE *pbBuffer);
 
-static CACHEBUFFER *AllocateCacheBufferWithFlush(int iCacheTableIndex);
-BOOL FlushFileSystemCache(void);
+static CACHEBUFFER *kAllocateCacheBufferWithFlush(int iCacheTableIndex);
+BOOL kFlushFileSystemCache(void);
 
-FILE *OpenFile(const char *pcFileName, const char *pcMode);
-DWORD ReadFile(void *pvBuffer, DWORD dwSize, DWORD dwCount, FILE *pstFile);
-DWORD WriteFile(const void *pvBuffer, DWORD dwSize, DWORD dwCount, FILE *pstFile);
-int SeekFile(FILE *pstFile, int iOffset, int iOrigin);
-int CloseFile(FILE *pstFile);
-int RemoveFile(const char *pcFileName);
-DIR *OpenDirectory(const char *pcDirectoryName);
-struct DirectoryEntryStruct *ReadDirectory(DIR *pstDirectory);
-void RewindDirectory(DIR *pstDirectory);
-int CloseDirectory(DIR *pstDirectory);
-BOOL WriteZero(FILE *pstFile, DWORD dwCount);
-BOOL IsFileOpened(const DIRECTORYENTRY *pstEntry);
+FILE *kOpenFile(const char *pcFileName, const char *pcMode);
+DWORD kReadFile(void *pvBuffer, DWORD dwSize, DWORD dwCount, FILE *pstFile);
+DWORD kWriteFile(const void *pvBuffer, DWORD dwSize, DWORD dwCount, FILE *pstFile);
+int kSeekFile(FILE *pstFile, int iOffset, int iOrigin);
+int kCloseFile(FILE *pstFile);
+int kRemoveFile(const char *pcFileName);
+DIR *kOpenDirectory(const char *pcDirectoryName);
+struct DirectoryEntryStruct *kReadDirectory(DIR *pstDirectory);
+void kRewindDirectory(DIR *pstDirectory);
+int kCloseDirectory(DIR *pstDirectory);
+BOOL kWriteZero(FILE *pstFile, DWORD dwCount);
+BOOL kIsFileOpened(const DIRECTORYENTRY *pstEntry);
 
-static void *AllocateFileDirectoryHandle(void);
-static void FreeFileDirectoryHandle(FILE *pstFile);
-static BOOL CreateFile(const char *pcFileName, DIRECTORYENTRY *pstEntry, int *piDirectoryEntryIndex);
-static BOOL FreeClusterUntilEnd(DWORD dwClusterIndex);
-static BOOL UpdateDirectoryEntry(FILEHANDLE *pstFileHandle);
+static void *kAllocateFileDirectoryHandle(void);
+static void kFreeFileDirectoryHandle(FILE *pstFile);
+static BOOL kCreateFile(const char *pcFileName, DIRECTORYENTRY *pstEntry, int *piDirectoryEntryIndex);
+static BOOL kFreeClusterUntilEnd(DWORD dwClusterIndex);
+static BOOL kUpdateDirectoryEntry(FILEHANDLE *pstFileHandle);
 
 #endif /*__FILESYSTEM_H__*/

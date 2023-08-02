@@ -20,9 +20,9 @@ typedef struct RDDManagerStruct
 
 #pragma pack(pop)
 
-BOOL InitializeRDD(DWORD dwTotalSectorCount);
-BOOL ReadRDDInformation(BOOL bPrimary, BOOL bMaster,HDDINFORMATION *pstHDDInformation);
-int ReadRDDSector(BOOL bPrimary, BOOL bMaster, DWORD dwLBA, int iSectorCount, char *pcBuffer);
-int WriteRDDSector(BOOL bPrimary, BOOL bMaster, DWORD dwLBA, int iSectorCount, char *pcBuffer);
+BOOL kInitializeRDD(DWORD dwTotalSectorCount);
+BOOL kReadRDDInformation(BOOL bPrimary, BOOL bMaster,HDDINFORMATION *pstHDDInformation);
+int kReadRDDSector(BOOL bPrimary, BOOL bMaster, DWORD dwLBA, int iSectorCount, char *pcBuffer);
+int kWriteRDDSector(BOOL bPrimary, BOOL bMaster, DWORD dwLBA, int iSectorCount, char *pcBuffer);
 
 #endif /*__RAMDISK_H__*/

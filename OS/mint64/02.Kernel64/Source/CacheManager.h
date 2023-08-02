@@ -43,13 +43,13 @@ typedef struct CacheManagerStruct
     DWORD vdwMaxCount[CACHE_MAXCACHETABLEINDEX];
 } CACHEMANAGER;
 
-BOOL InitializeCacheManager(void);
-CACHEBUFFER *AllocateCacheBuffer(int iCacheTableIndex);
-CACHEBUFFER *FindCacheBuffer(int iCacheTableIndex, DWORD dwTag);
-CACHEBUFFER *GetVictimInCacheBuffer(int iCacheTableIndex);
-void DiscardAllCacheBuffer(int iCacheTableIndex);
-BOOL GetCacheBufferAndCount(int iCacheTableIndex, CACHEBUFFER **ppstCacheBuffer, int *piMaxCount);
+BOOL kInitializeCacheManager(void);
+CACHEBUFFER *kAllocateCacheBuffer(int iCacheTableIndex);
+CACHEBUFFER *kFindCacheBuffer(int iCacheTableIndex, DWORD dwTag);
+CACHEBUFFER *kGetVictimInCacheBuffer(int iCacheTableIndex);
+void kDiscardAllCacheBuffer(int iCacheTableIndex);
+BOOL kGetCacheBufferAndCount(int iCacheTableIndex, CACHEBUFFER **ppstCacheBuffer, int *piMaxCount);
 
-static void CutDownAccessTime(int iCacheTableIndex);
+static void kCutDownAccessTime(int iCacheTableIndex);
 
 #endif /*__CACHEMANAGER_H__*/

@@ -7,8 +7,8 @@
 #define MAXPROCESSORCOUNT                   16
 
 
-BOOL StartUpApplicationProcessor( void );
-BYTE GetAPICID( void );
-static BOOL WakeUpApplicationProcessor( void );
+BOOL kStartUpApplicationProcessor( void );
+BYTE kGetAPICID( void );
+static BOOL kWakeUpApplicationProcessor( void );
 
 #endif /*__MULTIPROCESSOR_H__*/

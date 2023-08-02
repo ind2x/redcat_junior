@@ -1,48 +1,48 @@
 #include "LocalAPIC.h"
 #include "MPConfigurationTable.h"
 
-QWORD GetLocalAPICBaseAddress( void )
+QWORD kGetLocalAPICBaseAddress( void )
 {
     MPCONFIGURATIONTABLEHEADER* pstMPHeader;
 
-    pstMPHeader = GetMPConfigurationManager()->pstMPConfigurationTableHeader;
+    pstMPHeader = kGetMPConfigurationManager()->pstMPConfigurationTableHeader;
     return pstMPHeader->dwMemoryMapIOAddressOfLocalAPIC;
 }
 
-void EnableSoftwareLocalAPIC( void )
+void kEnableSoftwareLocalAPIC( void )
 {
     QWORD qwLocalAPICBaseAddress;
     
-    qwLocalAPICBaseAddress = GetLocalAPICBaseAddress();
+    qwLocalAPICBaseAddress = kGetLocalAPICBaseAddress();
     
     *( DWORD* ) ( qwLocalAPICBaseAddress + APIC_REGISTER_SVR ) |= 0x100;
 }
 
-void SendEOIToLocalAPIC( void )
+void kSendEOIToLocalAPIC( void )
 {
     QWORD qwLocalAPICBaseAddress;
     
-    qwLocalAPICBaseAddress = GetLocalAPICBaseAddress();
+    qwLocalAPICBaseAddress = kGetLocalAPICBaseAddress();
     
     *( DWORD* ) ( qwLocalAPICBaseAddress + APIC_REGISTER_EOI ) = 0;
 }
 
-void SetTaskPriority( BYTE bPriority )
+void kSetTaskPriority( BYTE bPriority )
 {
     QWORD qwLocalAPICBaseAddress;
     
-    qwLocalAPICBaseAddress = GetLocalAPICBaseAddress();
+    qwLocalAPICBaseAddress = kGetLocalAPICBaseAddress();
     
     *( DWORD* ) ( qwLocalAPICBaseAddress + APIC_REGISTER_TASKPRIORITY ) = bPriority;
 }
 
 
-void InitializeLocalVectorTable( void )
+void kInitializeLocalVectorTable( void )
 {
     QWORD qwLocalAPICBaseAddress;
     DWORD dwTempValue;
     
-    qwLocalAPICBaseAddress = GetLocalAPICBaseAddress();
+    qwLocalAPICBaseAddress = kGetLocalAPICBaseAddress();
 
     *( DWORD* ) ( qwLocalAPICBaseAddress + APIC_REGISTER_TIMER ) |= APIC_INTERRUPT_MASK;
     

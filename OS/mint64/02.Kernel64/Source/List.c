@@ -4,7 +4,7 @@
  * 리스트 초기화 함수
  * 데이터가 없으므로 개수 = 0, 처음과 끝은 NULL로 설정
 */
-void InitializeList(LIST *pstList)
+void kInitializeList(LIST *pstList)
 {
     pstList->iItemCount = 0;
     pstList->pvHeader = NULL;
@@ -14,7 +14,7 @@ void InitializeList(LIST *pstList)
 /**
  * 리스트의 데이터 개수를 반환하는 함수
 */
-int GetListCount(const LIST *pstList)
+int kGetListCount(const LIST *pstList)
 {
     return pstList->iItemCount;
 }
@@ -22,7 +22,7 @@ int GetListCount(const LIST *pstList)
 /**
  * 리스트의 끝에 데이터를 추가하는 함수ㅏ
 */
-void AddListToTail(LIST *pstList, void *pvItem)
+void kAddListToTail(LIST *pstList, void *pvItem)
 {
     LISTLINK *pstLink;  // 리스트의 데이터 변수
     
@@ -54,7 +54,7 @@ void AddListToTail(LIST *pstList, void *pvItem)
 /**
  * 리스트 헤더에 데이터를 추가하는 함수
 */
-void AddListToHeader(LIST *pstList, void *pvItem)
+void kAddListToHeader(LIST *pstList, void *pvItem)
 {
     LISTLINK *pstLink;
 
@@ -81,7 +81,7 @@ void AddListToHeader(LIST *pstList, void *pvItem)
  * 리스트에서 데이터를 제거한 후 데이터의 포인터를 반환
  * 데이터의 ID를 이용해서 찾은 후 제거 및 반환
 */
-void *RemoveList(LIST *pstList, QWORD qwID)
+void *kRemoveList(LIST *pstList, QWORD qwID)
 {
     LISTLINK *pstLink;          
     LISTLINK *pstPreviousLink;
@@ -133,7 +133,7 @@ void *RemoveList(LIST *pstList, QWORD qwID)
 /**
  * 리스트의 헤더 데이터를 제거한 뒤 반환
 */
-void *RemoveListFromHeader(LIST *pstList)
+void *kRemoveListFromHeader(LIST *pstList)
 {
     LISTLINK *pstLink;
 
@@ -142,15 +142,15 @@ void *RemoveListFromHeader(LIST *pstList)
         return NULL;
     }
 
-    // 리스트의 헤더 데이터를 가져와서 RemoveList에 ID를 인자로 넘겨줌
+    // 리스트의 헤더 데이터를 가져와서 kRemoveList에 ID를 인자로 넘겨줌
     pstLink = (LISTLINK *) pstList->pvHeader;
-    return RemoveList(pstList, pstLink->qwID);
+    return kRemoveList(pstList, pstLink->qwID);
 }
 
 /**
  * 리스트의 마지막 데이터를 제거한 뒤 반환
 */
-void *RemoveListFromTail(LIST *pstList)
+void *kRemoveListFromTail(LIST *pstList)
 {
     LISTLINK *pstLink;
 
@@ -159,15 +159,15 @@ void *RemoveListFromTail(LIST *pstList)
         return NULL;
     }
 
-    // 마지막 데이터를 가져와서 RemoveList에 ID를 인자로 넘겨줌
+    // 마지막 데이터를 가져와서 kRemoveList에 ID를 인자로 넘겨줌
     pstLink = (LISTLINK *) pstList->pvTail;
-    return RemoveList(pstList, pstLink->qwID);
+    return kRemoveList(pstList, pstLink->qwID);
 }
 
 /**
  * 리스트 내에서 데이터를 찾아 반환
 */
-void *FindList(const LIST *pstList, QWORD qwID)
+void *kFindList(const LIST *pstList, QWORD qwID)
 {
     LISTLINK *pstLink;
 
@@ -186,7 +186,7 @@ void *FindList(const LIST *pstList, QWORD qwID)
 /**
  * 리스트의 헤더 데이터를 반환
 */
-void *GetHeaderFromList(const LIST *pstList)
+void *kGetHeaderFromList(const LIST *pstList)
 {
     return pstList->pvHeader;
 }
@@ -194,7 +194,7 @@ void *GetHeaderFromList(const LIST *pstList)
 /**
  * 리스트의 마지막 데이터를 반환
 */
-void *GetTailFromList(const LIST *pstList)
+void *kGetTailFromList(const LIST *pstList)
 {
     return pstList->pvTail;
 }
@@ -202,7 +202,7 @@ void *GetTailFromList(const LIST *pstList)
 /**
  * 리스트에서 현재 데이터의 다음 데이터를 반환
 */
-void *GetNextFromList(const LIST *pstList, void *pstCurrent)
+void *kGetNextFromList(const LIST *pstList, void *pstCurrent)
 {
     LISTLINK *pstLink;
 

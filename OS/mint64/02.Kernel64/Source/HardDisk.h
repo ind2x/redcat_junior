@@ -107,18 +107,18 @@ typedef struct HDDManagerStruct
 
 
 
-BOOL InitializeHDD(void);
-BOOL ReadHDDInformation(BOOL bPrimary, BOOL bMaster, HDDINFORMATION *pstHDDInformation);
-int ReadHDDSector(BOOL bPrimary, BOOL bMaster, DWORD dwLBA, int iSectorCount, char *pcBuffer);
-int WriteHDDSector(BOOL bPrimary, BOOL bMaster, DWORD dwLBA, int iSectorCount, char *pcBuffer);
-void SetHDDInterruptFlag(BOOL bPrimary, BOOL bFlag);
+BOOL kInitializeHDD(void);
+BOOL kReadHDDInformation(BOOL bPrimary, BOOL bMaster, HDDINFORMATION *pstHDDInformation);
+int kReadHDDSector(BOOL bPrimary, BOOL bMaster, DWORD dwLBA, int iSectorCount, char *pcBuffer);
+int kWriteHDDSector(BOOL bPrimary, BOOL bMaster, DWORD dwLBA, int iSectorCount, char *pcBuffer);
+void kSetHDDInterruptFlag(BOOL bPrimary, BOOL bFlag);
 
-static void SwapByteInWord(WORD *pwData, int iWordCount);
-static BYTE ReadHDDStatus(BOOL bPrimary);
+static void kSwapByteInWord(WORD *pwData, int iWordCount);
+static BYTE kReadHDDStatus(BOOL bPrimary);
 // static BOOL IsHDDBusy(BOOL bPrimary);
 // static BOOL IsHDDReady(BOOL bPrimary);
-static BOOL WaitForHDDNoBusy(BOOL bPrimary);
-static BOOL WaitForHDDReady(BOOL bPrimary);
-static BOOL WaitForHDDInterrupt(BOOL bPrimary);
+static BOOL kWaitForHDDNoBusy(BOOL bPrimary);
+static BOOL kWaitForHDDReady(BOOL bPrimary);
+static BOOL kWaitForHDDInterrupt(BOOL bPrimary);
 
 #endif /*__HARDDISK_H__*/

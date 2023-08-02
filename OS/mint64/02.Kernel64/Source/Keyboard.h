@@ -63,7 +63,7 @@ typedef struct KeyMappingEntryStruct
 {
     BYTE bNormalCode;   // 조합되지 않는 일반적인 ASCII 값
 
-    BYTE bCombinedCode; // Shift, Caps Lock 등과 조합된 ASCII 값
+    BYTE bCombinedCode; // Shift, Caps kLock 등과 조합된 ASCII 값
 } KEYMAPPINGENTRY;
 
 // 키보드 키 상태 관리 자료구조
@@ -77,7 +77,7 @@ typedef struct KeyboardManagerStruct
     BOOL bScrollLockOn;
 
     BOOL bExtendedCodeIn;
-    int iSkipCountForPause;
+    int iSkipCountForkPause;
 } KEYBOARDMANAGER;
 
 // 키 큐에 삽입할 데이터 구조체
@@ -90,23 +90,23 @@ typedef struct KeyDataStruct
 
 #pragma pack(pop)
 
-BOOL IsOutputBufferFull(void);
-BOOL IsInputBufferFull(void);
-BOOL ActivateKeyboard(void);
-BYTE GetKeyboardScanCode(void);
-BOOL ChangeKeyboardLED(BOOL bCapsLockOn, BOOL bNumLockOn, BOOL bScrollLockOn);
-void EnableA20Gate(void);
-void Reboot(void);
-BOOL IsAlphabetScanCode(BYTE bScanCode);
-BOOL IsNumberOrSymbolScanCode(BYTE bScanCode);
-BOOL IsNumberPadScanCode(BYTE bScanCode);
-BOOL IsUseCombinedCode(BOOL bScanCode);
-void UpdateCombinationKeyStatusAndLED(BYTE bScanCode);
-BOOL ConvertScanCodeToASCIICode(BYTE bScanCode, BYTE *pbASCIICode, BOOL *pbFlags);
+BOOL kIsOutputBufferFull(void);
+BOOL kIsInputBufferFull(void);
+BOOL kActivateKeyboard(void);
+BYTE kGetKeyboardScanCode(void);
+BOOL kChangeKeyboardLED(BOOL bCapsLockOn, BOOL bNumLockOn, BOOL bScrollLockOn);
+void kEnableA20Gate(void);
+void kReboot(void);
+BOOL kIsAlphabetScanCode(BYTE bScanCode);
+BOOL kIsNumberOrSymbolScanCode(BYTE bScanCode);
+BOOL kIsNumberPadScanCode(BYTE bScanCode);
+BOOL kIsUseCombinedCode(BOOL bScanCode);
+void kUpdateCombinationKeyStatusAndLED(BYTE bScanCode);
+BOOL kConvertScanCodeToASCIICode(BYTE bScanCode, BYTE *pbASCIICode, BOOL *pbFlags);
 
-BOOL InitializeKeyboard(void);
-BOOL ConvertScanCodeAndPutQueue(BYTE bScanCode);
-BOOL GetKeyFromKeyQueue(KEYDATA *pstData);
-BOOL WaitForACKAndPutOtherScanCode(void);
+BOOL kInitializeKeyboard(void);
+BOOL kConvertScanCodeAndPutQueue(BYTE bScanCode);
+BOOL kGetKeyFromKeyQueue(KEYDATA *pstData);
+BOOL kWaitForACKAndPutOtherScanCode(void);
 
 #endif /*__KEYBOARD_H__*/

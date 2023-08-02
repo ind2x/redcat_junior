@@ -14,37 +14,37 @@ static FILESYSTEMMANAGER gs_stFileSystemManager;
 static BYTE gs_vbTempBuffer[FILESYSTEM_SECTORSPERCLUSTER * 512];
 
 
-fReadHDDInformation gs_pfReadHDDInformation = NULL;
-fReadHDDSector gs_pfReadHDDSector = NULL;
-fWriteHDDSector gs_pfWriteHDDSector = NULL;
+fkReadHDDInformation gs_pfkReadHDDInformation = NULL;
+fkReadHDDSector gs_pfkReadHDDSector = NULL;
+fkWriteHDDSector gs_pfkWriteHDDSector = NULL;
 
-BOOL InitializeFileSystem(void)
+BOOL kInitializeFileSystem(void)
 {
     BOOL bCacheEnable = FALSE;
 
-    MemSet(&gs_stFileSystemManager, 0, sizeof(gs_stFileSystemManager));
+    kMemSet(&gs_stFileSystemManager, 0, sizeof(gs_stFileSystemManager));
 
-    InitializeMutex(&(gs_stFileSystemManager.stMutex));
+    kInitializeMutex(&(gs_stFileSystemManager.stMutex));
 
     // 하드 디스크 초기화
-    if (InitializeHDD() == TRUE)
+    if (kInitializeHDD() == TRUE)
     {
         // 기능 함수 설정
-        gs_pfReadHDDInformation = ReadHDDInformation;
-        gs_pfReadHDDSector = ReadHDDSector;
-        gs_pfWriteHDDSector = WriteHDDSector;
+        gs_pfkReadHDDInformation = kReadHDDInformation;
+        gs_pfkReadHDDSector = kReadHDDSector;
+        gs_pfkWriteHDDSector = kWriteHDDSector;
 
         // 캐시 활성화
         bCacheEnable = TRUE;
     }
     // 램 디스크인 경우
-    else if(InitializeRDD(RDD_TOTALSECTORCOUNT) == TRUE)
+    else if(kInitializeRDD(RDD_TOTALSECTORCOUNT) == TRUE)
     {
-        gs_pfReadHDDInformation = ReadRDDInformation;
-        gs_pfReadHDDSector = ReadRDDSector;
-        gs_pfWriteHDDSector = WriteRDDSector;
+        gs_pfkReadHDDInformation = kReadRDDInformation;
+        gs_pfkReadHDDSector = kReadRDDSector;
+        gs_pfkWriteHDDSector = kWriteRDDSector;
 
-        if(Format() == FALSE)
+        if(kFormat() == FALSE)
         {
             return FALSE;
         }
@@ -55,13 +55,13 @@ BOOL InitializeFileSystem(void)
     }
 
     // 파일 시스템 인식
-    if (Mount() == FALSE)
+    if (kMount() == FALSE)
     {
         return FALSE;
     }
 
     // 파일은 Pool 형태로 관리하므로 영역을 할당해줘야 한다고 함
-    gs_stFileSystemManager.pstHandlePool = (FILE *) AllocateMemory(FILESYSTEM_HANDLE_MAXCOUNT * sizeof(FILE));
+    gs_stFileSystemManager.pstHandlePool = (FILE *) kAllocateMemory(FILESYSTEM_HANDLE_MAXCOUNT * sizeof(FILE));
 
     if(gs_stFileSystemManager.pstHandlePool == NULL)
     {
@@ -69,11 +69,11 @@ BOOL InitializeFileSystem(void)
         return FALSE;
     }
 
-    MemSet(gs_stFileSystemManager.pstHandlePool, 0, FILESYSTEM_HANDLE_MAXCOUNT * sizeof(FILE));
+    kMemSet(gs_stFileSystemManager.pstHandlePool, 0, FILESYSTEM_HANDLE_MAXCOUNT * sizeof(FILE));
 
     if(bCacheEnable == TRUE)
     {
-        gs_stFileSystemManager.bCacheEnable = InitializeCacheManager();
+        gs_stFileSystemManager.bCacheEnable = kInitializeCacheManager();
     }
 
     return TRUE;
@@ -82,16 +82,16 @@ BOOL InitializeFileSystem(void)
 /**
  * MINT 파일 시스템 인식 함수
 */
-BOOL Mount(void)
+BOOL kMount(void)
 {
     MBR *pstMBR;
 
-    Lock(&(gs_stFileSystemManager.stMutex));
+    kLock(&(gs_stFileSystemManager.stMutex));
     
     // MBR을 읽음
-    if (gs_pfReadHDDSector(TRUE, TRUE, 0, 1, gs_vbTempBuffer) == FALSE)
+    if (gs_pfkReadHDDSector(TRUE, TRUE, 0, 1, gs_vbTempBuffer) == FALSE)
     {
-        Unlock(&(gs_stFileSystemManager.stMutex));
+        kUnlock(&(gs_stFileSystemManager.stMutex));
         return FALSE;
     }
 
@@ -99,7 +99,7 @@ BOOL Mount(void)
     pstMBR = (MBR *)gs_vbTempBuffer;
     if (pstMBR->dwSignature != FILESYSTEM_SIGNATURE)    // 에러 발생..
     {
-        Unlock(&(gs_stFileSystemManager.stMutex));
+        kUnlock(&(gs_stFileSystemManager.stMutex));
         return FALSE;
     }
     
@@ -113,7 +113,7 @@ BOOL Mount(void)
     gs_stFileSystemManager.dwDataAreaStartAddress = pstMBR->dwReservedSectorCount + pstMBR->dwClusterLinkSectorCount + 1;
     gs_stFileSystemManager.dwTotalClusterCount = pstMBR->dwTotalClusterCount;
 
-    Unlock(&(gs_stFileSystemManager.stMutex));
+    kUnlock(&(gs_stFileSystemManager.stMutex));
     
     return TRUE;
 }
@@ -121,7 +121,7 @@ BOOL Mount(void)
 /**
  * 파일 시스탬 생성 함수
 */
-BOOL Format(void)
+BOOL kFormat(void)
 {
     HDDINFORMATION *pstHDD;
     MBR *pstMBR;
@@ -130,13 +130,13 @@ BOOL Format(void)
     DWORD dwClusterLinkSectorCount;
     DWORD i;
 
-    Lock(&(gs_stFileSystemManager.stMutex));
+    kLock(&(gs_stFileSystemManager.stMutex));
 
     // 하드 디스크 정보를 읽음
     pstHDD = (HDDINFORMATION *)gs_vbTempBuffer;
-    if (gs_pfReadHDDInformation(TRUE, TRUE, pstHDD) == FALSE)
+    if (gs_pfkReadHDDInformation(TRUE, TRUE, pstHDD) == FALSE)
     {
-        Unlock(&(gs_stFileSystemManager.stMutex));
+        kUnlock(&(gs_stFileSystemManager.stMutex));
         return FALSE;
     }
 
@@ -159,16 +159,16 @@ BOOL Format(void)
 
     // 메타 데이터 영역을 파악했으니 이제 초기화 해야함
     // MBR 영역 읽기
-    if (gs_pfReadHDDSector(TRUE, TRUE, 0, 1, gs_vbTempBuffer) == FALSE)
+    if (gs_pfkReadHDDSector(TRUE, TRUE, 0, 1, gs_vbTempBuffer) == FALSE)
     {
-        Unlock(&(gs_stFileSystemManager.stMutex));
+        kUnlock(&(gs_stFileSystemManager.stMutex));
         return FALSE;
     }
     pstMBR = (MBR *)gs_vbTempBuffer;
     
     // MBR 영역 초기화
     // MINT는 파티션은 사용하지 않으므로 0으로 초기화
-    MemSet(pstMBR->vstPartition, 0, sizeof(pstMBR->vstPartition));
+    kMemSet(pstMBR->vstPartition, 0, sizeof(pstMBR->vstPartition));
     
     // 시그니쳐는 MINT 파일 시스템 시그니쳐로
     pstMBR->dwSignature = FILESYSTEM_SIGNATURE;
@@ -179,14 +179,14 @@ BOOL Format(void)
     pstMBR->dwTotalClusterCount = dwClusterCount;
 
     // MBR 영역에 1섹터 씀
-    if (gs_pfWriteHDDSector(TRUE, TRUE, 0, 1, gs_vbTempBuffer) == FALSE)
+    if (gs_pfkWriteHDDSector(TRUE, TRUE, 0, 1, gs_vbTempBuffer) == FALSE)
     {
-        Unlock(&(gs_stFileSystemManager.stMutex));
+        kUnlock(&(gs_stFileSystemManager.stMutex));
         return FALSE;
     }
 
     // 임시 버퍼 초기화 후 MBR 이후부터 루트 디렉터리까지 모두 0으로 초기화
-    MemSet(gs_vbTempBuffer, 0, 512);
+    kMemSet(gs_vbTempBuffer, 0, 512);
     for (i = 0; i < (dwClusterLinkSectorCount + FILESYSTEM_SECTORSPERCLUSTER); i++)
     {
         // 루트 디렉터리는 클러스터 0이므로 할당되었음으로 표시
@@ -201,35 +201,35 @@ BOOL Format(void)
         }
 
         // 1섹터씩 씀
-        if (gs_pfWriteHDDSector(TRUE, TRUE, i + 1, 1, gs_vbTempBuffer) == FALSE)
+        if (gs_pfkWriteHDDSector(TRUE, TRUE, i + 1, 1, gs_vbTempBuffer) == FALSE)
         {
-            Unlock(&(gs_stFileSystemManager.stMutex));
+            kUnlock(&(gs_stFileSystemManager.stMutex));
             return FALSE;
         }
     }
 
     if(gs_stFileSystemManager.bCacheEnable == TRUE)
     {
-        DiscardAllCacheBuffer(CACHE_CLUSTERLINKTABLEAREA);
-        DiscardAllCacheBuffer(CACHE_DATAAREA);
+        kDiscardAllCacheBuffer(CACHE_CLUSTERLINKTABLEAREA);
+        kDiscardAllCacheBuffer(CACHE_DATAAREA);
     }
 
-    Unlock(&(gs_stFileSystemManager.stMutex));
+    kUnlock(&(gs_stFileSystemManager.stMutex));
     return TRUE;
 }
 
 /**
  * HDD 정보를 읽어옴
 */
-BOOL GetHDDInformation(HDDINFORMATION *pstInformation)
+BOOL kGetHDDInformation(HDDINFORMATION *pstInformation)
 {
     BOOL bResult;
 
-    Lock(&(gs_stFileSystemManager.stMutex));
+    kLock(&(gs_stFileSystemManager.stMutex));
 
-    bResult = gs_pfReadHDDInformation(TRUE, TRUE, pstInformation);
+    bResult = gs_pfkReadHDDInformation(TRUE, TRUE, pstInformation);
 
-    Unlock(&(gs_stFileSystemManager.stMutex));
+    kUnlock(&(gs_stFileSystemManager.stMutex));
 
     return bResult;
 }
@@ -238,65 +238,65 @@ BOOL GetHDDInformation(HDDINFORMATION *pstInformation)
  * 클러스터 링크 테이블 영역 내의 오프셋에서 1섹터 읽음
  * 
 */
-static BOOL ReadClusterLinkTable(DWORD dwOffset, BYTE *pbBuffer)
+static BOOL kkReadClusterLinkTable(DWORD dwOffset, BYTE *pbBuffer)
 {
     if(gs_stFileSystemManager.bCacheEnable == FALSE)
     {
-        return InternalReadClusterLinkTableWithoutCache(dwOffset, pbBuffer);
+        return kInternalkkReadClusterLinkTableWithoutCache(dwOffset, pbBuffer);
     }
     else
     {
-        return InternalReadClusterLinkTableWithCache(dwOffset, pbBuffer);
+        return kInternalkkReadClusterLinkTableWithCache(dwOffset, pbBuffer);
     }
 }
 
-static BOOL InternalReadClusterLinkTableWithoutCache(DWORD dwOffset,BYTE *pbBuffer)
+static BOOL kInternalkkReadClusterLinkTableWithoutCache(DWORD dwOffset,BYTE *pbBuffer)
 {
-    return gs_pfReadHDDSector(TRUE, TRUE, dwOffset + gs_stFileSystemManager.dwClusterLinkAreaStartAddress, 1, pbBuffer);
+    return gs_pfkReadHDDSector(TRUE, TRUE, dwOffset + gs_stFileSystemManager.dwClusterLinkAreaStartAddress, 1, pbBuffer);
 }
 
-static BOOL InternalReadClusterLinkTableWithCache(DWORD dwOffset, BYTE *pbBuffer)
+static BOOL kInternalkkReadClusterLinkTableWithCache(DWORD dwOffset, BYTE *pbBuffer)
 {
     CACHEBUFFER *pstCacheBuffer;
 
-    pstCacheBuffer = FindCacheBuffer(CACHE_CLUSTERLINKTABLEAREA, dwOffset);
+    pstCacheBuffer = kFindCacheBuffer(CACHE_CLUSTERLINKTABLEAREA, dwOffset);
 
     if (pstCacheBuffer != NULL)
     {
-        MemCpy(pbBuffer, pstCacheBuffer->pbBuffer, 512);
+        kMemCpy(pbBuffer, pstCacheBuffer->pbBuffer, 512);
         return TRUE;
     }
 
-    if (InternalReadClusterLinkTableWithoutCache(dwOffset, pbBuffer) == FALSE)
+    if (kInternalkkReadClusterLinkTableWithoutCache(dwOffset, pbBuffer) == FALSE)
     {
         return FALSE;
     }
 
-    pstCacheBuffer = AllocateCacheBufferWithFlush(CACHE_CLUSTERLINKTABLEAREA);
+    pstCacheBuffer = kAllocateCacheBufferWithFlush(CACHE_CLUSTERLINKTABLEAREA);
     
     if (pstCacheBuffer == NULL)
     {
         return FALSE;
     }
 
-    MemCpy(pstCacheBuffer->pbBuffer, pbBuffer, 512);
+    kMemCpy(pstCacheBuffer->pbBuffer, pbBuffer, 512);
     pstCacheBuffer->dwTag = dwOffset;
 
     pstCacheBuffer->bChanged = FALSE;
     return TRUE;
 }
 
-static CACHEBUFFER *AllocateCacheBufferWithFlush(int iCacheTableIndex)
+static CACHEBUFFER *kAllocateCacheBufferWithFlush(int iCacheTableIndex)
 {
     CACHEBUFFER *pstCacheBuffer;
 
-    pstCacheBuffer = AllocateCacheBuffer(iCacheTableIndex);
+    pstCacheBuffer = kAllocateCacheBuffer(iCacheTableIndex);
     if (pstCacheBuffer == NULL)
     {
-        pstCacheBuffer = GetVictimInCacheBuffer(iCacheTableIndex);
+        pstCacheBuffer = kGetVictimInCacheBuffer(iCacheTableIndex);
         if (pstCacheBuffer == NULL)
         {
-            Printf("[!] Cache Allocate Fail~!!!!\n");
+            kPrintf("[!] Cache Allocate Fail~!!!!\n");
             return NULL;
         }
 
@@ -305,23 +305,23 @@ static CACHEBUFFER *AllocateCacheBufferWithFlush(int iCacheTableIndex)
             switch (iCacheTableIndex)
             {
             case CACHE_CLUSTERLINKTABLEAREA:
-                if (InternalWriteClusterLinkTableWithoutCache(pstCacheBuffer->dwTag, pstCacheBuffer->pbBuffer) == FALSE)
+                if (kInternalkkWriteClusterLinkTableWithoutCache(pstCacheBuffer->dwTag, pstCacheBuffer->pbBuffer) == FALSE)
                 {
-                    Printf("[!] Cache Buffer Write Fail~!!!!\n");
+                    kPrintf("[!] Cache Buffer Write Fail~!!!!\n");
                     return NULL;
                 }
                 break;
 
             case CACHE_DATAAREA:
-                if (InternalWriteClusterWithoutCache(pstCacheBuffer->dwTag, pstCacheBuffer->pbBuffer) == FALSE)
+                if (kInternalkWriteClusterWithoutCache(pstCacheBuffer->dwTag, pstCacheBuffer->pbBuffer) == FALSE)
                 {
-                    Printf("[!] Cache Buffer Write Fail~!!!!\n");
+                    kPrintf("[!] Cache Buffer Write Fail~!!!!\n");
                     return NULL;
                 }
                 break;
 
             default:
-                Printf("[!] AllocateCacheBufferWithFlush Fail\n");
+                kPrintf("[!] kAllocateCacheBufferWithFlush Fail\n");
                 return NULL;
                 break;
             }
@@ -333,45 +333,45 @@ static CACHEBUFFER *AllocateCacheBufferWithFlush(int iCacheTableIndex)
 /**
  * 클러스터 링크 테이블 영역의 오프셋에서 1섹터 씀
 */
-static BOOL WriteClusterLinkTable(DWORD dwOffset, BYTE *pbBuffer)
+static BOOL kkWriteClusterLinkTable(DWORD dwOffset, BYTE *pbBuffer)
 {
     if (gs_stFileSystemManager.bCacheEnable == FALSE)
     {
-        return InternalWriteClusterLinkTableWithoutCache(dwOffset, pbBuffer);
+        return kInternalkkWriteClusterLinkTableWithoutCache(dwOffset, pbBuffer);
     }
     else
     {
-        return InternalWriteClusterLinkTableWithCache(dwOffset, pbBuffer);
+        return kInternalkkWriteClusterLinkTableWithCache(dwOffset, pbBuffer);
     }
 }
 
-static BOOL InternalWriteClusterLinkTableWithoutCache(DWORD dwOffset,BYTE *pbBuffer)
+static BOOL kInternalkkWriteClusterLinkTableWithoutCache(DWORD dwOffset,BYTE *pbBuffer)
 {
-    return gs_pfWriteHDDSector(TRUE, TRUE, dwOffset + gs_stFileSystemManager.dwClusterLinkAreaStartAddress, 1, pbBuffer);
+    return gs_pfkWriteHDDSector(TRUE, TRUE, dwOffset + gs_stFileSystemManager.dwClusterLinkAreaStartAddress, 1, pbBuffer);
 }
 
-static BOOL InternalWriteClusterLinkTableWithCache(DWORD dwOffset, BYTE *pbBuffer)
+static BOOL kInternalkkWriteClusterLinkTableWithCache(DWORD dwOffset, BYTE *pbBuffer)
 {
     CACHEBUFFER *pstCacheBuffer;
 
-    pstCacheBuffer = FindCacheBuffer(CACHE_CLUSTERLINKTABLEAREA, dwOffset);
+    pstCacheBuffer = kFindCacheBuffer(CACHE_CLUSTERLINKTABLEAREA, dwOffset);
 
     if (pstCacheBuffer != NULL)
     {
-        MemCpy(pstCacheBuffer->pbBuffer, pbBuffer, 512);
+        kMemCpy(pstCacheBuffer->pbBuffer, pbBuffer, 512);
 
         pstCacheBuffer->bChanged = TRUE;
         return TRUE;
     }
 
-    pstCacheBuffer = AllocateCacheBufferWithFlush(CACHE_CLUSTERLINKTABLEAREA);
+    pstCacheBuffer = kAllocateCacheBufferWithFlush(CACHE_CLUSTERLINKTABLEAREA);
     
     if (pstCacheBuffer == NULL)
     {
         return FALSE;
     }
 
-    MemCpy(pstCacheBuffer->pbBuffer, pbBuffer, 512);
+    kMemCpy(pstCacheBuffer->pbBuffer, pbBuffer, 512);
     pstCacheBuffer->dwTag = dwOffset;
 
     pstCacheBuffer->bChanged = TRUE;
@@ -383,47 +383,47 @@ static BOOL InternalWriteClusterLinkTableWithCache(DWORD dwOffset, BYTE *pbBuffe
  * 데이터 영역의 클러스터를 읽는 함수
  * 클러스터 단위로 읽으며 오프셋을 이용해서 계산
 */
-static BOOL ReadCluster(DWORD dwOffset, BYTE *pbBuffer)
+static BOOL kReadCluster(DWORD dwOffset, BYTE *pbBuffer)
 {
     if (gs_stFileSystemManager.bCacheEnable == FALSE)
     {
-        return InternalReadClusterWithoutCache(dwOffset, pbBuffer);
+        return kInternalkReadClusterWithoutCache(dwOffset, pbBuffer);
     }
     else
     {
-        return InternalReadClusterWithCache(dwOffset, pbBuffer);
+        return kInternalkReadClusterWithCache(dwOffset, pbBuffer);
     }
 }
 
-static BOOL InternalReadClusterWithoutCache(DWORD dwOffset, BYTE *pbBuffer)
+static BOOL kInternalkReadClusterWithoutCache(DWORD dwOffset, BYTE *pbBuffer)
 {
-    return gs_pfReadHDDSector(TRUE, TRUE, (dwOffset * FILESYSTEM_SECTORSPERCLUSTER) + gs_stFileSystemManager.dwDataAreaStartAddress, FILESYSTEM_SECTORSPERCLUSTER, pbBuffer);
+    return gs_pfkReadHDDSector(TRUE, TRUE, (dwOffset * FILESYSTEM_SECTORSPERCLUSTER) + gs_stFileSystemManager.dwDataAreaStartAddress, FILESYSTEM_SECTORSPERCLUSTER, pbBuffer);
 }
 
-static BOOL InternalReadClusterWithCache(DWORD dwOffset, BYTE *pbBuffer)
+static BOOL kInternalkReadClusterWithCache(DWORD dwOffset, BYTE *pbBuffer)
 {
     CACHEBUFFER *pstCacheBuffer;
 
-    pstCacheBuffer = FindCacheBuffer(CACHE_DATAAREA, dwOffset);
+    pstCacheBuffer = kFindCacheBuffer(CACHE_DATAAREA, dwOffset);
 
     if (pstCacheBuffer != NULL)
     {
-        MemCpy(pbBuffer, pstCacheBuffer->pbBuffer, FILESYSTEM_CLUSTERSIZE);
+        kMemCpy(pbBuffer, pstCacheBuffer->pbBuffer, FILESYSTEM_CLUSTERSIZE);
         return TRUE;
     }
 
-    if (InternalReadClusterWithoutCache(dwOffset, pbBuffer) == FALSE)
+    if (kInternalkReadClusterWithoutCache(dwOffset, pbBuffer) == FALSE)
     {
         return FALSE;
     }
 
-    pstCacheBuffer = AllocateCacheBufferWithFlush(CACHE_DATAAREA);
+    pstCacheBuffer = kAllocateCacheBufferWithFlush(CACHE_DATAAREA);
     if (pstCacheBuffer == NULL)
     {
         return FALSE;
     }
 
-    MemCpy(pstCacheBuffer->pbBuffer, pbBuffer, FILESYSTEM_CLUSTERSIZE);
+    kMemCpy(pstCacheBuffer->pbBuffer, pbBuffer, FILESYSTEM_CLUSTERSIZE);
     pstCacheBuffer->dwTag = dwOffset;
 
     pstCacheBuffer->bChanged = FALSE;
@@ -433,45 +433,45 @@ static BOOL InternalReadClusterWithCache(DWORD dwOffset, BYTE *pbBuffer)
 /**
  * 데이터 영역의 클러스터에 값을 씀
 */
-static BOOL WriteCluster(DWORD dwOffset, BYTE *pbBuffer)
+static BOOL kWriteCluster(DWORD dwOffset, BYTE *pbBuffer)
 {
     if (gs_stFileSystemManager.bCacheEnable == FALSE)
     {
-        return InternalWriteClusterWithoutCache(dwOffset, pbBuffer);
+        return kInternalkWriteClusterWithoutCache(dwOffset, pbBuffer);
     }
     else
     {
-        return InternalWriteClusterWithCache(dwOffset, pbBuffer);
+        return kInternalkWriteClusterWithCache(dwOffset, pbBuffer);
     }
 }
 
-static BOOL InternalWriteClusterWithoutCache(DWORD dwOffset, BYTE *pbBuffer)
+static BOOL kInternalkWriteClusterWithoutCache(DWORD dwOffset, BYTE *pbBuffer)
 {
-    return gs_pfWriteHDDSector(TRUE, TRUE, (dwOffset * FILESYSTEM_SECTORSPERCLUSTER) + gs_stFileSystemManager.dwDataAreaStartAddress, FILESYSTEM_SECTORSPERCLUSTER, pbBuffer);
+    return gs_pfkWriteHDDSector(TRUE, TRUE, (dwOffset * FILESYSTEM_SECTORSPERCLUSTER) + gs_stFileSystemManager.dwDataAreaStartAddress, FILESYSTEM_SECTORSPERCLUSTER, pbBuffer);
 }
 
-static BOOL InternalWriteClusterWithCache(DWORD dwOffset, BYTE *pbBuffer)
+static BOOL kInternalkWriteClusterWithCache(DWORD dwOffset, BYTE *pbBuffer)
 {
     CACHEBUFFER *pstCacheBuffer;
 
-    pstCacheBuffer = FindCacheBuffer(CACHE_DATAAREA, dwOffset);
+    pstCacheBuffer = kFindCacheBuffer(CACHE_DATAAREA, dwOffset);
 
     if (pstCacheBuffer != NULL)
     {
-        MemCpy(pstCacheBuffer->pbBuffer, pbBuffer, FILESYSTEM_CLUSTERSIZE);
+        kMemCpy(pstCacheBuffer->pbBuffer, pbBuffer, FILESYSTEM_CLUSTERSIZE);
 
         pstCacheBuffer->bChanged = TRUE;
 
         return TRUE;
     }
 
-    pstCacheBuffer = AllocateCacheBufferWithFlush(CACHE_DATAAREA);
+    pstCacheBuffer = kAllocateCacheBufferWithFlush(CACHE_DATAAREA);
     if (pstCacheBuffer == NULL)
     {
         return FALSE;
     }
 
-    MemCpy(pstCacheBuffer->pbBuffer, pbBuffer, FILESYSTEM_CLUSTERSIZE);
+    kMemCpy(pstCacheBuffer->pbBuffer, pbBuffer, FILESYSTEM_CLUSTERSIZE);
     pstCacheBuffer->dwTag = dwOffset;
 
     pstCacheBuffer->bChanged = TRUE;
@@ -484,7 +484,7 @@ static BOOL InternalWriteClusterWithCache(DWORD dwOffset, BYTE *pbBuffer)
  * 읽은 섹터 내에서 값이 0x00으로 저장된 부분을 찾으면 됨
  * 클러스터 링크 테이블에는 1섹터 당 128개의 링크가 있음
 */
-static DWORD FindFreeCluster(void)
+static DWORD kFindFreeCluster(void)
 {
     DWORD dwLinkCountInSector;
     DWORD dwLastSectorOffset, dwCurrentSectorOffset;
@@ -516,7 +516,7 @@ static DWORD FindFreeCluster(void)
         // 이번에 읽어야 할 클러스터 링크 테이블 내의 섹터 오프셋을 구해서 읽음
         dwCurrentSectorOffset = (dwLastSectorOffset + i) % gs_stFileSystemManager.dwClusterLinkAreaSize;
         
-        if (ReadClusterLinkTable(dwCurrentSectorOffset, gs_vbTempBuffer) == FALSE)
+        if (kkReadClusterLinkTable(dwCurrentSectorOffset, gs_vbTempBuffer) == FALSE)
         {
             return FILESYSTEM_LASTCLUSTER;
         }
@@ -553,7 +553,7 @@ static DWORD FindFreeCluster(void)
  * 오프셋을 구한 후 링크 정보를 넣어 줄 데이터 공간의 오프셋을 구해야 함
  * 방법은 클러스터 인덱스 % 128
 */
-static BOOL SetClusterLinkData(DWORD dwClusterIndex, DWORD dwData)
+static BOOL kSetClusterLinkData(DWORD dwClusterIndex, DWORD dwData)
 {
     DWORD dwSectorOffset;
 
@@ -567,7 +567,7 @@ static BOOL SetClusterLinkData(DWORD dwClusterIndex, DWORD dwData)
     dwSectorOffset = dwClusterIndex / 128;
     
     // 해당 섹터를 읽음
-    if (ReadClusterLinkTable(dwSectorOffset, gs_vbTempBuffer) == FALSE)
+    if (kkReadClusterLinkTable(dwSectorOffset, gs_vbTempBuffer) == FALSE)
     {
         return FALSE;
     }
@@ -576,7 +576,7 @@ static BOOL SetClusterLinkData(DWORD dwClusterIndex, DWORD dwData)
     ((DWORD *)gs_vbTempBuffer)[dwClusterIndex % 128] = dwData;
 
     // 해당 섹터에 다시 값을 설정
-    if (WriteClusterLinkTable(dwSectorOffset, gs_vbTempBuffer) == FALSE)
+    if (kkWriteClusterLinkTable(dwSectorOffset, gs_vbTempBuffer) == FALSE)
     {
         return FALSE;
     }
@@ -587,7 +587,7 @@ static BOOL SetClusterLinkData(DWORD dwClusterIndex, DWORD dwData)
 /**
  * 클러스터 링크 테이블의 값을 읽음
 */
-static BOOL GetClusterLinkData(DWORD dwClusterIndex, DWORD *pdwData)
+static BOOL kGetClusterLinkData(DWORD dwClusterIndex, DWORD *pdwData)
 {
     DWORD dwSectorOffset;
 
@@ -604,7 +604,7 @@ static BOOL GetClusterLinkData(DWORD dwClusterIndex, DWORD *pdwData)
         return FALSE;
     }
     // 해당 섹터를 읽음
-    if (ReadClusterLinkTable(dwSectorOffset, gs_vbTempBuffer) == FALSE)
+    if (kkReadClusterLinkTable(dwSectorOffset, gs_vbTempBuffer) == FALSE)
     {
         return FALSE;
     }
@@ -618,7 +618,7 @@ static BOOL GetClusterLinkData(DWORD dwClusterIndex, DWORD *pdwData)
  * 루트 디렉터리에서 빈 디렉터리 엔트리 검색
  * 즉, 생성할 파일을 담을 공간을 검색
 */
-static int FindFreeDirectoryEntry(void)
+static int kFindFreeDirectoryEntry(void)
 {
     DIRECTORYENTRY *pstEntry;
     int i;
@@ -630,7 +630,7 @@ static int FindFreeDirectoryEntry(void)
 
     // 클러스터 0은 루트 디렉터리임
     // 루트 디렉터리를 읽음
-    if (ReadCluster(0, gs_vbTempBuffer) == FALSE)
+    if (kReadCluster(0, gs_vbTempBuffer) == FALSE)
     {
         return -1;
     }
@@ -653,7 +653,7 @@ static int FindFreeDirectoryEntry(void)
 /**
  * 루트 디렉터리의 해당 인덱스에 엔트리 설정
 */
-static BOOL SetDirectoryEntryData(int iIndex, DIRECTORYENTRY *pstEntry)
+static BOOL kSetDirectoryEntryData(int iIndex, DIRECTORYENTRY *pstEntry)
 {
     DIRECTORYENTRY *pstRootEntry;
 
@@ -665,17 +665,17 @@ static BOOL SetDirectoryEntryData(int iIndex, DIRECTORYENTRY *pstEntry)
     }
 
     // 루트 디렉터리를 읽음
-    if (ReadCluster(0, gs_vbTempBuffer) == FALSE)
+    if (kReadCluster(0, gs_vbTempBuffer) == FALSE)
     {
         return FALSE;
     }
 
     // 루트 디렉터리에 있는 해당 데이터를 갱신
     pstRootEntry = (DIRECTORYENTRY *)gs_vbTempBuffer;
-    MemCpy(pstRootEntry + iIndex, pstEntry, sizeof(DIRECTORYENTRY));
+    kMemCpy(pstRootEntry + iIndex, pstEntry, sizeof(DIRECTORYENTRY));
 
     // 루트 디렉터리에 씀
-    if (WriteCluster(0, gs_vbTempBuffer) == FALSE)
+    if (kWriteCluster(0, gs_vbTempBuffer) == FALSE)
     {
         return FALSE;
     }
@@ -686,7 +686,7 @@ static BOOL SetDirectoryEntryData(int iIndex, DIRECTORYENTRY *pstEntry)
 /**
  * 루트 디렉터리의 해당 인덱스에 위치하는 디렉터리 엔트리 반환
 */
-static BOOL GetDirectoryEntryData(int iIndex, DIRECTORYENTRY *pstEntry)
+static BOOL kGetDirectoryEntryData(int iIndex, DIRECTORYENTRY *pstEntry)
 {
     DIRECTORYENTRY *pstRootEntry;
 
@@ -696,14 +696,14 @@ static BOOL GetDirectoryEntryData(int iIndex, DIRECTORYENTRY *pstEntry)
     }
 
     // 루트 디렉터리를 읽음
-    if (ReadCluster(0, gs_vbTempBuffer) == FALSE)
+    if (kReadCluster(0, gs_vbTempBuffer) == FALSE)
     {
         return FALSE;
     }
 
     pstRootEntry = (DIRECTORYENTRY *)gs_vbTempBuffer;
     // 해당 엔트리를 가져옴
-    MemCpy(pstEntry, pstRootEntry + iIndex, sizeof(DIRECTORYENTRY));
+    kMemCpy(pstEntry, pstRootEntry + iIndex, sizeof(DIRECTORYENTRY));
     
     return TRUE;
 }
@@ -711,7 +711,7 @@ static BOOL GetDirectoryEntryData(int iIndex, DIRECTORYENTRY *pstEntry)
 /**
  * 루트 디렉터리에서 파일 이름이 일치하는 엔트리 검색
 */
-static int FindDirectoryEntry(const char *pcFileName, DIRECTORYENTRY *pstEntry)
+static int kFindDirectoryEntry(const char *pcFileName, DIRECTORYENTRY *pstEntry)
 {
     DIRECTORYENTRY *pstRootEntry;
     int i;
@@ -722,22 +722,22 @@ static int FindDirectoryEntry(const char *pcFileName, DIRECTORYENTRY *pstEntry)
         return -1;
     }
     // 루트 읽음
-    if (ReadCluster(0, gs_vbTempBuffer) == FALSE)
+    if (kReadCluster(0, gs_vbTempBuffer) == FALSE)
     {
         return -1;
     }
     // 파일 길이 확인
-    iLength = StrLen(pcFileName);
+    iLength = kStrLen(pcFileName);
     
     pstRootEntry = (DIRECTORYENTRY *)gs_vbTempBuffer;
     // 전체 디렉터리 엔트리에서 파일 명 검색
     for (i = 0; i < FILESYSTEM_MAXDIRECTORYENTRYCOUNT; i++)
     {
         // 파일 이름과 길이가 같은지 확인
-        if (MemCmp(pstRootEntry[i].vcFileName, pcFileName, iLength) == 0)
+        if (kMemCmp(pstRootEntry[i].vcFileName, pcFileName, iLength) == 0)
         {
             // 같으면 가져옴
-            MemCpy(pstEntry, pstRootEntry + i, sizeof(DIRECTORYENTRY));
+            kMemCpy(pstEntry, pstRootEntry + i, sizeof(DIRECTORYENTRY));
             return i;
         }
     }
@@ -745,15 +745,15 @@ static int FindDirectoryEntry(const char *pcFileName, DIRECTORYENTRY *pstEntry)
     return -1;
 }
 
-void GetFileSystemInformation(FILESYSTEMMANAGER *pstManager)
+void kGetFileSystemInformation(FILESYSTEMMANAGER *pstManager)
 {
-    MemCpy(pstManager, &gs_stFileSystemManager, sizeof(gs_stFileSystemManager));
+    kMemCpy(pstManager, &gs_stFileSystemManager, sizeof(gs_stFileSystemManager));
 }
 
 /**
  * 비어있는 핸들 할당
 */
-static void *AllocateFileDirectoryHandle(void)
+static void *kAllocateFileDirectoryHandle(void)
 {
     int i;
     FILE *pstFile;
@@ -778,10 +778,10 @@ static void *AllocateFileDirectoryHandle(void)
 /**
  * 사용한 핸들을 반환
 */
-static void FreeFileDirectoryHandle(FILE *pstFile)
+static void kFreeFileDirectoryHandle(FILE *pstFile)
 {
     // 전체 영역을 초기화 후 비어 있는 타입으로 설정
-    MemSet(pstFile, 0, sizeof(FILE));
+    kMemSet(pstFile, 0, sizeof(FILE));
     pstFile->bType = FILESYSTEM_TYPE_FREE;
 }
 
@@ -792,35 +792,35 @@ static void FreeFileDirectoryHandle(FILE *pstFile)
 /**
  * 파일 생성 함수
 */
-static BOOL CreateFile(const char *pcFileName, DIRECTORYENTRY *pstEntry, int *piDirectoryEntryIndex)
+static BOOL kCreateFile(const char *pcFileName, DIRECTORYENTRY *pstEntry, int *piDirectoryEntryIndex)
 {
     DWORD dwCluster;
 
     // 빈 클러스터 검색
-    dwCluster = FindFreeCluster();
-    if((dwCluster == FILESYSTEM_LASTCLUSTER) || (SetClusterLinkData(dwCluster, FILESYSTEM_LASTCLUSTER) == FALSE))
+    dwCluster = kFindFreeCluster();
+    if((dwCluster == FILESYSTEM_LASTCLUSTER) || (kSetClusterLinkData(dwCluster, FILESYSTEM_LASTCLUSTER) == FALSE))
     {
         return FALSE;
     }
 
     // 빈 디렉터리 엔트리 검색
-    *piDirectoryEntryIndex = FindFreeDirectoryEntry();
+    *piDirectoryEntryIndex = kFindFreeDirectoryEntry();
     if(*piDirectoryEntryIndex == -1)
     {
-        SetClusterLinkData(dwCluster, FILESYSTEM_FREECLUSTER);
+        kSetClusterLinkData(dwCluster, FILESYSTEM_FREECLUSTER);
         return FALSE;
     }
 
     // 디렉터리 엔트리 설정
     // 파일 명, 파일 크기, 시작 클러스터 위치
-    MemCpy(pstEntry->vcFileName, pcFileName, StrLen(pcFileName) + 1);
+    kMemCpy(pstEntry->vcFileName, pcFileName, kStrLen(pcFileName) + 1);
     pstEntry->dwStartClusterIndex = dwCluster;
     pstEntry->dwFileSize = 0;
 
     // 디렉터리 엔트리 등록
-    if(SetDirectoryEntryData(*piDirectoryEntryIndex, pstEntry) == FALSE)
+    if(kSetDirectoryEntryData(*piDirectoryEntryIndex, pstEntry) == FALSE)
     {
-        SetClusterLinkData(dwCluster, FILESYSTEM_FREECLUSTER);
+        kSetClusterLinkData(dwCluster, FILESYSTEM_FREECLUSTER);
         return FALSE;
     }
 
@@ -830,7 +830,7 @@ static BOOL CreateFile(const char *pcFileName, DIRECTORYENTRY *pstEntry, int *pi
 /**
  * 파일의 시작 클러스터부터 마지막 클러스터까지 모두 해제
 */
-static BOOL FreeClusterUntilEnd(DWORD dwClusterIndex)
+static BOOL kFreeClusterUntilEnd(DWORD dwClusterIndex)
 {
     DWORD dwCurrentClusterIndex;
     DWORD dwNextClusterIndex;
@@ -841,13 +841,13 @@ static BOOL FreeClusterUntilEnd(DWORD dwClusterIndex)
     while(dwCurrentClusterIndex != FILESYSTEM_LASTCLUSTER)
     {
         // 다음 클러스터 위치 검색
-        if(GetClusterLinkData(dwCurrentClusterIndex, &dwNextClusterIndex) == FALSE)
+        if(kGetClusterLinkData(dwCurrentClusterIndex, &dwNextClusterIndex) == FALSE)
         {
             return FALSE;
         }
         
         // 현재 클러스터를 해제
-        if(SetClusterLinkData(dwCurrentClusterIndex, FILESYSTEM_FREECLUSTER) == FALSE)
+        if(kSetClusterLinkData(dwCurrentClusterIndex, FILESYSTEM_FREECLUSTER) == FALSE)
         {
             return FALSE;
         }
@@ -863,7 +863,7 @@ static BOOL FreeClusterUntilEnd(DWORD dwClusterIndex)
  * POSIX fopen 함수 구현
  * 파일 명과 모드를 인자로 받음
 */
-FILE *OpenFile(const char *pcFileName, const char *pcMode)
+FILE *kOpenFile(const char *pcFileName, const char *pcMode)
 {
     DIRECTORYENTRY stEntry;
     int iDirectoryEntryOffset;
@@ -872,30 +872,30 @@ FILE *OpenFile(const char *pcFileName, const char *pcMode)
     FILE *pstFile;
 
     // 파일 길이 확인
-    iFileNameLength = StrLen(pcFileName);
+    iFileNameLength = kStrLen(pcFileName);
     if( (iFileNameLength > (sizeof(stEntry.vcFileName) -1) ) || (iFileNameLength == 0))
     {
         return NULL;
     }
 
-    Lock(&(gs_stFileSystemManager.stMutex));
+    kLock(&(gs_stFileSystemManager.stMutex));
 
     // 해당 파일이 있는지 확인
-    iDirectoryEntryOffset = FindDirectoryEntry(pcFileName, &stEntry);
+    iDirectoryEntryOffset = kFindDirectoryEntry(pcFileName, &stEntry);
     // 해당 파일이 없는 경우
     if(iDirectoryEntryOffset == -1)
     {
         // 모드가 r이면 파일을 생성할 수 없으므로 종료
         if(pcMode[0] == 'r')
         {
-            Unlock(&(gs_stFileSystemManager.stMutex));
+            kUnlock(&(gs_stFileSystemManager.stMutex));
             return NULL;
         }
 
         // 나머지 경우 파일을 생성
-        if(CreateFile(pcFileName, &stEntry, &iDirectoryEntryOffset) == FALSE)
+        if(kCreateFile(pcFileName, &stEntry, &iDirectoryEntryOffset) == FALSE)
         {
-            Unlock(&(gs_stFileSystemManager.stMutex));
+            kUnlock(&(gs_stFileSystemManager.stMutex));
             return NULL;
         }
     }
@@ -903,41 +903,41 @@ FILE *OpenFile(const char *pcFileName, const char *pcMode)
     else if(pcMode[0] == 'w')
     {
         // 시작 클러스터 위치를 넘겨서 두 번째 클러스터 위치 정보를 가져옴
-        if(GetClusterLinkData(stEntry.dwStartClusterIndex, &dwSecondCluster) == FALSE)
+        if(kGetClusterLinkData(stEntry.dwStartClusterIndex, &dwSecondCluster) == FALSE)
         {
-            Unlock(&(gs_stFileSystemManager.stMutex));
+            kUnlock(&(gs_stFileSystemManager.stMutex));
             return NULL;
         }
 
         // 시작 클러스터를 마지막 클러스터로 설정
-        if(SetClusterLinkData(stEntry.dwStartClusterIndex, FILESYSTEM_LASTCLUSTER) == FALSE)
+        if(kSetClusterLinkData(stEntry.dwStartClusterIndex, FILESYSTEM_LASTCLUSTER) == FALSE)
         {
-            Unlock(&(gs_stFileSystemManager.stMutex));
+            kUnlock(&(gs_stFileSystemManager.stMutex));
             return NULL;
         }
 
         // 다음 클러스터부터 마지막 클러스터까지 모두 해제
-        if(FreeClusterUntilEnd(dwSecondCluster) == FALSE)
+        if(kFreeClusterUntilEnd(dwSecondCluster) == FALSE)
         {
-            Unlock(&(gs_stFileSystemManager.stMutex));
+            kUnlock(&(gs_stFileSystemManager.stMutex));
             return NULL;
         }
 
         // 파일 크기를 0으로 설정
         stEntry.dwFileSize = 0;
         // 해당 파일의 디렉터리 엔트리에 값 재설정
-        if(SetDirectoryEntryData(iDirectoryEntryOffset, &stEntry) == FALSE)
+        if(kSetDirectoryEntryData(iDirectoryEntryOffset, &stEntry) == FALSE)
         {
-            Unlock(&(gs_stFileSystemManager.stMutex));
+            kUnlock(&(gs_stFileSystemManager.stMutex));
             return NULL;
         }
     }
 
     // 파일에 핸들 할당
-    pstFile = AllocateFileDirectoryHandle();
+    pstFile = kAllocateFileDirectoryHandle();
     if(pstFile == NULL)
     {
-        Unlock(&(gs_stFileSystemManager.stMutex));
+        kUnlock(&(gs_stFileSystemManager.stMutex));
         return NULL;
     }
 
@@ -954,10 +954,10 @@ FILE *OpenFile(const char *pcFileName, const char *pcMode)
     if(pcMode[0] == 'a')
     {
         // 파일 끝으로 이동
-        SeekFile(pstFile, 0, FILESYSTEM_SEEK_END);
+        kSeekFile(pstFile, 0, FILESYSTEM_SEEK_END);
     }
 
-    Unlock(&(gs_stFileSystemManager.stMutex));
+    kUnlock(&(gs_stFileSystemManager.stMutex));
     
     return pstFile;
 }
@@ -966,7 +966,7 @@ FILE *OpenFile(const char *pcFileName, const char *pcMode)
  * POSIX fread 함수 구현
  * 파일을 읽는 함수
 */
-DWORD ReadFile(void *pvBuffer, DWORD dwSize, DWORD dwCount, FILE *pstFile)
+DWORD kReadFile(void *pvBuffer, DWORD dwSize, DWORD dwCount, FILE *pstFile)
 {
     DWORD dwTotalCount;
     DWORD dwReadCount;
@@ -992,14 +992,14 @@ DWORD ReadFile(void *pvBuffer, DWORD dwSize, DWORD dwCount, FILE *pstFile)
     // 파일 끝과 비교해서 실제로 읽을 수 있는 값 계산
     dwTotalCount = MIN(dwSize * dwCount, pstFileHandle->dwFileSize - pstFileHandle->dwCurrentOffset);
 
-    Lock(&(gs_stFileSystemManager.stMutex));
+    kLock(&(gs_stFileSystemManager.stMutex));
 
     // 계산된 값만큼 다 읽을 때 까지 반복
     dwReadCount = 0;
     while(dwReadCount != dwTotalCount)
     {
         // 파일의 현재 클러스터를 읽어서 버퍼에 복사
-        if(ReadCluster(pstFileHandle->dwCurrentClusterIndex, gs_vbTempBuffer) == FALSE)
+        if(kReadCluster(pstFileHandle->dwCurrentClusterIndex, gs_vbTempBuffer) == FALSE)
         {
             break;
         }
@@ -1010,7 +1010,7 @@ DWORD ReadFile(void *pvBuffer, DWORD dwSize, DWORD dwCount, FILE *pstFile)
         // 여러 클러스터에 걸쳐 있다면 현재 클러스터에서 남은 만큼 읽고 다음 클러스터로 이동
         dwCopySize = MIN(FILESYSTEM_CLUSTERSIZE - dwOffsetInCluster, dwTotalCount - dwReadCount);
         
-        MemCpy((char *)pvBuffer + dwReadCount, gs_vbTempBuffer + dwOffsetInCluster, dwCopySize);
+        kMemCpy((char *)pvBuffer + dwReadCount, gs_vbTempBuffer + dwOffsetInCluster, dwCopySize);
 
         // 읽은 바이트 수와 파일 포인터 위치를 갱신
         dwReadCount += dwCopySize;
@@ -1020,7 +1020,7 @@ DWORD ReadFile(void *pvBuffer, DWORD dwSize, DWORD dwCount, FILE *pstFile)
         if ((pstFileHandle->dwCurrentOffset % FILESYSTEM_CLUSTERSIZE) == 0)
         {
             // 현재 클러스터의 링크를 찾아 다음 클러스터의 인덱스를 얻음
-            if (GetClusterLinkData(pstFileHandle->dwCurrentClusterIndex, &dwNextClusterIndex) == FALSE)
+            if (kGetClusterLinkData(pstFileHandle->dwCurrentClusterIndex, &dwNextClusterIndex) == FALSE)
             {
                 break;
             }
@@ -1030,16 +1030,16 @@ DWORD ReadFile(void *pvBuffer, DWORD dwSize, DWORD dwCount, FILE *pstFile)
         }
     }
 
-    Unlock(&(gs_stFileSystemManager.stMutex));
+    kUnlock(&(gs_stFileSystemManager.stMutex));
 
     return (dwReadCount / dwSize);
 }
 
-static BOOL UpdateDirectoryEntry(FILEHANDLE *pstFileHandle)
+static BOOL kUpdateDirectoryEntry(FILEHANDLE *pstFileHandle)
 {
     DIRECTORYENTRY stEntry;
 
-    if ((pstFileHandle == NULL) || (GetDirectoryEntryData(pstFileHandle->iDirectoryEntryOffset, &stEntry) == FALSE))
+    if ((pstFileHandle == NULL) || (kGetDirectoryEntryData(pstFileHandle->iDirectoryEntryOffset, &stEntry) == FALSE))
     {
         return FALSE;
     }
@@ -1047,7 +1047,7 @@ static BOOL UpdateDirectoryEntry(FILEHANDLE *pstFileHandle)
     stEntry.dwFileSize = pstFileHandle->dwFileSize;
     stEntry.dwStartClusterIndex = pstFileHandle->dwStartClusterIndex;
 
-    if (SetDirectoryEntryData(pstFileHandle->iDirectoryEntryOffset, &stEntry) == FALSE)
+    if (kSetDirectoryEntryData(pstFileHandle->iDirectoryEntryOffset, &stEntry) == FALSE)
     {
         return FALSE;
     }
@@ -1055,7 +1055,7 @@ static BOOL UpdateDirectoryEntry(FILEHANDLE *pstFileHandle)
     return TRUE;
 }
 
-DWORD WriteFile(const void *pvBuffer, DWORD dwSize, DWORD dwCount, FILE *pstFile)
+DWORD kWriteFile(const void *pvBuffer, DWORD dwSize, DWORD dwCount, FILE *pstFile)
 {
     DWORD dwWriteCount;
     DWORD dwTotalCount;
@@ -1073,39 +1073,39 @@ DWORD WriteFile(const void *pvBuffer, DWORD dwSize, DWORD dwCount, FILE *pstFile
 
     dwTotalCount = dwSize * dwCount;
 
-    Lock(&(gs_stFileSystemManager.stMutex));
+    kLock(&(gs_stFileSystemManager.stMutex));
 
     dwWriteCount = 0;
     while (dwWriteCount != dwTotalCount)
     {
         if (pstFileHandle->dwCurrentClusterIndex == FILESYSTEM_LASTCLUSTER)
         {
-            dwAllocatedClusterIndex = FindFreeCluster();
+            dwAllocatedClusterIndex = kFindFreeCluster();
             
             if (dwAllocatedClusterIndex == FILESYSTEM_LASTCLUSTER)
             {
                 break;
             }
 
-            if (SetClusterLinkData(dwAllocatedClusterIndex, FILESYSTEM_LASTCLUSTER) == FALSE)
+            if (kSetClusterLinkData(dwAllocatedClusterIndex, FILESYSTEM_LASTCLUSTER) == FALSE)
             {
                 break;
             }
 
-            if (SetClusterLinkData(pstFileHandle->dwPreviousClusterIndex, dwAllocatedClusterIndex) == FALSE)
+            if (kSetClusterLinkData(pstFileHandle->dwPreviousClusterIndex, dwAllocatedClusterIndex) == FALSE)
             {
-                SetClusterLinkData(dwAllocatedClusterIndex, FILESYSTEM_FREECLUSTER);
+                kSetClusterLinkData(dwAllocatedClusterIndex, FILESYSTEM_FREECLUSTER);
                 break;
             }
 
             pstFileHandle->dwCurrentClusterIndex = dwAllocatedClusterIndex;
 
-            MemSet(gs_vbTempBuffer, 0, FILESYSTEM_LASTCLUSTER);
+            kMemSet(gs_vbTempBuffer, 0, FILESYSTEM_LASTCLUSTER);
         }
 
         else if (((pstFileHandle->dwCurrentOffset % FILESYSTEM_CLUSTERSIZE) != 0) || ((dwTotalCount - dwWriteCount) < FILESYSTEM_CLUSTERSIZE))
         {
-            if (ReadCluster(pstFileHandle->dwCurrentClusterIndex,  gs_vbTempBuffer) == FALSE)
+            if (kReadCluster(pstFileHandle->dwCurrentClusterIndex,  gs_vbTempBuffer) == FALSE)
             {
                 break;
             }
@@ -1115,9 +1115,9 @@ DWORD WriteFile(const void *pvBuffer, DWORD dwSize, DWORD dwCount, FILE *pstFile
 
         dwCopySize = MIN(FILESYSTEM_CLUSTERSIZE - dwOffsetInCluster, dwTotalCount - dwWriteCount);
         
-        MemCpy(gs_vbTempBuffer + dwOffsetInCluster, (char *)pvBuffer + dwWriteCount, dwCopySize);
+        kMemCpy(gs_vbTempBuffer + dwOffsetInCluster, (char *)pvBuffer + dwWriteCount, dwCopySize);
 
-        if (WriteCluster(pstFileHandle->dwCurrentClusterIndex, gs_vbTempBuffer) == FALSE)
+        if (kWriteCluster(pstFileHandle->dwCurrentClusterIndex, gs_vbTempBuffer) == FALSE)
         {
             break;
         }
@@ -1127,7 +1127,7 @@ DWORD WriteFile(const void *pvBuffer, DWORD dwSize, DWORD dwCount, FILE *pstFile
 
         if ((pstFileHandle->dwCurrentOffset % FILESYSTEM_CLUSTERSIZE) == 0)
         {
-            if (GetClusterLinkData(pstFileHandle->dwCurrentClusterIndex, &dwNextClusterIndex) == FALSE)
+            if (kGetClusterLinkData(pstFileHandle->dwCurrentClusterIndex, &dwNextClusterIndex) == FALSE)
             {
                 break;
             }
@@ -1141,15 +1141,15 @@ DWORD WriteFile(const void *pvBuffer, DWORD dwSize, DWORD dwCount, FILE *pstFile
     {
         pstFileHandle->dwFileSize = pstFileHandle->dwCurrentOffset;
         
-        UpdateDirectoryEntry(pstFileHandle);
+        kUpdateDirectoryEntry(pstFileHandle);
     }
 
-    Unlock(&(gs_stFileSystemManager.stMutex));
+    kUnlock(&(gs_stFileSystemManager.stMutex));
 
     return (dwWriteCount / dwSize);
 }
 
-BOOL WriteZero(FILE *pstFile, DWORD dwCount)
+BOOL kWriteZero(FILE *pstFile, DWORD dwCount)
 {
     BYTE *pbBuffer;
     DWORD dwRemainCount;
@@ -1160,34 +1160,34 @@ BOOL WriteZero(FILE *pstFile, DWORD dwCount)
         return FALSE;
     }
 
-    pbBuffer = (BYTE *)AllocateMemory(FILESYSTEM_CLUSTERSIZE);
+    pbBuffer = (BYTE *)kAllocateMemory(FILESYSTEM_CLUSTERSIZE);
     if (pbBuffer == NULL)
     {
         return FALSE;
     }
 
-    MemSet(pbBuffer, 0, FILESYSTEM_CLUSTERSIZE);
+    kMemSet(pbBuffer, 0, FILESYSTEM_CLUSTERSIZE);
     dwRemainCount = dwCount;
 
     while (dwRemainCount != 0)
     {
         dwWriteCount = MIN(dwRemainCount, FILESYSTEM_CLUSTERSIZE);
         
-        if (WriteFile(pbBuffer, 1, dwWriteCount, pstFile) != dwWriteCount)
+        if (kWriteFile(pbBuffer, 1, dwWriteCount, pstFile) != dwWriteCount)
         {
-            FreeMemory(pbBuffer);
+            kFreeMemory(pbBuffer);
             return FALSE;
         }
         
         dwRemainCount -= dwWriteCount;
     }
     
-    FreeMemory(pbBuffer);
+    kFreeMemory(pbBuffer);
     
     return TRUE;
 }
 
-int SeekFile(FILE *pstFile, int iOffset, int iOrigin)
+int kSeekFile(FILE *pstFile, int iOffset, int iOrigin)
 {
     DWORD dwRealOffset;
     DWORD dwClusterOffsetToMove;
@@ -1266,7 +1266,7 @@ int SeekFile(FILE *pstFile, int iOffset, int iOrigin)
         dwStartClusterIndex = pstFileHandle->dwStartClusterIndex;
     }
 
-    Lock(&(gs_stFileSystemManager.stMutex));
+    kLock(&(gs_stFileSystemManager.stMutex));
 
     dwCurrentClusterIndex = dwStartClusterIndex;
     
@@ -1274,10 +1274,10 @@ int SeekFile(FILE *pstFile, int iOffset, int iOrigin)
     {
         dwPreviousClusterIndex = dwCurrentClusterIndex;
 
-        if (GetClusterLinkData(dwPreviousClusterIndex, &dwCurrentClusterIndex) ==
+        if (kGetClusterLinkData(dwPreviousClusterIndex, &dwCurrentClusterIndex) ==
             FALSE)
         {
-            Unlock(&(gs_stFileSystemManager.stMutex));
+            kUnlock(&(gs_stFileSystemManager.stMutex));
             return -1;
         }
     }
@@ -1296,9 +1296,9 @@ int SeekFile(FILE *pstFile, int iOffset, int iOrigin)
     if (dwLastClusterOffset < dwClusterOffsetToMove)
     {
         pstFileHandle->dwCurrentOffset = pstFileHandle->dwFileSize;
-        Unlock(&(gs_stFileSystemManager.stMutex));
+        kUnlock(&(gs_stFileSystemManager.stMutex));
 
-        if (WriteZero(pstFile, dwRealOffset - pstFileHandle->dwFileSize) == FALSE)
+        if (kWriteZero(pstFile, dwRealOffset - pstFileHandle->dwFileSize) == FALSE)
         {
             return 0;
         }
@@ -1306,24 +1306,24 @@ int SeekFile(FILE *pstFile, int iOffset, int iOrigin)
 
     pstFileHandle->dwCurrentOffset = dwRealOffset;
 
-    Unlock(&(gs_stFileSystemManager.stMutex));
+    kUnlock(&(gs_stFileSystemManager.stMutex));
 
     return 0;
 }
 
-int CloseFile(FILE *pstFile)
+int kCloseFile(FILE *pstFile)
 {
     if ((pstFile == NULL) || (pstFile->bType != FILESYSTEM_TYPE_FILE))
     {
         return -1;
     }
 
-    FreeFileDirectoryHandle(pstFile);
+    kFreeFileDirectoryHandle(pstFile);
     
     return 0;
 }
 
-BOOL IsFileOpened(const DIRECTORYENTRY *pstEntry)
+BOOL kIsFileOpened(const DIRECTORYENTRY *pstEntry)
 {
     int i;
     FILE *pstFile;
@@ -1341,83 +1341,83 @@ BOOL IsFileOpened(const DIRECTORYENTRY *pstEntry)
     return FALSE;
 }
 
-int RemoveFile(const char *pcFileName)
+int kRemoveFile(const char *pcFileName)
 {
     DIRECTORYENTRY stEntry;
     int iDirectoryEntryOffset;
     int iFileNameLength;
 
-    iFileNameLength = StrLen(pcFileName);
+    iFileNameLength = kStrLen(pcFileName);
     
     if ((iFileNameLength > (sizeof(stEntry.vcFileName) - 1)) || (iFileNameLength == 0))
     {
         return NULL;
     }
 
-    Lock(&(gs_stFileSystemManager.stMutex));
+    kLock(&(gs_stFileSystemManager.stMutex));
 
-    iDirectoryEntryOffset = FindDirectoryEntry(pcFileName, &stEntry);
+    iDirectoryEntryOffset = kFindDirectoryEntry(pcFileName, &stEntry);
     
     if (iDirectoryEntryOffset == -1)
     {
-        Unlock(&(gs_stFileSystemManager.stMutex));
+        kUnlock(&(gs_stFileSystemManager.stMutex));
         return -1;
     }
 
-    if (IsFileOpened(&stEntry) == TRUE)
+    if (kIsFileOpened(&stEntry) == TRUE)
     {
-        Unlock(&(gs_stFileSystemManager.stMutex));
+        kUnlock(&(gs_stFileSystemManager.stMutex));
         return -1;
     }
 
-    if (FreeClusterUntilEnd(stEntry.dwStartClusterIndex) == FALSE)
+    if (kFreeClusterUntilEnd(stEntry.dwStartClusterIndex) == FALSE)
     {
-        Unlock(&(gs_stFileSystemManager.stMutex));
+        kUnlock(&(gs_stFileSystemManager.stMutex));
         return -1;
     }
 
-    MemSet(&stEntry, 0, sizeof(stEntry));
+    kMemSet(&stEntry, 0, sizeof(stEntry));
     
-    if (SetDirectoryEntryData(iDirectoryEntryOffset, &stEntry) == FALSE)
+    if (kSetDirectoryEntryData(iDirectoryEntryOffset, &stEntry) == FALSE)
     {
-        Unlock(&(gs_stFileSystemManager.stMutex));
+        kUnlock(&(gs_stFileSystemManager.stMutex));
         return -1;
     }
 
-    Unlock(&(gs_stFileSystemManager.stMutex));
+    kUnlock(&(gs_stFileSystemManager.stMutex));
     return 0;
 }
 
-DIR *OpenDirectory(const char *pcDirectoryName)
+DIR *kOpenDirectory(const char *pcDirectoryName)
 {
     DIR *pstDirectory;
     DIRECTORYENTRY *pstDirectoryBuffer;
 
-    Lock(&(gs_stFileSystemManager.stMutex));
+    kLock(&(gs_stFileSystemManager.stMutex));
 
-    pstDirectory = AllocateFileDirectoryHandle();
+    pstDirectory = kAllocateFileDirectoryHandle();
     
     if (pstDirectory == NULL)
     {
-        Unlock(&(gs_stFileSystemManager.stMutex));
+        kUnlock(&(gs_stFileSystemManager.stMutex));
         return NULL;
     }
 
-    pstDirectoryBuffer = (DIRECTORYENTRY *)AllocateMemory(FILESYSTEM_CLUSTERSIZE);
+    pstDirectoryBuffer = (DIRECTORYENTRY *)kAllocateMemory(FILESYSTEM_CLUSTERSIZE);
     
     if (pstDirectoryBuffer == NULL)
     {
-        FreeFileDirectoryHandle(pstDirectory);
-        Unlock(&(gs_stFileSystemManager.stMutex));
+        kFreeFileDirectoryHandle(pstDirectory);
+        kUnlock(&(gs_stFileSystemManager.stMutex));
         return NULL;
     }
 
-    if (ReadCluster(0, (BYTE *)pstDirectoryBuffer) == FALSE)
+    if (kReadCluster(0, (BYTE *)pstDirectoryBuffer) == FALSE)
     {
-        FreeFileDirectoryHandle(pstDirectory);
-        FreeMemory(pstDirectoryBuffer);
+        kFreeFileDirectoryHandle(pstDirectory);
+        kFreeMemory(pstDirectoryBuffer);
 
-        Unlock(&(gs_stFileSystemManager.stMutex));
+        kUnlock(&(gs_stFileSystemManager.stMutex));
         return NULL;
     }
 
@@ -1425,12 +1425,12 @@ DIR *OpenDirectory(const char *pcDirectoryName)
     pstDirectory->stDirectoryHandle.iCurrentOffset = 0;
     pstDirectory->stDirectoryHandle.pstDirectoryBuffer = pstDirectoryBuffer;
 
-    Unlock(&(gs_stFileSystemManager.stMutex));
+    kUnlock(&(gs_stFileSystemManager.stMutex));
     
     return pstDirectory;
 }
 
-struct DirectoryEntryStruct *ReadDirectory(DIR *pstDirectory)
+struct DirectoryEntryStruct *kReadDirectory(DIR *pstDirectory)
 {
     DIRECTORYHANDLE *pstDirectoryHandle;
     DIRECTORYENTRY *pstEntry;
@@ -1447,7 +1447,7 @@ struct DirectoryEntryStruct *ReadDirectory(DIR *pstDirectory)
         return NULL;
     }
 
-    Lock(&(gs_stFileSystemManager.stMutex));
+    kLock(&(gs_stFileSystemManager.stMutex));
 
     pstEntry = pstDirectoryHandle->pstDirectoryBuffer;
     
@@ -1455,19 +1455,19 @@ struct DirectoryEntryStruct *ReadDirectory(DIR *pstDirectory)
     {
         if (pstEntry[pstDirectoryHandle->iCurrentOffset].dwStartClusterIndex != 0)
         {
-            Unlock(&(gs_stFileSystemManager.stMutex));
+            kUnlock(&(gs_stFileSystemManager.stMutex));
             return &(pstEntry[pstDirectoryHandle->iCurrentOffset++]);
         }
 
         pstDirectoryHandle->iCurrentOffset++;
     }
 
-    Unlock(&(gs_stFileSystemManager.stMutex));
+    kUnlock(&(gs_stFileSystemManager.stMutex));
     
     return NULL;
 }
 
-void RewindDirectory(DIR *pstDirectory)
+void kRewindDirectory(DIR *pstDirectory)
 {
     DIRECTORYHANDLE *pstDirectoryHandle;
 
@@ -1478,15 +1478,15 @@ void RewindDirectory(DIR *pstDirectory)
     
     pstDirectoryHandle = &(pstDirectory->stDirectoryHandle);
 
-    Lock(&(gs_stFileSystemManager.stMutex));
+    kLock(&(gs_stFileSystemManager.stMutex));
 
     pstDirectoryHandle->iCurrentOffset = 0;
 
-    Unlock(&(gs_stFileSystemManager.stMutex));
+    kUnlock(&(gs_stFileSystemManager.stMutex));
 }
 
 
-int CloseDirectory(DIR *pstDirectory)
+int kCloseDirectory(DIR *pstDirectory)
 {
     DIRECTORYHANDLE *pstDirectoryHandle;
 
@@ -1497,17 +1497,17 @@ int CloseDirectory(DIR *pstDirectory)
     
     pstDirectoryHandle = &(pstDirectory->stDirectoryHandle);
 
-    Lock(&(gs_stFileSystemManager.stMutex));
+    kLock(&(gs_stFileSystemManager.stMutex));
 
-    FreeMemory(pstDirectoryHandle->pstDirectoryBuffer);
-    FreeFileDirectoryHandle(pstDirectory);
+    kFreeMemory(pstDirectoryHandle->pstDirectoryBuffer);
+    kFreeFileDirectoryHandle(pstDirectory);
 
-    Unlock(&(gs_stFileSystemManager.stMutex));
+    kUnlock(&(gs_stFileSystemManager.stMutex));
 
     return 0;
 }
 
-BOOL FlushFileSystemCache(void)
+BOOL kFlushFileSystemCache(void)
 {
     CACHEBUFFER *pstCacheBuffer;
     int iCacheCount;
@@ -1518,15 +1518,15 @@ BOOL FlushFileSystemCache(void)
         return TRUE;
     }
 
-    Lock(&(gs_stFileSystemManager.stMutex));
+    kLock(&(gs_stFileSystemManager.stMutex));
 
-    GetCacheBufferAndCount(CACHE_CLUSTERLINKTABLEAREA, &pstCacheBuffer, &iCacheCount);
+    kGetCacheBufferAndCount(CACHE_CLUSTERLINKTABLEAREA, &pstCacheBuffer, &iCacheCount);
     
     for (i = 0; i < iCacheCount; i++)
     {
         if (pstCacheBuffer[i].bChanged == TRUE)
         {
-            if (InternalWriteClusterLinkTableWithoutCache(pstCacheBuffer[i].dwTag, pstCacheBuffer[i].pbBuffer) == FALSE)
+            if (kInternalkkWriteClusterLinkTableWithoutCache(pstCacheBuffer[i].dwTag, pstCacheBuffer[i].pbBuffer) == FALSE)
             {
                 return FALSE;
             }
@@ -1535,13 +1535,13 @@ BOOL FlushFileSystemCache(void)
         }
     }
 
-    GetCacheBufferAndCount(CACHE_DATAAREA, &pstCacheBuffer, &iCacheCount);
+    kGetCacheBufferAndCount(CACHE_DATAAREA, &pstCacheBuffer, &iCacheCount);
     
     for (i = 0; i < iCacheCount; i++)
     {
         if (pstCacheBuffer[i].bChanged == TRUE)
         {
-            if (InternalWriteClusterWithoutCache(pstCacheBuffer[i].dwTag, pstCacheBuffer[i].pbBuffer) == FALSE)
+            if (kInternalkWriteClusterWithoutCache(pstCacheBuffer[i].dwTag, pstCacheBuffer[i].pbBuffer) == FALSE)
             {
                 return FALSE;
             }
@@ -1550,7 +1550,7 @@ BOOL FlushFileSystemCache(void)
         }
     }
 
-    Unlock(&(gs_stFileSystemManager.stMutex));
+    kUnlock(&(gs_stFileSystemManager.stMutex));
     
     return TRUE;
 }

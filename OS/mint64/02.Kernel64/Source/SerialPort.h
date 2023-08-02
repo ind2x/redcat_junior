@@ -70,13 +70,13 @@ typedef struct SerialPortManager
     MUTEX stLock;
 } SERIALMANAGER;
 
-void InitializeSerialPort(void);
-void SendSerialData(BYTE *pbBuffer, int iSize);
-int ReceiveSerialData(BYTE *pbBuffer, int iSize);
-void ClearSerialFIFO(void);
+void kInitializeSerialPort(void);
+void kSendSerialData(BYTE *pbBuffer, int iSize);
+int kReceiveSerialData(BYTE *pbBuffer, int iSize);
+void kClearSerialFIFO(void);
 
-static BOOL IsSerialTransmitterBufferEmpty(void);
-static BOOL IsSerialReceiveBufferFull(void);
+static BOOL kIsSerialTransmitterBufferEmpty(void);
+static BOOL kIsSerialReceiveBufferFull(void);
 
 
 #endif /*__SERIALPORT_H__*/

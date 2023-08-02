@@ -1,6 +1,6 @@
 NASM = nasm -f elf64
-CC = clang -c -m64 -ffreestanding -msoft-float
-LD = ld -melf_x86_64 -T ../elf_x86_64.x -nostdlib -e Main -Ttext 0x200000
+CC = clang -c -m64 -ffreestanding -msoft-float -Wconstant-conversion
+LD = ld -melf_x86_64 -T ../elf_x86_64.x -e Main -Ttext 0x200000 -nostdlib
 OBJCOPY = objcopy -j .text -j .data -j .rodata -j .bss -S -O binary
 
 OBJECTDIR = Temp

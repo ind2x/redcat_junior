@@ -1,10 +1,11 @@
 #include "Utility.h"
 #include "AssemblyUtility.h"
 #include <stdarg.h>
+#include "VBE.h"
 
 volatile QWORD g_qwTickCount = 0;
 
-void MemSet(void *pvDestination, BYTE bData, int iSize)
+void kMemSet(void *pvDestination, BYTE bData, int iSize)
 {
     int i;
     QWORD qwData;
@@ -35,7 +36,7 @@ void MemSet(void *pvDestination, BYTE bData, int iSize)
  *  메모리를 16bit 특정 값으로 채움
  *      iSize는 채울 16bit 데이터의 개수를 의미
  */
-extern inline void MemSetWord(void *pvDestination, WORD wData, int iWordSize)
+extern inline void kMemSetWord(void *pvDestination, WORD wData, int iWordSize)
 {
     int i;
     QWORD qwData;
@@ -62,7 +63,7 @@ extern inline void MemSetWord(void *pvDestination, WORD wData, int iWordSize)
     }
 }
 
-int MemCpy(void *pvDestination, const void *pvSource, int iSize)
+int kMemCpy(void *pvDestination, const void *pvSource, int iSize)
 {
     int i;
     int iRemainByteStartOffset;
@@ -84,7 +85,7 @@ int MemCpy(void *pvDestination, const void *pvSource, int iSize)
     return iSize;
 }
 
-int MemCmp(const void *pvDestination, const void *pvSource, int iSize)
+int kMemCmp(const void *pvDestination, const void *pvSource, int iSize)
 {
     int i, j;
     int iRemainByteStartOffset;
@@ -127,18 +128,18 @@ int MemCmp(const void *pvDestination, const void *pvSource, int iSize)
 /**
  * 이전 인터럽트 상태 반환
 */
-BOOL SetInterruptFlag(BOOL bEnableInterrupt)
+BOOL kSetInterruptFlag(BOOL bkEnableInterrupt)
 {
     QWORD qwRFLAGS;
 
-    qwRFLAGS = ReadRFLAGS();
-    if (bEnableInterrupt == TRUE)
+    qwRFLAGS = kReadRFLAGS();
+    if (bkEnableInterrupt == TRUE)
     {
-        EnableInterrupt();
+        kEnableInterrupt();
     }
     else
     {
-        DisableInterrupt();
+        kDisableInterrupt();
     }
 
     // 이전 RFLAGS 레지스터의 IF 비트(비트 9)를 확인하여 이전의 인터럽트 상태를 반환
@@ -149,7 +150,7 @@ BOOL SetInterruptFlag(BOOL bEnableInterrupt)
     return FALSE;
 }
 
-int StrLen(const char *pcBuffer)
+int kStrLen(const char *pcBuffer)
 {   
     int i;
 
@@ -166,7 +167,7 @@ int StrLen(const char *pcBuffer)
 
 static QWORD gs_qwTotalRAMMBSize = 0;
 
-void CheckTotalRAMSize(void)
+void kCheckTotalRAMSize(void)
 {
     DWORD *pdwCurrentAddress;
     DWORD dwPreviousValue;
@@ -190,7 +191,7 @@ void CheckTotalRAMSize(void)
     gs_qwTotalRAMMBSize = (QWORD)pdwCurrentAddress / 0x100000;
 }
 
-QWORD GetTotalRAMSize(void)
+QWORD kGetTotalRAMSize(void)
 {
     return gs_qwTotalRAMMBSize;
 }
@@ -198,18 +199,18 @@ QWORD GetTotalRAMSize(void)
 /**
  * atoi --> 문자열을 숫자로 변환
 */
-long AToI(const char *pcBuffer, int iRadix)
+long kAToI(const char *pcBuffer, int iRadix)
 {
     long lReturn;
 
     switch(iRadix)
     {
         case 16:
-            lReturn = HexStringToQword(pcBuffer);
+            lReturn = kHexStringToQword(pcBuffer);
             break;
         case 10:
         default:
-            lReturn = DecimalStringToLong(pcBuffer);
+            lReturn = kDecimalStringToLong(pcBuffer);
             break;
     }
     return lReturn;
@@ -219,7 +220,7 @@ long AToI(const char *pcBuffer, int iRadix)
  * 16진수 문자열을 정수로 바꾸는 함수
  * FF -> 255
 */
-QWORD HexStringToQword(const char *pcBuffer)
+QWORD kHexStringToQword(const char *pcBuffer)
 {
     QWORD qwValue = 0;
     int i;
@@ -248,7 +249,7 @@ QWORD HexStringToQword(const char *pcBuffer)
  * 10진수 문자열을 정수로 바꾸는 함수 (문자열 -> 숫자)
  * 10 -> 10
 */
-long DecimalStringToLong(const char *pcBuffer)
+long kDecimalStringToLong(const char *pcBuffer)
 {
     long lValue = 0;
     int i;
@@ -278,18 +279,18 @@ long DecimalStringToLong(const char *pcBuffer)
 /**
  * itoa -> 숫자를 문자열로
 */
-int IToA(long lValue, char *pcBuffer, int iRadix)
+int kIToA(long lValue, char *pcBuffer, int iRadix)
 {
     int iReturn;
 
     switch(iRadix)
     {
         case 16:
-            iReturn = HexToString(lValue, pcBuffer);
+            iReturn = kHexToString(lValue, pcBuffer);
             break;
         case 10:
         default:
-            iReturn = DecimalToString(lValue, pcBuffer);
+            iReturn = kDecimalToString(lValue, pcBuffer);
             break;
     }
 
@@ -299,7 +300,7 @@ int IToA(long lValue, char *pcBuffer, int iRadix)
 /**
  * 16진수 숫자를 문자열 형태로 변환
 */
-int HexToString(QWORD qwValue, char *pcBuffer)
+int kHexToString(QWORD qwValue, char *pcBuffer)
 {
     QWORD i, qwCurrentValue;
 
@@ -326,14 +327,14 @@ int HexToString(QWORD qwValue, char *pcBuffer)
     }
     pcBuffer[i] = '\0';
 
-    ReverseString(pcBuffer);
+    kReverseString(pcBuffer);
     return i;
 }
 
 /**
  * 10진수 숫자를 문자열 형태로 변환
 */
-int DecimalToString(long lValue, char *pcBuffer)
+int kDecimalToString(long lValue, char *pcBuffer)
 {
     long i;
 
@@ -364,11 +365,11 @@ int DecimalToString(long lValue, char *pcBuffer)
 
     if (pcBuffer[0] == '-') // 음수면 - 부호 빼고 뒤집어서 저장
     {
-        ReverseString(&(pcBuffer[1]));
+        kReverseString(&(pcBuffer[1]));
     }
     else
     {
-        ReverseString(pcBuffer); // 버퍼의 문자열을 뒤집어서 순서대로 저장함
+        kReverseString(pcBuffer); // 버퍼의 문자열을 뒤집어서 순서대로 저장함
     }
 
     return i;
@@ -377,12 +378,12 @@ int DecimalToString(long lValue, char *pcBuffer)
 /**
  * 문자열의 순서를 뒤집는 함수
 */
-void ReverseString(char *pcBuffer)
+void kReverseString(char *pcBuffer)
 {
     int iLength, i;
     char cTemp;
 
-    iLength = StrLen(pcBuffer);
+    iLength = kStrLen(pcBuffer);
     for(i=0; i<iLength/2; i++)
     {
         cTemp = pcBuffer[i];
@@ -391,47 +392,47 @@ void ReverseString(char *pcBuffer)
     }
 }
 
-int SPrintf(char *pcBuffer, const char *pcFormatString, ...)
+int kSPrintf(char *pcBuffer, const char *pckFormatString, ...)
 {
     va_list ap;
     int iReturn;
 
-    va_start(ap, pcFormatString);
-    iReturn = VSPrintf(pcBuffer, pcFormatString, ap);
+    va_start(ap, pckFormatString);
+    iReturn = kVSPrintf(pcBuffer, pckFormatString, ap);
     va_end(ap);
 
     return iReturn;
 }
 
-int VSPrintf(char *pcBuffer, const char *pcFormatString, va_list ap)
+int kVSPrintf(char *pcBuffer, const char *pckFormatString, va_list ap)
 {
     QWORD i, j, k;
     int iBufferIndex = 0;
-    int iFormatLength, iCopyLength;
+    int ikFormatLength, iCopyLength;
     char *pcCopyString;
     QWORD qwValue;
     int iValue;
     double dValue;
 
-    iFormatLength = StrLen(pcFormatString);
+    ikFormatLength = kStrLen(pckFormatString);
 
-    for (i = 0; i < iFormatLength; i++)
+    for (i = 0; i < ikFormatLength; i++)
     {
         // %로 시작하면 데이터 타입 문자로 처리
-        if (pcFormatString[i] == '%')
+        if (pckFormatString[i] == '%')
         {
             // % 다음의 문자로 이동
             i++;
-            switch (pcFormatString[i])
+            switch (pckFormatString[i])
             {
                 // 문자열 출력
             case 's':
                 // 가변 인자에 들어있는 파라미터를 문자열 타입으로 변환
                 pcCopyString = (char *)(va_arg(ap, char *));
-                iCopyLength = StrLen(pcCopyString);
+                iCopyLength = kStrLen(pcCopyString);
                 // 문자열의 길이만큼을 출력 버퍼로 복사하고 출력한 길이만큼
                 // 버퍼의 인덱스를 이동
-                MemCpy(pcBuffer + iBufferIndex, pcCopyString, iCopyLength);
+                kMemCpy(pcBuffer + iBufferIndex, pcCopyString, iCopyLength);
                 iBufferIndex += iCopyLength;
                 break;
 
@@ -449,7 +450,7 @@ int VSPrintf(char *pcBuffer, const char *pcFormatString, va_list ap)
                 // 가변 인자에 들어있는 파라미터를 정수 타입으로 변환하여
                 // 출력 버퍼에 복사하고 출력한 길이만큼 버퍼의 인덱스를 이동
                 iValue = (int)(va_arg(ap, int));
-                iBufferIndex += IToA(iValue, pcBuffer + iBufferIndex, 10);
+                iBufferIndex += kIToA(iValue, pcBuffer + iBufferIndex, 10);
                 break;
 
                 // 4바이트 Hex 출력
@@ -458,7 +459,7 @@ int VSPrintf(char *pcBuffer, const char *pcFormatString, va_list ap)
                 // 가변 인자에 들어있는 파라미터를 DWORD 타입으로 변환하여
                 // 출력 버퍼에 복사하고 출력한 길이만큼 버퍼의 인덱스를 이동
                 qwValue = (DWORD)(va_arg(ap, DWORD)) & 0xFFFFFFFF;
-                iBufferIndex += IToA(qwValue, pcBuffer + iBufferIndex, 16);
+                iBufferIndex += kIToA(qwValue, pcBuffer + iBufferIndex, 16);
                 break;
 
                 // 8바이트 Hex 출력
@@ -468,7 +469,7 @@ int VSPrintf(char *pcBuffer, const char *pcFormatString, va_list ap)
                 // 가변 인자에 들어있는 파라미터를 QWORD 타입으로 변환하여
                 // 출력 버퍼에 복사하고 출력한 길이만큼 버퍼의 인덱스를 이동
                 qwValue = (QWORD)(va_arg(ap, QWORD));
-                iBufferIndex += IToA(qwValue, pcBuffer + iBufferIndex, 16);
+                iBufferIndex += kIToA(qwValue, pcBuffer + iBufferIndex, 16);
                 break;
 
                 // 위에 해당하지 않으면 문자를 그대로 출력하고 버퍼의 인덱스를
@@ -494,11 +495,11 @@ int VSPrintf(char *pcBuffer, const char *pcFormatString, va_list ap)
                 }
                 
                 pcBuffer[ iBufferIndex + 3 + k ] = '\0';
-                ReverseString( pcBuffer + iBufferIndex );
+                kReverseString( pcBuffer + iBufferIndex );
                 iBufferIndex += 3 + k;
                 break;
             default:
-                pcBuffer[iBufferIndex] = pcFormatString[i];
+                pcBuffer[iBufferIndex] = pckFormatString[i];
                 iBufferIndex++;
                 break;
             }
@@ -507,7 +508,7 @@ int VSPrintf(char *pcBuffer, const char *pcFormatString, va_list ap)
         else
         {
             // 문자를 그대로 출력하고 버퍼의 인덱스를 1만큼 이동
-            pcBuffer[iBufferIndex] = pcFormatString[i];
+            pcBuffer[iBufferIndex] = pckFormatString[i];
             iBufferIndex++;
         }
     }
@@ -517,12 +518,12 @@ int VSPrintf(char *pcBuffer, const char *pcFormatString, va_list ap)
     return iBufferIndex;
 }
 
-QWORD GetTickCount(void)
+QWORD kGetTickCount(void)
 {
     return g_qwTickCount;
 }
 
-void Sleep(QWORD qwMillisecond)
+void kSleep(QWORD qwMillisecond)
 {
     QWORD qwLastTickCount;
 
@@ -530,6 +531,20 @@ void Sleep(QWORD qwMillisecond)
 
     while ((g_qwTickCount - qwLastTickCount) <= qwMillisecond)
     {
-        Schedule();
+        kSchedule();
     }
+}
+
+/**
+ *  그래픽 모드인지 여부를 반환
+ */
+BOOL kIsGraphicMode(void)
+{
+    // 그래픽 모드 시작 여부가 저장된 어드레스(0x7C0A)
+    if (*(BYTE *)VBE_STARTGRAPHICMODEFLAGADDRESS == 0)
+    {
+        return FALSE;
+    }
+
+    return TRUE;
 }

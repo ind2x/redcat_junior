@@ -41,8 +41,8 @@
 // 카운터0 을 직접 읽기 위해서 사전에 보내야 하는 명령어
 #define PIT_COUNTER0_LATCH (PIT_CONTROL_COUNTER0 | PIT_CONTROL_LATCH)
 
-void InitializePIT(WORD wCount, BOOL bPeriodic);
-WORD ReadCounter0(void);
-void WaitUsingDirectPIT(WORD wCount);
+void kInitializePIT(WORD wCount, BOOL bPeriodic);
+WORD kReadCounter0(void);
+void kWaitUsingDirectPIT(WORD wCount);
 
 #endif /*__PIT_H__*/

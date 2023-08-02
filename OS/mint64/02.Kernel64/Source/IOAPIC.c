@@ -7,14 +7,14 @@
 
 static IOAPICMANAGER gs_stIOAPICManager;
 
-QWORD GetIOAPICBaseAddressOfISA( void )
+QWORD kGetIOAPICBaseAddressOfISA( void )
 {
     MPCONFIGURATIONMANAGER* pstMPManager;
     IOAPICENTRY* pstIOAPICEntry;
     
     if( gs_stIOAPICManager.qwIOAPICBaseAddressOfISA == NULL )
     {
-        pstIOAPICEntry = FindIOAPICEntryForISA();
+        pstIOAPICEntry = kFindIOAPICEntryForISA();
         if( pstIOAPICEntry != NULL )
         {
             gs_stIOAPICManager.qwIOAPICBaseAddressOfISA = pstIOAPICEntry->dwMemoryMapAddress & 0xFFFFFFFF;
@@ -25,9 +25,9 @@ QWORD GetIOAPICBaseAddressOfISA( void )
 }
 
 
-void SetIOAPICRedirectionEntry( IOREDIRECTIONTABLE* pstEntry, BYTE bAPICID, BYTE bInterruptMask, BYTE bFlagsAndDeliveryMode, BYTE bVector )
+void kSetIOAPICRedirectionEntry( IOREDIRECTIONTABLE* pstEntry, BYTE bAPICID, BYTE bInterruptMask, BYTE bFlagsAndDeliveryMode, BYTE bVector )
 {
-    MemSet( pstEntry, 0, sizeof( IOREDIRECTIONTABLE ) );
+    kMemSet( pstEntry, 0, sizeof( IOREDIRECTIONTABLE ) );
     
     pstEntry->bDestination = bAPICID;
     pstEntry->bFlagsAndDeliveryMode = bFlagsAndDeliveryMode;
@@ -36,12 +36,12 @@ void SetIOAPICRedirectionEntry( IOREDIRECTIONTABLE* pstEntry, BYTE bAPICID, BYTE
 }
 
 
-void ReadIOAPICRedirectionTable( int iINTIN, IOREDIRECTIONTABLE* pstEntry )
+void kReadIOAPICRedirectionTable( int iINTIN, IOREDIRECTIONTABLE* pstEntry )
 {
     QWORD* pqwData;
     QWORD qwIOAPICBaseAddress;
     
-    qwIOAPICBaseAddress = GetIOAPICBaseAddressOfISA();
+    qwIOAPICBaseAddress = kGetIOAPICBaseAddressOfISA();
     
     pqwData = ( QWORD* ) pstEntry;
     
@@ -57,12 +57,12 @@ void ReadIOAPICRedirectionTable( int iINTIN, IOREDIRECTIONTABLE* pstEntry )
     *pqwData |= *( DWORD* ) ( qwIOAPICBaseAddress + IOAPIC_REGISTER_IOWINDOW );
 }
 
-void WriteIOAPICRedirectionTable( int iINTIN, IOREDIRECTIONTABLE* pstEntry )
+void kWriteIOAPICRedirectionTable( int iINTIN, IOREDIRECTIONTABLE* pstEntry )
 {
     QWORD* pqwData;
     QWORD qwIOAPICBaseAddress;
     
-    qwIOAPICBaseAddress = GetIOAPICBaseAddressOfISA();
+    qwIOAPICBaseAddress = kGetIOAPICBaseAddressOfISA();
 
     pqwData = ( QWORD* ) pstEntry;
     
@@ -78,7 +78,7 @@ void WriteIOAPICRedirectionTable( int iINTIN, IOREDIRECTIONTABLE* pstEntry )
 }
 
 
-void MaskAllInterruptInIOAPIC( void )
+void kMaskAllInterruptInIOAPIC( void )
 {
     IOREDIRECTIONTABLE stEntry;
     int i;
@@ -86,14 +86,14 @@ void MaskAllInterruptInIOAPIC( void )
     for( i = 0 ; i < IOAPIC_MAXIOREDIRECTIONTABLECOUNT ; i++ )
     {
 
-        ReadIOAPICRedirectionTable( i, &stEntry );
+        kReadIOAPICRedirectionTable( i, &stEntry );
         stEntry.bInterruptMask = IOAPIC_INTERRUPT_MASK;
         
-        WriteIOAPICRedirectionTable( i, &stEntry );
+        kWriteIOAPICRedirectionTable( i, &stEntry );
     }
 }
 
-void InitializeIORedirectionTable( void )
+void kInitializeIORedirectionTable( void )
 {
     MPCONFIGURATIONMANAGER* pstMPManager;
     MPCONFIGURATIONTABLEHEADER* pstMPHeader;
@@ -105,18 +105,18 @@ void InitializeIORedirectionTable( void )
     int i;
 
 
-    MemSet( &gs_stIOAPICManager, 0, sizeof( gs_stIOAPICManager ) );
+    kMemSet( &gs_stIOAPICManager, 0, sizeof( gs_stIOAPICManager ) );
     
-    GetIOAPICBaseAddressOfISA();
+    kGetIOAPICBaseAddressOfISA();
     
     for( i = 0 ; i < IOAPIC_MAXIRQTOINTINMAPCOUNT ; i++ )
     {
         gs_stIOAPICManager.vbIRQToINTINMap[ i ] = 0xFF;
     }
     
-    MaskAllInterruptInIOAPIC();
+    kMaskAllInterruptInIOAPIC();
     
-    pstMPManager = GetMPConfigurationManager();
+    pstMPManager = kGetMPConfigurationManager();
     pstMPHeader = pstMPManager->pstMPConfigurationTableHeader;
     qwEntryAddress = pstMPManager->qwBaseEntryStartAddress;
     
@@ -142,9 +142,9 @@ void InitializeIORedirectionTable( void )
                     bDestination = 0x00;
                 }
                 
-                SetIOAPICRedirectionEntry( &stIORedirectionEntry, bDestination, 0x00, IOAPIC_TRIGGERMODE_EDGE | IOAPIC_POLARITY_ACTIVEHIGH | IOAPIC_DESTINATIONMODE_PHYSICALMODE | IOAPIC_DELIVERYMODE_FIXED, PIC_IRQSTARTVECTOR + pstIOAssignmentEntry->bSourceBUSIRQ );
+                kSetIOAPICRedirectionEntry( &stIORedirectionEntry, bDestination, 0x00, IOAPIC_TRIGGERMODE_EDGE | IOAPIC_POLARITY_ACTIVEHIGH | IOAPIC_DESTINATIONMODE_PHYSICALMODE | IOAPIC_DELIVERYMODE_FIXED, PIC_IRQSTARTVECTOR + pstIOAssignmentEntry->bSourceBUSIRQ );
 
-                WriteIOAPICRedirectionTable( pstIOAssignmentEntry->bDestinationIOAPICINTIN, &stIORedirectionEntry );
+                kWriteIOAPICRedirectionTable( pstIOAssignmentEntry->bDestinationIOAPICINTIN, &stIORedirectionEntry );
                 
                 gs_stIOAPICManager.vbIRQToINTINMap[ pstIOAssignmentEntry->bSourceBUSIRQ ] = pstIOAssignmentEntry->bDestinationIOAPICINTIN;                
             }                    
@@ -165,19 +165,19 @@ void InitializeIORedirectionTable( void )
     }  
 }
 
-void PrintIRQToINTINMap( void )
+void kPrintIRQToINTINMap( void )
 {
     int i;
     
-    Printf( "=========== IRQ To I/O APIC INT IN Mapping Table ===========\n" );
+    kPrintf( "=========== IRQ To I/O APIC INT IN Mapping Table ===========\n" );
     
     for( i = 0 ; i < IOAPIC_MAXIRQTOINTINMAPCOUNT ; i++ )
     {
-        Printf( "[*] IRQ[%d] -> INTIN [%d]\n", i, gs_stIOAPICManager.vbIRQToINTINMap[ i ] );
+        kPrintf( "[*] IRQ[%d] -> INTIN [%d]\n", i, gs_stIOAPICManager.vbIRQToINTINMap[ i ] );
     }
 }
 
-void RoutingIRQToAPICID(int iIRQ, BYTE bAPICID)
+void kRoutingIRQToAPICID(int iIRQ, BYTE bAPICID)
 {
     int i;
     IOREDIRECTIONTABLE stEntry;
@@ -189,7 +189,7 @@ void RoutingIRQToAPICID(int iIRQ, BYTE bAPICID)
     }
 
     // 설정된 I/O 리다이렉션 테이블을 읽어서 목적지(Destination) 필드만 수정
-    ReadIOAPICRedirectionTable(gs_stIOAPICManager.vbIRQToINTINMap[iIRQ], &stEntry);
+    kReadIOAPICRedirectionTable(gs_stIOAPICManager.vbIRQToINTINMap[iIRQ], &stEntry);
     stEntry.bDestination = bAPICID;
-    WriteIOAPICRedirectionTable(gs_stIOAPICManager.vbIRQToINTINMap[iIRQ], &stEntry);
+    kWriteIOAPICRedirectionTable(gs_stIOAPICManager.vbIRQToINTINMap[iIRQ], &stEntry);
 }

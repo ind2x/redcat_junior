@@ -1,3 +1,11 @@
+/**
+ *  file    2DGraphics.h
+ *  date    2009/09/5
+ *  author  kkamagui
+ *          Copyright(c)2008 All rights reserved by kkamagui
+ *  brief   2D Graphic에 대한 헤더 파일
+ */
+
 #ifndef __2DGRAPHICS_H__
 #define __2DGRAPHICS_H__
 
@@ -14,13 +22,66 @@ typedef WORD COLOR;
 // 0~255 범위의 R, G, B를 16비트 색 형식으로 변환하는 매크로
 // 0~255의 범위를 0~31, 0~63으로 축소하여 사용하므로 각각 8과 4로 나누어줘야 함
 // 나누기 8과 나누기 4는 >> 3과 >> 2로 대체
-#define RGB(r, g, b) (((BYTE)(r) >> 3) << 11 | (((BYTE)(g) >> 2)) << 5 | ((BYTE)(b) >> 3))
+#define RGB(r, g, b) (((BYTE)(r) >> 3) << 11 | \
+                      (((BYTE)(g) >> 2)) << 5 | ((BYTE)(b) >> 3))
 
+////////////////////////////////////////////////////////////////////////////////
+//
+// 구조체
+//
+////////////////////////////////////////////////////////////////////////////////
+// 사각형의 정보를 담는 자료구조
+typedef struct kRectangleStruct
+{
+    // 왼쪽 위(시작점)의 X 좌표
+    int iX1;
+    // 왼쪽 위(시작점)의 Y 좌표
+    int iY1;
 
-extern inline void DrawPixel(int iX, int iY, COLOR stColor);
-void DrawLine(int iX1, int iY1, int iX2, int iY2, COLOR stColor);
-void DrawRect(int iX1, int iY1, int iX2, int iY2, COLOR stColor, BOOL bFill);
-void DrawCircle(int iX, int iY, int iRadius, COLOR stColor, BOOL bFill);
-void DrawText(int iX, int iY, COLOR stTextColor, COLOR stBackgroundColor, const char *pcString, int iLength);
+    // 오른쪽 아래(끝점)의 X 좌표
+    int iX2;
+    // 오른쪽 아래(끝점)의 Y좌표
+    int iY2;
+} RECT;
+
+// 점의 정보를 담는 자료구조
+typedef struct kPointStruct
+{
+    // X와 Y의 좌표
+    int iX;
+    int iY;
+} POINT;
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// 함수
+//
+////////////////////////////////////////////////////////////////////////////////
+extern inline void kInternalDrawPixel(const RECT *pstMemoryArea, COLOR *pstMemoryAddress,
+                               int iX, int iY, COLOR stColor);
+void kInternalDrawLine(const RECT *pstMemoryArea, COLOR *pstMemoryAddress,
+                       int iX1, int iY1, int iX2, int iY2, COLOR stColor);
+void kInternalDrawRect(const RECT *pstMemoryArea, COLOR *pstMemoryAddress,
+                       int iX1, int iY1, int iX2, int iY2, COLOR stColor, BOOL bFill);
+void kInternalDrawCircle(const RECT *pstMemoryArea, COLOR *pstMemoryAddress,
+                         int iX, int iY, int iRadius, COLOR stColor, BOOL bFill);
+void kInternalDrawText(const RECT *pstMemoryArea, COLOR *pstMemoryAddress,
+                       int iX, int iY, COLOR stTextColor, COLOR stBackgroundColor,
+                       const char *pcString, int iLength);
+void kInternalDrawEnglishText(const RECT *pstMemoryArea, COLOR *pstMemoryAddress,
+                              int iX, int iY, COLOR stTextColor, COLOR stBackgroundColor,
+                              const char *pcString, int iLength);
+void kInternalDrawHangulText(const RECT *pstMemoryArea, COLOR *pstMemoryAddress,
+                             int iX, int iY, COLOR stTextColor, COLOR stBackgroundColor,
+                             const char *pcString, int iLength);
+
+extern inline BOOL kIsInRectangle(const RECT *pstArea, int iX, int iY);
+extern inline int kGetRectangleWidth(const RECT *pstArea);
+extern inline int kGetRectangleHeight(const RECT *pstArea);
+extern inline void kSetRectangleData(int iX1, int iY1, int iX2, int iY2, RECT *pstRect);
+extern inline BOOL kGetOverlappedRectangle(const RECT *pstArea1, const RECT *pstArea2,
+                                    RECT *pstIntersection);
+extern inline BOOL kIsRectangleOverlapped(const RECT *pstArea1,
+                                   const RECT *pstArea2);
 
 #endif /*__2DGRAPHICS_H__*/
