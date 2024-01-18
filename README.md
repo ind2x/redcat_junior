@@ -26,7 +26,7 @@
 
 + llvm ? : <a href="https://zeddios.tistory.com/1175">zeddios.tistory.com/1175</a>
 
-+ Compile : <a href="https://bradbury.tistory.com/226">bradbury.tistory.com/226</a>
++ Compile : <a href="https://bradbury.tistory.com/226">bradbury.tistory.com/226</a>, <a href="https://bradbury.tistory.com/224">bradbury.tistory.com/224</a>
 
 + tutorial: <a href="https://releases.llvm.org/14.0.0/docs/tutorial/index.html">releases.llvm.org/14.0.0/docs/tutorial/index.html</a>
   + clang 버전에 맞춰서 document를 봐야 함. <a href="https://releases.llvm.org/" target="_blank">releases.llvm.org/</a> 
