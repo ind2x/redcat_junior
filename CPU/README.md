@@ -19,8 +19,8 @@
 + Nand2Tetris II
   + Week  7 : ```Virtual Machine I: Stack Arithmetic```
   + Week  8 : ```Virtual Machine II: Program Control```
-  + Week  9 : High-Level Language
-  + Week 10 : ```Compiler I: Syntax Analysis```             <==
+  + Week  9 : High-Level Language    --> 간단한 CatMarioGame 제작
+  + Week 10 : ```Compiler I: Syntax Analysis```           
   + Week 11 : ```Compiler II: Code Generation```
   + Week 12 : Operating System
   + Week 13 : ```PostScript: More Fun to Go```
