@@ -1,1 +1,1 @@
-https://cdn.discordapp.com/attachments/1029743705168564340/1063318633050296420/-_Clipchamp_.gif?ex=665956a5&is=66580525&hm=6e8946cd86a1e9c601008c566e4a576bb3f19e3896374efe82c710776bb0e407&
+![image](https://github.com/ind2x/redcat_junior/assets/52172169/b51a2d23-22e8-4224-9402-44191fd13502)
