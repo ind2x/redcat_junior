@@ -8,6 +8,8 @@ MINT64 OS 홈페이지 : http://jsandroidapp.cafe24.com/xe/index
 
 환경 : win11 wsl2 Ubuntu 20.04 / qemu 4.x
 
+내용은 1권까지만 정리하고 2권부터는 정리하기에는 너무 양도 많고 오래걸려서 안하기로 결정. (2권까지 완료)
+
 <br>
 <hr style="border: 2px solid;">
 <br>
