@@ -19,11 +19,11 @@
 + Nand2Tetris II
   + Week  7 : ```Virtual Machine I: Stack Arithmetic```
   + Week  8 : ```Virtual Machine II: Program Control```
-  + Week  9 : High-Level Language    --> 간단한 CatMarioGame 제작
+  + Week  9 : High-Level Language                --> 간단한 CatMarioGame 제작
   + Week 10 : ```Compiler I: Syntax Analysis```           
   + Week 11 : ```Compiler II: Code Generation```
-  + Week 12 : Operating System
-  + Week 13 : ```PostScript: More Fun to Go```
+  + Week 12 : Operating System                   --> 어렵기도 하고 11주차 프로젝트가 끝나고 너무 힘들어서 의욕 부족으로 종료.. 
+  + Week 13 : ```PostScript: More Fun to Go```   --> 별 내용이 없었음
 
 <br><hr style="border: 2px solid;"><br>
 
