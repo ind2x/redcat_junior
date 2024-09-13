@@ -2,11 +2,15 @@
 
 <br>
 
+하드웨어에서부터 소프트웨어에 이르기까지 컴퓨터 시스템의 모든 핵심 요소를 직접 설계하고 구축하는 과정
+
+"NAND" 게이트에서 시작해 "Tetris"와 같은 고급 애플리케이션까지 구축한다는 의미
+
 정리된 내용과 사진 등 모든 출처: Nand2Tetris 강좌와 강좌 PDF 자료, The Elemens Of Computing System 책 PDF 자료
 
 <br>
 
-+ Nand2Tetris I
++ Nand2Tetris I => 하드웨어 
   + Week  1 : Boolean Functions and Gate Logic
   + Week  2 : Boolean Arithmetic and the ALU
   + Week  3 : Memory
@@ -16,7 +20,7 @@
 
 <br>
 
-+ Nand2Tetris II
++ Nand2Tetris II => 소ㅡ트웨어
   + Week  7 : ```Virtual Machine I: Stack Arithmetic```
   + Week  8 : ```Virtual Machine II: Program Control```
   + Week  9 : High-Level Language                --> 간단한 CatMarioGame 제작
